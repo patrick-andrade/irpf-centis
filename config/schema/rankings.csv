@@ -1,0 +1,12 @@
+ranking_id,roman,table_number,label,definition,primary,year_min,year_max
+RTB,I,1,Renda Tributável Bruta,Rendimentos tributáveis brutos declarados,0,2017,
+RB1,II,2,Renda ampliada 1,RTB + rendimentos de sócio ou titular de MPE + lucros e dividendos,0,2017,
+RB2,III,3,Renda ampliada 2,RB1 + rendimentos sujeitos à tributação exclusiva ou definitiva,0,2017,
+RB3,IV,4,Renda ampliada 3,RB2 + parcelas isentas selecionadas de aposentadoria atividade rural poupança e incorporações,0,2017,
+RB4,V,5,Renda ampla sem transferências patrimoniais,RTB + rendimentos isentos + exclusivos ou definitivos - doações e heranças,1,2017,
+RB5,VI,6,Rendimentos empresariais isentos,Lucros e dividendos + rendimentos de sócio ou titular de MPE optante pelo Simples,0,2017,
+RB6,VII,7,Base e capital 1,Base de cálculo + lucros e dividendos + aplicações financeiras + renda variável + aluguéis,0,2017,
+RB7,VIII,8,Base e capital 2,RB6 + rendimentos de sócio ou titular de MPE optante pelo Simples,0,2017,
+RB8,IX,9,Base de cálculo,Base de cálculo do imposto de renda,0,2017,
+RB9,X,10,Rendimentos do Simples,Rendimentos de sócio ou titular de MPE optante pelo Simples exceto pró-labore aluguéis e serviços,0,2017,
+RB10,XI,11,Desconto simplificado,Valor do desconto simplificado,0,2022,

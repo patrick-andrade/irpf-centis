@@ -1,0 +1,12 @@
+* text=auto
+*.rds binary
+*.parquet binary
+*.xlsx binary
+*.png binary
+*.pdf binary
+*.geojson text
+*.R text
+*.qmd text
+*.md text
+*.yml text
+*.csv text

@@ -1,0 +1,50 @@
+Package: irpfcentis
+Type: Project
+Title: Distribuição de Renda e Patrimônio no IRPF por Centis
+Version: 0.2.0
+Authors@R: person("Patrick", "Andrade", role = c("aut", "cre"), email = "pkandrade@gmail.com")
+Description: Compêndio de pesquisa reprodutível para aquisição, harmonização,
+    análise e divulgação dos dados agregados do IRPF por centis.
+License: MIT + file LICENSE
+Encoding: UTF-8
+Depends:
+    R (== 4.6.0)
+Imports:
+    arrow,
+    bsicons,
+    bslib,
+    callr,
+    cli,
+    covr,
+    digest,
+    dplyr,
+    fs,
+    ggplot2,
+    httpuv,
+    httr2,
+    ineq,
+    jsonlite,
+    knitr,
+    lintr,
+    purrr,
+    quarto,
+    readr,
+    readxl,
+    renv,
+    rlang,
+    rvest,
+    scales,
+    sf,
+    shiny,
+    shinylive,
+    stringi,
+    stringr,
+    tarchetypes,
+    targets,
+    testthat (>= 3.0.0),
+    tibble,
+    tidyr,
+    writexl,
+    xml2,
+    yaml
+Config/testthat/edition: 3

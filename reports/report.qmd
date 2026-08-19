@@ -1,0 +1,163 @@
+---
+title: "Distribuição de renda e patrimônio no IRPF"
+subtitle: "Evolução por centis, tipos de rendimento e unidades da Federação"
+author: "Patrick Andrade"
+date: last-modified
+format:
+  html:
+    toc: true
+    number-sections: true
+  typst:
+    toc: true
+    number-sections: true
+---
+
+```{r}
+#| include: false
+source("../R/utils.R", encoding = "UTF-8")
+source("../R/taxation.R", encoding = "UTF-8")
+source("../R/report_helpers.R", encoding = "UTF-8")
+data <- load_report_data()
+has_data <- report_has_data(data)
+```
+
+# Escopo
+
+Este relatório descreve a distribuição dos rendimentos, do imposto e dos bens informados em declarações válidas do IRPF. Os dados não abrangem diretamente toda a população brasileira e uma declaração pode incluir titular, dependentes e declaração conjunta [@rfb_centis].
+
+A série principal cobre 2017–2024 e utiliza RB4 como conceito central: rendimentos tributáveis, isentos e sujeitos à tributação exclusiva ou definitiva, retiradas as transferências patrimoniais. Todos os índices são aproximações construídas com dados agrupados.
+
+```{r}
+#| results: asis
+if (!has_data) data_unavailable_callout()
+```
+
+# Evolução nacional
+
+```{r}
+#| fig-cap: "Evolução do Gini agrupado da RB4 entre declarantes do IRPF"
+if (has_data) plot_metric_evolution(data$metrics, "gini_grouped", "Gini agrupado")
+```
+
+```{r}
+#| fig-cap: "Participações dos grupos superiores na RB4 declarada"
+if (has_data) plot_top_shares(data$metrics)
+```
+
+```{=typst}
+#pagebreak()
+```
+
+# Tipos de rendimento e tributação
+
+Os componentes permitem acompanhar rendimentos do trabalho e empresariais, aplicações financeiras, lucros e dividendos, rendimentos isentos, deduções e imposto devido. Comparações intertemporais somente são apresentadas quando o dicionário anual confirma equivalência semântica.
+
+```{r}
+if (has_data) {
+  selected <- data$components |>
+    dplyr::filter(
+      .data$geo_code == "BR", .data$ranking_id == "RB4",
+      .data$year == max(.data$year), .data$bin_code %in% c(1:99, 101:109, 111:120),
+      .data$component_id %in% c("taxable_legal_holder", "dividends", "financial_income", "simple_business_income")
+    ) |>
+    dplyr::group_by(.data$component_id, .data$field_label) |>
+    dplyr::summarise(value = sum(.data$value_real, na.rm = TRUE), .groups = "drop") |>
+    dplyr::mutate(share = .data$value / sum(.data$value))
+  selected <- selected |>
+    dplyr::mutate(
+      value = scales::label_currency(prefix = "R$ ", accuracy = 1)(.data$value),
+      share = scales::percent(.data$share, accuracy = 0.1)
+    ) |>
+    dplyr::rename(`Valor (R$ de 2024)` = "value")
+  print(knitr::kable(selected, format = "pipe"))
+}
+```
+
+## Tributação efetiva
+
+A alíquota efetiva média divide o imposto devido pela renda RB4 de cada grupo da distribuição. Como a RB4 inclui rendimentos isentos e sujeitos à tributação exclusiva, a curva mede a carga sobre a renda ampla declarada — leitura na linha de @gobetti_orair2017 sobre a progressividade limitada do IRPF no topo. Por serem médias de grupos, as alíquotas não captam a variação interna a cada grupo.
+
+```{r}
+#| fig-cap: "Alíquota efetiva média por posição na distribuição da RB4, ano mais recente"
+if (has_data && nrow(data$effective_tax) > 0L) {
+  plot_effective_rate_curve(data$effective_tax, year = max(data$effective_tax$year))
+}
+```
+
+```{r}
+#| fig-cap: "Alíquota efetiva média no topo da distribuição (a partir do percentil 90), ano mais recente"
+if (has_data && nrow(data$effective_tax) > 0L) {
+  plot_effective_rate_curve(
+    data$effective_tax,
+    year = max(data$effective_tax$year), min_share = 0.90
+  )
+}
+```
+
+```{r}
+#| fig-cap: "Evolução da alíquota efetiva média por grupos da distribuição"
+if (has_data && nrow(data$effective_tax) > 0L) {
+  plot_effective_rate_evolution(effective_tax_summary(data$effective_tax))
+}
+```
+
+# Bens, direitos e dívidas
+
+Nos arquivos ampliados, os bens são observados ao longo de uma distribuição ordenada por renda. Portanto, esta parte mede **concentração patrimonial ao longo da distribuição de renda**, não uma distribuição ordenada diretamente pelo patrimônio. A análise de desigualdade patrimonial em sentido estrito utiliza a coleção nacional específica de 2006–2021 [@rfb_wealth].
+
+```{r}
+#| fig-cap: "Evolução do Gini patrimonial agrupado, com ordenação direta por bens e direitos"
+if (has_data && nrow(data$wealth_metrics) > 0L) {
+  plot_metric_evolution(
+    data$wealth_metrics, "gini_grouped", "Gini patrimonial agrupado",
+    ranking = "WEALTH_DIRECT"
+  )
+}
+```
+
+# Estados e regiões
+
+Cada UF é ordenada separadamente. Os indicadores estaduais comparam o formato interno das distribuições, e não pessoas situadas nos mesmos limites monetários nacionais.
+
+```{r}
+if (has_data) {
+  table <- latest_metrics_table(data$metrics)
+  table <- table |>
+    dplyr::mutate(
+      Declarantes = scales::label_number(accuracy = 1)(.data$Declarantes),
+      `Renda média (R$ de 2024)` = scales::label_currency(prefix = "R$ ", accuracy = 1)(.data$`Renda média (R$ de 2024)`),
+      `Gini agrupado` = scales::number(.data$`Gini agrupado`, accuracy = 0.001),
+      `Top 1%` = scales::percent(.data$`Top 1%`, accuracy = 0.1)
+    )
+  print(knitr::kable(table, format = "pipe"))
+}
+```
+
+# Robustez
+
+Os indicadores centrais são recalculados sob conceitos alternativos de renda — RTB (rendimento tributável bruto), RB3, RB4 e RB5 — para verificar se as conclusões dependem da definição adotada. As séries abaixo usam as mesmas geografias, grupos e método de agrupamento; diferenças de nível refletem apenas o conceito de renda.
+
+```{r}
+#| fig-cap: "Gini agrupado nacional sob conceitos alternativos de renda"
+if (has_data) plot_ranking_comparison(data$metrics, "gini_grouped", "Gini agrupado")
+```
+
+```{r}
+#| fig-cap: "Participação do top 1% nacional sob conceitos alternativos de renda"
+if (has_data) plot_ranking_comparison(data$metrics, "top_1_share", "Participação do top 1%")
+```
+
+Como robustez adicional à ausência de informação intragrupo, o apêndice técnico reporta limites inferior e superior do Gini no espírito de @gastwirth1972: o limite inferior corresponde ao trapézio sobre as médias de grupo e o superior à máxima desigualdade interna compatível com médias e limites monetários divulgados. Mudanças associadas a campos não comparáveis ou revisões da base são destacadas, nunca suavizadas automaticamente.
+
+# Limitações
+
+- Cobertura restrita aos declarantes do IRPF.
+- Possibilidade de declarações conjuntas e inclusão de dependentes.
+- Ausência de informação dentro dos grupos divulgados.
+- Base dinâmica, sujeita a retificações.
+- Valores patrimoniais declarados não equivalem necessariamente a preços de mercado.
+- Estudo descritivo, sem identificação causal.
+
+# Fontes
+
+Os arquivos, URLs, datas de recuperação e hashes usados em cada versão ficam registrados no manifesto de fontes e no apêndice técnico.

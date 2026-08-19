@@ -1,0 +1,9 @@
+year,layout,expected_rankings,expected_geographies,xlsx_files,metadata_pdf,joint_returns,sum_currency_unit,known_gap
+2017,expanded_monolithic,10,29,1,1,0,BRL_million,
+2018,expanded_monolithic,10,29,1,1,0,BRL_million,
+2019,expanded_monolithic,10,29,1,1,0,BRL_million,
+2020,expanded_monolithic,10,29,1,1,0,BRL_million,
+2021,expanded_monolithic,10,29,1,1,0,BRL_million,
+2022,expanded_split,11,29,12,1,1,BRL,
+2023,expanded_split,11,29,12,1,1,BRL,SP-RB9 ausente na fonte
+2024,expanded_split,11,29,12,1,1,BRL,

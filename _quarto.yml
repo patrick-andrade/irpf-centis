@@ -1,0 +1,53 @@
+project:
+  type: website
+  output-dir: output/site
+  render:
+    - index.qmd
+    - reports/report.qmd
+    - reports/technical-appendix.qmd
+    - reports/executive-summary.qmd
+    - docs/methodology.md
+    - docs/limitations.md
+    - docs/diagnostico-tecnico.md
+
+website:
+  title: "IRPF por centis"
+  site-url: https://patrick-andrade.github.io/irpf-centis
+  repo-url: https://github.com/patrick-andrade/irpf-centis
+  navbar:
+    left:
+      - href: index.qmd
+        text: "Início"
+      - href: reports/report.qmd
+        text: "Relatório"
+      - href: reports/executive-summary.qmd
+        text: "Sumário executivo"
+      - href: reports/technical-appendix.qmd
+        text: "Apêndice técnico"
+      - href: docs/methodology.md
+        text: "Metodologia"
+      - href: app/
+        text: "Painel interativo"
+    right:
+      - icon: github
+        href: https://github.com/patrick-andrade/irpf-centis
+        aria-label: "GitHub"
+  page-footer:
+    center: "Fonte dos dados: Receita Federal do Brasil. Índices calculados com dados agrupados de declarações válidas do IRPF."
+
+lang: pt-BR
+bibliography: reports/references.bib
+execute:
+  echo: false
+  warning: false
+  message: false
+  freeze: auto
+
+format:
+  html:
+    theme:
+      light: cosmo
+      dark: darkly
+    toc: true
+    toc-depth: 3
+    code-fold: true

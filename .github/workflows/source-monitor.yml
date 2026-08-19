@@ -1,0 +1,27 @@
+name: Monitor de fontes oficiais
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '17 11 1 * *'
+
+permissions:
+  contents: read
+
+jobs:
+  discover:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: r-lib/actions/setup-r@v2
+        with:
+          r-version: '4.6.0'
+          use-public-rspm: true
+      - uses: r-lib/actions/setup-renv@v2
+      - name: Descobrir edições sem publicar
+        run: Rscript scripts/check-sources.R
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: inventario-fontes
+          path: output/source-monitor/

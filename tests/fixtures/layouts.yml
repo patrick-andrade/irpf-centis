@@ -1,0 +1,15 @@
+layouts:
+  expanded_monolithic_2017:
+    workbooks: 1
+    expected_sheets: 290
+    geographies: 29
+    rankings: 10
+    bins_per_sheet: 120
+  expanded_split_2024:
+    workbooks: 12
+    national_sheets: 11
+    regional_sheets_per_workbook: 28
+    bins_per_sheet: 120
+  analytical_leaf_view:
+    included_codes: "1-99,101-109,111-120"
+    bins_per_distribution: 118

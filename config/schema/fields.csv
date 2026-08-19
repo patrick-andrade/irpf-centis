@@ -1,0 +1,62 @@
+field_id,position_2024,group,label,unit,aggregate_rule,regex
+centile,1,identifier,Centil,code,none,^centil$
+contributors,2,count,Quantidade de contribuintes,count,sum,quantidade de contri
+joint_returns,3,count,Quantidade de declarações conjuntas,count,sum,declara.*conjunta
+rank_upper,4,ranking,Limite superior do ranking,BRL,max,limite superior
+rank_sum,5,ranking,Soma do ranking no grupo,BRL,sum,soma d|soma da
+rank_cumulative,6,ranking,Acumulado do ranking,BRL,last,acumulad
+rank_mean,7,ranking,Média do ranking no grupo,BRL,weighted_mean,m[eé]dia d|m[eé]dia da
+taxable_legal_holder,8,taxable,Rendimentos de pessoa jurídica pelo titular,BRL,sum,pessoa jur[ií]dica.*titular
+taxable_legal_dependents,9,taxable,Rendimentos de pessoa jurídica pelos dependentes,BRL,sum,pessoa jur[ií]dica.*depend
+rent_individual_foreign,10,taxable,Aluguéis recebidos de pessoa física ou exterior,BRL,sum,alugu[eé]
+other_individual_foreign,11,taxable,Outros rendimentos de pessoa física ou exterior,BRL,sum,pessoa f[ií]sica.*outros
+rural_taxable,12,taxable,Resultado tributável da atividade rural,BRL,sum,resultado tribut[aá]vel.*rural
+other_taxable,13,taxable,Outros rendimentos tributáveis,BRL,sum,outros rendimentos tribut
+thirteenth_salary,14,exclusive,Décimo terceiro salário,BRL,sum,13|d[eé]cimo terceiro
+financial_income,15,exclusive,Rendimentos de aplicações financeiras,BRL,sum,aplica[cç][oõ]es financeiras
+capital_gains,16,exclusive,Ganhos de capital na alienação de bens e direitos,BRL,sum,ganhos de capital
+profit_sharing,17,exclusive,Participação nos lucros ou resultados,BRL,sum,participa[cç][aã]o.*lucros
+accumulated_income,18,exclusive,Rendimentos recebidos acumuladamente,BRL,sum,recebidos acumuladamente
+variable_income,19,exclusive,Ganhos líquidos em renda variável,BRL,sum,renda vari[aá]vel
+interest_on_equity,20,exclusive,Juros sobre capital próprio,BRL,sum,juros sobre capital
+other_exclusive,21,exclusive,Outros rendimentos exclusivos,BRL,sum,^outros$
+dividends,22,exempt,Lucros e dividendos,BRL,sum,lucros e dividendos
+simple_business_income,23,exempt,Rendimento de sócio ou titular do Simples,BRL,sum,s[oó]cio.*simples
+inheritance_donations,24,transfer,Doações e heranças,BRL,sum,doa[cç][oõ]es e heran[cç]as|transf.*patrimon
+retirement_over_65,25,exempt,Parcela isenta de aposentadoria,BRL,sum,parcela isenta de aposentadoria
+rural_exempt,26,exempt,Parcela isenta da atividade rural,BRL,sum,parcela isenta.*rural
+special_pension,27,exempt,Pensão e aposentadoria por moléstia ou acidente,BRL,sum,pens[aã]o.*proventos
+termination_indemnity,28,exempt,Indenização por rescisão e similares,BRL,sum,indeniza[cç][aã]o.*rescis[aã]o
+savings_income,29,exempt,Poupança e títulos isentos,BRL,sum,caderneta.*poupan[cç]a
+capital_reserves,30,exempt,Incorporação de reservas e bonificações,BRL,sum,incorpora[cç][aã]o.*reservas
+other_exempt,31,exempt,Outros rendimentos isentos,BRL,sum,outros rendimentos isentos
+tax_base,32,tax,Base de cálculo,BRL,sum,base de c[aá]lculo
+official_pension,33,deduction,Previdência oficial,BRL,sum,previd[eê]ncia oficial
+rra_pension,34,deduction,Previdência associada a RRA,BRL,sum,previd[eê]ncia rra
+private_pension,35,deduction,Previdência privada,BRL,sum,previd[eê]ncia privada
+dependent_deduction,36,deduction,Dedução por dependentes,BRL,sum,^dependen
+education_deduction,37,deduction,Despesas com instrução,BRL,sum,instru[cç][aã]o
+medical_deduction,38,deduction,Despesas médicas,BRL,sum,m[eé]dicas
+alimony_deduction,39,deduction,Pensão alimentícia,BRL,sum,pens[aã]o aliment
+cash_book,40,deduction,Livro-caixa,BRL,sum,livro-caixa|livro caixa
+simplified_return_count,41,count,Optantes pelo desconto simplificado,count,sum,optantes.*simplificado
+simplified_discount,42,deduction,Desconto simplificado,BRL,sum,^desconto simplificado
+tax_due,43,tax,Imposto devido,BRL,sum,imposto devido
+assets_total,44,asset,Total de bens e direitos,BRL,sum,^total bens e direitos$
+assets_real_estate,45,asset,Imóveis,BRL,sum,^im[oó]veis$
+assets_movable,46,asset,Móveis,BRL,sum,^m[oó]veis$
+assets_financial,47,asset,Ativos financeiros,BRL,sum,^financeiros$
+assets_other,48,asset,Outros bens e direitos,BRL,sum,^outros bens e direitos$
+assets_total_br,49,asset,Total de bens e direitos no Brasil,BRL,sum,total bens e direitos.*brasil
+assets_real_estate_br,50,asset,Imóveis no Brasil,BRL,sum,im[oó]veis.*brasil
+assets_movable_br,51,asset,Móveis no Brasil,BRL,sum,m[oó]veis.*brasil
+assets_financial_br,52,asset,Ativos financeiros no Brasil,BRL,sum,financeiros.*brasil
+assets_other_br,53,asset,Outros bens e direitos no Brasil,BRL,sum,outros bens e direitos.*brasil
+assets_total_foreign,54,asset,Total de bens e direitos no exterior,BRL,sum,total bens e direitos.*exterior
+assets_real_estate_foreign,55,asset,Imóveis no exterior,BRL,sum,im[oó]veis.*exterior
+assets_movable_foreign,56,asset,Móveis no exterior,BRL,sum,m[oó]veis.*exterior
+assets_financial_foreign,57,asset,Ativos financeiros no exterior,BRL,sum,financeiros.*exterior
+assets_other_foreign,58,asset,Outros bens e direitos no exterior,BRL,sum,outros bens e direitos.*exterior
+debts,59,liability,Dívidas e ônus,BRL,sum,d[ií]vidas e [oô]nus
+dependents_count,60,count,Quantidade de dependentes,count,sum,quantidade de dependentes
+

@@ -1,0 +1,79 @@
+---
+title: "Apêndice técnico"
+subtitle: "Contratos, fórmulas e validações"
+author: "Patrick Andrade"
+date: last-modified
+format:
+  html: default
+  typst: default
+---
+
+```{r}
+#| include: false
+source("../R/utils.R", encoding = "UTF-8")
+source("../R/report_helpers.R", encoding = "UTF-8")
+data <- load_report_data()
+```
+
+# Contratos
+
+`distribution_bins` possui uma linha por ano, geografia, ranking e grupo. `income_components` acrescenta o tipo de rendimento, dedução, imposto, ativo ou passivo. Todos os registros conservam a fonte e a aba original.
+
+# Centis hierárquicos
+
+A visão disjunta contém os grupos 1–99, 101–109 e 111–120. O grupo 100 deve reconciliar com 101–110, e 110 deve reconciliar com 111–120. As tolerâncias são zero para contagens, admitindo diferença máxima de uma unidade por arredondamento, e um centavo para somas monetárias.
+
+As contagens reconciliam em todas as 2.406 distribuições. A fonte apresenta divergências monetárias internas em 140 distribuições RTB subnacionais/exterior de 2017–2021. Esses casos permanecem como `warn`, são exportados integralmente e nunca têm seus valores substituídos.
+
+# Fórmulas
+
+Todos os indicadores são estimados a partir de dados agrupados: cada grupo contribui com sua média, sua contagem e seus limites monetários, sem informação sobre a variação interna [@cowell2011]. O Gini agrupado é obtido pela integral trapezoidal da curva de Lorenz e corresponde ao limite inferior do Gini compatível com os dados divulgados [@gastwirth1972]. O Theil T utiliza as médias dos grupos [@theil1967]. O Atkinson principal usa $\epsilon=0{,}5$ [@atkinson1970]; no caso-limite $\epsilon=1$, o índice usa a média geométrica ponderada:
+
+$$A_1 = 1 - \frac{\exp\left(\sum_i w_i \log y_i / \sum_i w_i\right)}{\mu}.$$
+
+Wolfson é calculado por [@wolfson1994]:
+
+$$P_W = 2\frac{\mu}{m}\left[\frac{1}{2}-L\left(\frac{1}{2}\right)\right]-G.$$
+
+Esteban–Ray é suplementar e usa $\alpha\in\{1{,}0;1{,}3;1{,}6\}$ [@esteban_ray1994]. Nenhuma dessas medidas recupera a variação dentro dos grupos divulgados.
+
+## Limites do Gini com dados agrupados
+
+Seguindo @gastwirth1972, além do limite inferior (trapézio sobre as médias), calcula-se um limite superior somando a máxima desigualdade intragrupo compatível com a média $m_i$ e os limites monetários $[a_i, b_i]$ de cada grupo — a distribuição de dois pontos que preserva a média. Para grupos internos, o máximo intragrupo é $\frac{(m_i-a_i)(b_i-m_i)}{m_i(b_i-a_i)}$; para o grupo superior, aberto, usa-se o supremo $1 - a_i/m_i$, o que torna o limite conservador. As colunas `gini_lower_bound` e `gini_upper_bound` acompanham todas as distribuições em `distribution-metrics.parquet`.
+
+## Alíquota efetiva
+
+A alíquota efetiva média de cada grupo é $\tau_i = \text{imposto devido}_i / \text{renda}_i$, com a renda no conceito do próprio ranking. Sob RB4, que inclui rendimentos isentos e de tributação exclusiva, a curva mede a carga sobre a renda ampla declarada [@gobetti_orair2017]. Grupos com renda nula ou não divulgada recebem `NA`. Como toda medida deste projeto, trata-se de médias de grupos.
+
+## Interpolação de Pareto generalizada (trabalho futuro)
+
+As participações de topo somam grupos disjuntos divulgados, sem modelo intragrupo. A literatura de tabulações fiscais recomenda interpolação de Pareto generalizada [@blanchet_fournier_piketty2022; @wid_dina2024] para recuperar a curva completa e reduzir o viés de agrupamento; a adoção dessa técnica está registrada como prioridade de pesquisa no diagnóstico técnico. As estimativas brasileiras de topo com dados tributários seguem @medeiros_souza_castro2015, @morgan2017 e @souza2018 como referências de comparação.
+
+```{=typst}
+#pagebreak()
+```
+
+# Qualidade
+
+```{r}
+#| results: asis
+if (nrow(data$checks) > 0L) {
+  cat(paste0(
+    "- `", data$checks$check, "`: **", data$checks$status, "** — ",
+    data$checks$detail,
+    collapse = "\n"
+  ))
+}
+```
+
+# Proveniência
+
+O manifesto registra SHA-256, tamanho, data de recuperação, URL direta e página de origem. Uma mudança de conteúdo sob uma URL conhecida exige revisão humana.
+
+# Comparabilidade
+
+O dicionário `config/schema/rankings.csv` registra a definição dos conceitos RTB e RB1–RB10. O layout de 2017 é monolítico; o de 2024 distribui rankings nacionais e estaduais em arquivos distintos. O parser converte ambos para o mesmo contrato sem depender exclusivamente do nome do arquivo.
+
+O crosswalk anual registra uma lacuna da própria fonte: SP–RB9 não está presente em 2023. O gate `series_coverage` mantém esse caso como aviso e não imputa a distribuição ausente.
+
+As somas e componentes de 2017–2021, divulgados em milhões de reais, são multiplicados por $10^6$ no estágio de harmonização. Limites e médias, já publicados em reais, não são reescalados. Os arquivos atuais permanecem em reais.

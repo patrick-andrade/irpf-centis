@@ -1,0 +1,31 @@
+receita_expanded:
+  label: "Distribuição de Renda por Centis (estudo ampliado)"
+  collection_url: "https://www.gov.br/receitafederal/pt-br/centrais-de-conteudo/publicacoes/estudos/distribuicao-da-renda/distribuicao-de-renda-por-centis-estudo-ampliado-2017-a-2023"
+  years: [2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024]
+  file_types: [xlsx, pdf]
+
+receita_wealth:
+  label: "Distribuição dos Bens e Direitos por Centis"
+  collection_url: "https://www.gov.br/receitafederal/pt-br/centrais-de-conteudo/publicacoes/estudos/distribuicao-da-renda/distribuicao-dos-bens-e-direitos-por-centis-de-2006-a-2021"
+  years: [2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021]
+  file_types: [xlsx, pdf]
+
+ibge_ipca:
+  label: "IPCA — número-índice mensal"
+  provider: "IBGE/SIDRA"
+  table: 1737
+  variable: 2266
+  api_url: "https://apisidra.ibge.gov.br/values/t/1737/n1/all/v/2266/p/201701-202412"
+  landing_url: "https://sidra.ibge.gov.br/tabela/1737"
+
+ibge_population:
+  label: "Projeções da População"
+  provider: "IBGE"
+  landing_url: "https://www.ibge.gov.br/estatisticas/sociais/populacao.html"
+  note: "A série e o denominador adulto serão definidos e congelados em uma decisão metodológica antes da primeira publicação."
+
+ibge_geography:
+  label: "Malha das unidades da Federação"
+  provider: "IBGE"
+  api_url: "https://servicodados.ibge.gov.br/api/v3/malhas/paises/BR?formato=application/vnd.geo+json&qualidade=minima&intrarregiao=UF"
+  landing_url: "https://servicodados.ibge.gov.br/api/docs/malhas"

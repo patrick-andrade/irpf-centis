@@ -1,0 +1,6 @@
+concept_id,label,definition,unit,universe,comparability_note
+RB4,Renda ampla sem transferências patrimoniais,Rendimentos tributáveis isentos e exclusivos ou definitivos menos doações e heranças,BRL,Declarações válidas do IRPF,Narrativa principal 2017-2024
+distribution_bins,Distribuição por grupos,Limites somas médias contagens e acumulados para 120 códigos hierárquicos,BRL e contagem,Declarações válidas do IRPF,Índices usam 118 grupos disjuntos
+income_components,Componentes declarados,Tipos de rendimento dedução imposto ativo ou dívida por grupo,BRL,Declarações válidas do IRPF,Ausência de campo não é convertida em zero
+wealth_ranked_national,Patrimônio diretamente ordenado,Distribuição nacional classificada pela soma de bens e direitos,BRL,Declarações válidas do IRPF 2006-2021,Tabela III inclui grupo de patrimônio zero
+coverage_context,Cobertura populacional,Declarantes população adulta cobertura IPCA e território,contagem e proporção,IRPF e contexto IBGE,Não há fusão distributiva entre IRPF e PNAD

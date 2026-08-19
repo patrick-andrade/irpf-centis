@@ -1,0 +1,30 @@
+geo_code,geo_name,geo_level,region_code,region_name,ibge_code
+BR,Brasil,national,BR,Brasil,
+AC,Acre,state,N,Norte,12
+AL,Alagoas,state,NE,Nordeste,27
+AM,Amazonas,state,N,Norte,13
+AP,Amapá,state,N,Norte,16
+BA,Bahia,state,NE,Nordeste,29
+CE,Ceará,state,NE,Nordeste,23
+DF,Distrito Federal,state,CO,Centro-Oeste,53
+ES,Espírito Santo,state,SE,Sudeste,32
+GO,Goiás,state,CO,Centro-Oeste,52
+MA,Maranhão,state,NE,Nordeste,21
+MG,Minas Gerais,state,SE,Sudeste,31
+MS,Mato Grosso do Sul,state,CO,Centro-Oeste,50
+MT,Mato Grosso,state,CO,Centro-Oeste,51
+PA,Pará,state,N,Norte,15
+PB,Paraíba,state,NE,Nordeste,25
+PE,Pernambuco,state,NE,Nordeste,26
+PI,Piauí,state,NE,Nordeste,22
+PR,Paraná,state,S,Sul,41
+RJ,Rio de Janeiro,state,SE,Sudeste,33
+RN,Rio Grande do Norte,state,NE,Nordeste,24
+RO,Rondônia,state,N,Norte,11
+RR,Roraima,state,N,Norte,14
+RS,Rio Grande do Sul,state,S,Sul,43
+SC,Santa Catarina,state,S,Sul,42
+SE,Sergipe,state,NE,Nordeste,28
+SP,São Paulo,state,SE,Sudeste,35
+TO,Tocantins,state,N,Norte,17
+EX,Exterior,external,EX,Exterior,

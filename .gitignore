@@ -1,0 +1,52 @@
+# R / renv
+.Rhistory
+.RData
+.Ruserdata
+.Rproj.user/
+renv/library/
+renv/staging/
+renv/python/
+
+# targets
+_targets/
+_targets.Rout
+
+# Dados e produtos gerados
+data/raw/**
+data/interim/**
+data/processed/**
+data/external/**
+data/metadata/official/**
+!data/raw/.gitkeep
+!data/interim/.gitkeep
+!data/processed/.gitkeep
+!data/external/.gitkeep
+!data/external/ipca-annual.csv
+!data/external/ibge-states.geojson
+output/**
+!output/.gitkeep
+app/data/**
+!app/data/.gitkeep
+!app/data/app-bundle.rds
+
+# Quarto
+/.quarto/
+reports/*_files/
+index_files/
+tmp/**
+
+# Segredos e publicação
+.Renviron
+rsconnect/
+*.pem
+*.key
+
+# Sistema/IDE
+.DS_Store
+Thumbs.db
+desktop.ini
+.vscode/
+.idea/
+
+
+**/*.quarto_ipynb

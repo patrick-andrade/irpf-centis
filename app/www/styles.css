@@ -1,0 +1,24 @@
+.universe-warning {
+  background: #fff4ce;
+  border-bottom: 1px solid #e0a800;
+  color: #4a3b00;
+  padding: 0.55rem 1rem;
+  text-align: center;
+  font-weight: 600;
+}
+
+.app-footer {
+  border-top: 1px solid #d9dee3;
+  color: #5b6770;
+  font-size: 0.9rem;
+  margin-top: 1rem;
+  padding: 1rem;
+  text-align: center;
+}
+
+.missing-data-card {
+  border-left: 5px solid #b45309;
+  margin: 2rem auto;
+  max-width: 760px;
+}
+

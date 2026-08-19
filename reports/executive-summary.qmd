@@ -1,0 +1,160 @@
+---
+title: "Sumário executivo"
+subtitle: "Distribuição de renda e patrimônio entre declarantes do IRPF"
+author: "Patrick Andrade"
+date: last-modified
+format:
+  html:
+    toc: false
+  typst:
+    toc: false
+    papersize: a4
+---
+
+```{r}
+#| include: false
+source("../R/utils.R", encoding = "UTF-8")
+source("../R/report_helpers.R", encoding = "UTF-8")
+data <- load_report_data()
+has_data <- report_has_data(data)
+findings <- if (has_data) executive_findings(data$metrics) else character()
+if (has_data && nrow(data$wealth_metrics) > 1L) {
+  wealth_first <- data$wealth_metrics[which.min(data$wealth_metrics$year), ]
+  wealth_last <- data$wealth_metrics[which.max(data$wealth_metrics$year), ]
+  findings <- c(
+    findings,
+    sprintf(
+      "Na ordenação direta por bens e direitos, o Gini patrimonial agrupado passou de %.3f em %d para %.3f em %d.",
+      wealth_first$gini_grouped, wealth_first$year, wealth_last$gini_grouped, wealth_last$year
+    )
+  )
+}
+```
+
+# Mensagem central
+
+Este estudo examina diferenças de renda, tributação e patrimônio entre declarações válidas do IRPF. Ele ilumina especialmente os estratos superiores, mas não substitui pesquisas domiciliares nem representa toda a população brasileira.
+
+A lente principal é a RB4: rendimentos tributáveis, isentos e sujeitos à tributação exclusiva ou definitiva, excluídas transferências patrimoniais. O período de renda cobre 2017–2024; a série de patrimônio diretamente ordenada por bens e direitos cobre 2006–2021.
+
+```{r}
+#| results: asis
+if (!has_data) data_unavailable_callout()
+```
+
+```{=typst}
+#pagebreak()
+```
+
+# Principais achados
+
+```{r}
+#| results: asis
+if (has_data) {
+  cat(paste0(seq_along(findings), ". **", findings, "**", collapse = "\n\n"))
+}
+```
+
+Os resultados descrevem declarações e valores informados à Receita. Mudanças podem refletir tanto transformações econômicas quanto regras, cobertura, retificações e composição do universo declarante.
+
+```{=typst}
+#pagebreak()
+```
+
+# Concentração nos grupos superiores
+
+```{r}
+#| fig-cap: "Participação dos grupos superiores na RB4 declarada"
+if (has_data) plot_top_shares(data$metrics)
+```
+
+O detalhamento do topo usa 118 grupos disjuntos. Os agregados 100 e 110 são preservados para auditoria, mas não entram novamente nas somas.
+
+```{=typst}
+#pagebreak()
+```
+
+# Desigualdade e composição da renda
+
+```{r}
+#| fig-cap: "Evolução do Gini agrupado da RB4 entre declarantes"
+if (has_data) plot_metric_evolution(data$metrics, "gini_grouped", "Gini agrupado")
+```
+
+```{r}
+if (has_data) {
+  latest <- max(data$components$year, na.rm = TRUE)
+  composition <- data$components |>
+    dplyr::filter(
+      .data$year == latest, .data$geo_code == "BR", .data$ranking_id == "RB4",
+      .data$bin_code %in% c(1:99, 101:109, 111:120),
+      .data$component_group %in% c("taxable", "exclusive", "exempt")
+    ) |>
+    dplyr::group_by(.data$component_group) |>
+    dplyr::summarise(Valor = sum(.data$value_real, na.rm = TRUE), .groups = "drop") |>
+    dplyr::arrange(dplyr::desc(.data$Valor))
+  composition <- composition |>
+    dplyr::rename(`Grupo de rendimento` = "component_group") |>
+    dplyr::mutate(`Valor (R$ de 2024)` = scales::label_currency(prefix = "R$ ", accuracy = 1)(.data$Valor), .keep = "unused") |>
+    dplyr::select("Grupo de rendimento", "Valor (R$ de 2024)")
+  print(knitr::kable(composition, format = "pipe"))
+}
+```
+
+```{=typst}
+#pagebreak()
+```
+
+# Diferenças entre unidades da Federação
+
+Os centis estaduais são calculados separadamente dentro de cada UF. Assim, a comparação descreve o formato interno das distribuições e não coloca pessoas de UFs distintas sob os mesmos cortes monetários nacionais.
+
+```{r}
+if (has_data) {
+  state_table <- latest_metrics_table(data$metrics) |>
+    dplyr::slice_head(n = 10)
+  state_table <- state_table |>
+    dplyr::mutate(
+      Declarantes = scales::label_number(accuracy = 1)(.data$Declarantes),
+      `Renda média (R$ de 2024)` = scales::label_currency(prefix = "R$ ", accuracy = 1)(.data$`Renda média (R$ de 2024)`),
+      `Gini agrupado` = scales::number(.data$`Gini agrupado`, accuracy = 0.001),
+      `Top 1%` = scales::percent(.data$`Top 1%`, accuracy = 0.1)
+    )
+  print(knitr::kable(state_table, format = "pipe"))
+}
+```
+
+```{=typst}
+#pagebreak()
+```
+
+# Patrimônio: duas leituras distintas
+
+Nos dados ampliados de 2017–2024, bens e dívidas são observados ao longo da distribuição de renda: trata-se de concentração patrimonial ao longo da renda. Para desigualdade patrimonial em sentido estrito, utiliza-se a série nacional ordenada diretamente por bens e direitos.
+
+```{r}
+#| fig-cap: "Gini patrimonial agrupado na ordenação direta por bens e direitos"
+if (has_data && nrow(data$wealth_metrics) > 0L) {
+  plot_metric_evolution(
+    data$wealth_metrics, "gini_grouped", "Gini patrimonial agrupado",
+    ranking = "WEALTH_DIRECT"
+  )
+}
+```
+
+```{=typst}
+#pagebreak()
+```
+
+# Como interpretar e usar
+
+- RB4 é a narrativa principal; RTB, RB3 e RB5 funcionam como contrastes.
+- Gini, Theil, Atkinson, Wolfson e Esteban–Ray são aproximações com dados agrupados e não captam desigualdade dentro dos grupos.
+- Centis estaduais são relativos a cada UF.
+- A base é dinâmica e pode mudar após retificações.
+- Resultados são descritivos e não identificam causas.
+- As divergências monetárias internas da RTB subnacional em 2017–2021 foram preservadas e documentadas, sem correção silenciosa.
+
+# Transparência
+
+O relatório completo, o apêndice técnico, os dados curados, o manifesto de fontes e o código acompanham a mesma versão analítica. Uma nova edição anual somente entra nos produtos após testes e revisão humana.

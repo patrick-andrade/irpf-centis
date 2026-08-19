@@ -1,0 +1,55 @@
+name: Publicar site
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+env:
+  # O job de deploy não deve ativar o renv: o render usa o _freeze/ committed
+  # e o export shinylive resolve pacotes no repositório wasm, não localmente.
+  RENV_CONFIG_AUTOLOADER_ENABLED: "false"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: quarto-dev/quarto-actions/setup@v2
+      - name: Renderizar site (replay do _freeze)
+        run: quarto render
+      - name: Guardas de integridade do freeze
+        run: |
+          test -d _freeze/reports/report || { echo "_freeze ausente: renderize localmente antes do push"; exit 1; }
+          if grep -rl "Dados processados ainda não disponíveis" output/site/reports; then
+            echo "Relatórios renderizaram sem dados: freeze desatualizado"; exit 1
+          fi
+      - uses: r-lib/actions/setup-r@v2
+        with:
+          use-public-rspm: true
+      - name: Exportar painel shinylive
+        run: |
+          Rscript -e 'install.packages("shinylive"); shinylive::export("app", "output/site/app")'
+          touch output/site/.nojekyll
+      - uses: actions/upload-pages-artifact@v4
+        with:
+          path: output/site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
