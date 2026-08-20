@@ -58,8 +58,19 @@ mod_regions_server <- function(id, bundle) {
       if (grepl("share$", input$metric)) p <- p + ggplot2::scale_x_continuous(labels = scales::label_percent(decimal.mark = ","))
       p
     })
-    output$table <- shiny::renderTable({
-      selected()
-    }, striped = TRUE, hover = TRUE)
+    output$table <- shiny::renderTable(
+      {
+        d <- selected()
+        # renderTable formata com as convenções do inglês e com casas decimais
+        # em contagens; aqui os números saem prontos, no padrão do restante do
+        # painel.
+        d$Indicador <- format_metric(d$Indicador, input$metric)
+        d$Declarantes <- scales::label_number(
+          accuracy = 1, big.mark = ".", decimal.mark = ","
+        )(d$Declarantes)
+        d
+      },
+      striped = TRUE, hover = TRUE, align = "lrr"
+    )
   })
 }

@@ -14,6 +14,8 @@ Rodada de revisão técnica e primeira publicação estática.
 - Três abas do painel (Rendimentos, Bens e dívidas, Estados) falhavam em silêncio sem dados; agora exibem o cartão padrão de dados ausentes.
 - Linha da aba "Evolução" nunca era desenhada (estética `text` fragmentava os grupos do `geom_line`).
 - Cinco das sete abas do painel abriam com os filtros vazios no navegador: a UI de cada aba era montada por `renderUI` e as saídas de abas ocultas ficam suspensas, então os `updateSelectInput` da inicialização chegavam antes de os selects existirem e se perdiam. A UI dos módulos passa a entrar direto no navbar, com teste de regressão sobre o HTML inicial do painel.
+- Todos os gráficos do painel abriam com altura zero e o `renderPlot` abortava com `invalid 'height' argument`: com `fillable = TRUE` no `page_navbar` cada aba vira contêiner de preenchimento e anula a altura declarada dos `plotOutput`. Medido no navegador sobre o HTML da UI: as sete saídas ficam com altura 0 nesse modo e com a altura declarada (520/440/360px) sem ele.
+- Tabela de UFs do painel formatada em português; saía com `0.48` e `105148.00`.
 - Deflatores IPCA ausentes deixavam todos os valores reais `NA` silenciosamente; o pipeline agora aborta com orientação.
 - `quality_gate` passou a bloquear de fato a escrita de `data/processed/` e do bundle do painel no grafo do `targets`.
 - Fronteira de ponto flutuante nas participações de topo (top 0,01%) protegida por tolerância numérica.

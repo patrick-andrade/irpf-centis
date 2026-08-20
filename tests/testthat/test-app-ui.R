@@ -42,3 +42,29 @@ test_that("o painel expõe as sete abas previstas", {
     )
   }
 })
+
+test_that("as abas não são contêineres de preenchimento", {
+  # Com `fillable = TRUE` no page_navbar cada aba vira html-fill-container e os
+  # plotOutput viram fill items: a altura declarada (520/440/360px) é anulada.
+  # Medido no navegador sobre o HTML da UI, as sete saídas de gráfico ficam com
+  # altura 0 nesse modo — e o renderPlot aborta com "invalid 'height' argument"
+  # — contra a altura declarada quando as abas não preenchem.
+  html <- as.character(htmltools::renderTags(app_ui_object())$html)
+  panes <- regmatches(html, gregexpr('class="tab-pane[^"]*"', html))[[1]]
+  expect_gt(length(panes), 0L)
+  expect_false(any(grepl("html-fill-container", panes, fixed = TRUE)))
+})
+
+test_that("os gráficos declaram altura explícita", {
+  html <- as.character(htmltools::renderTags(app_ui_object())$html)
+  saidas <- regmatches(
+    html, gregexpr('class="shiny-plot-output[^>]*style="[^"]*"', html)
+  )[[1]]
+  expect_gte(length(saidas), 7L)
+  for (s in saidas) {
+    expect_true(
+      grepl("height:[ ]?[1-9][0-9]*px", s),
+      label = paste0("altura explícita em ", substr(s, 1, 60))
+    )
+  }
+})
