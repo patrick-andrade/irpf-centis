@@ -12,5 +12,5 @@ title: "Limitações"
 8. O estudo é descritivo e não identifica efeitos causais.
 9. Nos arquivos de 2017–2021, as somas monetárias dos estratos detalhados da RTB não reconciliam com os agregados 100/110 em 28 geografias subnacionais/exterior, embora as contagens de contribuintes reconciliem exatamente. O projeto preserva os valores publicados e registra cada diferença em `data/processed/hierarchy-reconciliation.csv`; não aplica correção silenciosa.
 10. A combinação SP–RB9 não está presente no arquivo regional oficial de 2023. O projeto registra a lacuna no gate `series_coverage` e não imputa dados.
-11. As participações de topo somam grupos disjuntos divulgados, sem interpolação intragrupo; a adoção de interpolação de Pareto generalizada (Blanchet–Fournier–Piketty) está registrada como agenda de pesquisa no diagnóstico técnico.
+11. As participações de topo somam grupos disjuntos divulgados, sem interpolação intragrupo; a adoção de interpolação de Pareto generalizada (Blanchet–Fournier–Piketty) permanece na agenda de pesquisa do projeto.
 12. As Tabelas I e II da coleção patrimonial são baixadas e verificadas por hash, mas não são ingeridas; apenas a Tabela III (ordenação direta nacional) alimenta a série de desigualdade patrimonial.

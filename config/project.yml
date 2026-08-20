@@ -28,5 +28,5 @@ release:
   # Decisão do autor em 2026-08-19: repositório público com site no GitHub Pages.
   public_repository: true
   real_data_required: true
-  checklist: docs/release-checklist.md
+  checklist: internal/release-checklist.md
 

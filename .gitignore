@@ -35,6 +35,9 @@ reports/*_files/
 index_files/
 tmp/**
 
+# Documentação interna de desenvolvimento (ver internal/README.md)
+internal/
+
 # Segredos e publicação
 .Renviron
 rsconnect/

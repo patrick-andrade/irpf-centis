@@ -41,7 +41,7 @@ jobs:
         # binario para a imagem do runner; sem estas libs a instalacao falha.
         run: |
           sudo apt-get update
-          sudo apt-get install -y libcurl4-openssl-dev libssl-dev libarchive-dev libxml2-dev
+          sudo apt-get install -y libcurl4-openssl-dev libssl-dev libarchive-dev libxml2-dev libuv1-dev
       - name: Exportar painel shinylive
         run: |
           Rscript -e 'install.packages("shinylive")'

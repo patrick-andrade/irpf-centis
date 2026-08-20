@@ -70,8 +70,18 @@ write_app_bundle <- function(income_components, metrics, effective_tax, theil_de
   path
 }
 
-check_release_checklist <- function(path = "docs/release-checklist.md") {
-  lines <- readLines(project_path(path), encoding = "UTF-8", warn = FALSE)
+check_release_checklist <- function(path = "internal/release-checklist.md") {
+  # O checklist é documentação interna e não faz parte do repositório público
+  # (ver internal/README.md); por isso a publicação só pode ser montada na
+  # máquina de quem mantém o projeto.
+  full <- project_path(path)
+  if (!fs::file_exists(full)) {
+    rlang::abort(paste0(
+      "Publicação bloqueada: checklist não encontrado em ", path,
+      ". Ele é documentação interna e não vem no clone público."
+    ))
+  }
+  lines <- readLines(full, encoding = "UTF-8", warn = FALSE)
   pending <- grep("^- \\[ \\]", lines, value = TRUE)
   if (length(pending) > 0L) {
     rlang::abort(paste0(

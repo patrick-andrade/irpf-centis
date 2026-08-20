@@ -6,7 +6,7 @@ O formato segue *Keep a Changelog* e as versões públicas usarão versionamento
 
 ## [0.2.0] — 2026-08-20
 
-Rodada de auditoria técnica e primeira publicação estática. Diagnóstico completo em `docs/diagnostico-tecnico.md`.
+Rodada de revisão técnica e primeira publicação estática.
 
 ### Corrigido
 
@@ -30,10 +30,9 @@ Rodada de auditoria técnica e primeira publicação estática. Diagnóstico com
 - Seção "Robustez" do relatório implementada com comparação RTB/RB3/RB4/RB5 (antes era um esboço em tempo futuro).
 - Bibliografia acadêmica (Atkinson, Theil, Gastwirth, Wolfson, Esteban–Ray, Palma, Cowell, Blanchet–Fournier–Piketty, DINA/WID, Medeiros–Souza–Castro, Souza, Morgan, Gobetti–Orair) citada no apêndice técnico.
 - Suíte de testes ampliada de 11 para ~40 blocos (~150 expectativas): parser XLSX nos dois layouts com fixtures sintéticos, normalização de unidades, série patrimonial, tributação, helpers de relatório (regressão do filtro geográfico) e módulos do painel via `shiny::testServer`.
-- Site Quarto (`type: website`) com landing page, navbar e diagnóstico técnico; painel exportado para WebAssembly (shinylive) em `output/site/app`.
+- Site Quarto (`type: website`) com landing page e navbar; painel exportado para WebAssembly (shinylive) em `output/site/app`.
 - Workflow `deploy-pages.yml`: publicação automática no GitHub Pages a partir do `_freeze/` committed, sem dados no CI.
 - Comando `run.cmd site` (render + export do painel).
-- `scripts/verify-invariance.R` e `docs/verificacao-invariancia.md`: comparação reprodutível entre o snapshot pré-correção e a reexecução completa do pipeline, coluna a coluna.
 
 ### Alterado
 

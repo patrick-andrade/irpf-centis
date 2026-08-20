@@ -8,8 +8,6 @@ project:
     - reports/executive-summary.qmd
     - docs/methodology.md
     - docs/limitations.md
-    - docs/diagnostico-tecnico.md
-    - docs/verificacao-invariancia.md
 
 website:
   title: "IRPF por centis"

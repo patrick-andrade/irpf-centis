@@ -47,7 +47,7 @@ A alíquota efetiva média de cada grupo é $\tau_i = \text{imposto devido}_i / 
 
 ## Interpolação de Pareto generalizada (trabalho futuro)
 
-As participações de topo somam grupos disjuntos divulgados, sem modelo intragrupo. A literatura de tabulações fiscais recomenda interpolação de Pareto generalizada [@blanchet_fournier_piketty2022; @wid_dina2024] para recuperar a curva completa e reduzir o viés de agrupamento; a adoção dessa técnica está registrada como prioridade de pesquisa no diagnóstico técnico. As estimativas brasileiras de topo com dados tributários seguem @medeiros_souza_castro2015, @morgan2017 e @souza2018 como referências de comparação.
+As participações de topo somam grupos disjuntos divulgados, sem modelo intragrupo. A literatura de tabulações fiscais recomenda interpolação de Pareto generalizada [@blanchet_fournier_piketty2022; @wid_dina2024] para recuperar a curva completa e reduzir o viés de agrupamento; a adoção dessa técnica permanece na agenda de pesquisa do projeto. As estimativas brasileiras de topo com dados tributários seguem @medeiros_souza_castro2015, @morgan2017 e @souza2018 como referências de comparação.
 
 ```{=typst}
 #pagebreak()

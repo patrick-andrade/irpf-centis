@@ -15,10 +15,12 @@ Projeto reprodutível para analisar a distribuição dos rendimentos, da tributa
 - Série patrimonial de ordenação direta: 2006–2021 (Tabela III nacional).
 - Valores reais: preços de 2024 pelo IPCA anual; nominais preservados nos dados curados.
 - Indicadores: Gini agrupado (com limites de Gastwirth), Theil T, Atkinson (ε = 0,5 e 1), Wolfson, Esteban–Ray, participações de topo/base, Palma, P90/P50, alíquota efetiva média e decomposição de Theil por UF.
-- Produtos: site Quarto (relatório, sumário executivo, apêndice técnico, metodologia, diagnóstico) + painel Shiny/shinylive.
-- `run.cmd release` continua bloqueado até a revisão humana registrada em `docs/release-checklist.md`.
+- Produtos: site Quarto (relatório, sumário executivo, apêndice técnico, metodologia, limitações) + painel Shiny/shinylive.
+- `run.cmd release` continua bloqueado até a revisão humana registrada no checklist de publicação.
 
-O plano original aprovado está em [`docs/plano-v01.md`](docs/plano-v01.md); a auditoria e as mudanças desta rodada estão em [`docs/diagnostico-tecnico.md`](docs/diagnostico-tecnico.md).
+As decisões conceituais que sustentam as leituras publicadas estão registradas em [`docs/decisions/`](docs/decisions); o método completo, em [`docs/methodology.md`](docs/methodology.md).
+
+O plano de desenvolvimento, o checklist de publicação, o runbook de operação e a auditoria técnica são documentação interna e não fazem parte deste repositório.
 
 ## Pré-requisitos
 
@@ -60,7 +62,7 @@ No Git Bash, substitua `run.cmd` por `./run.sh`.
 
 Os dados brutos e o store do `targets` nunca vão ao repositório. O git carrega apenas código, dicionários, o `_freeze/` dos relatórios (resultados já computados) e o bundle curado do painel (~1 MB). A cada push na `main`, o workflow [`deploy-pages.yml`](.github/workflows/deploy-pages.yml) renderiza o site a partir do freeze, exporta o painel shinylive e publica no GitHub Pages — sem precisar dos dados nem de servidor.
 
-**Regra de ouro:** após editar relatórios ou reconstruir dados, rode `run.cmd render` localmente antes do push (o CI falha se o freeze estiver desatualizado). O fluxo completo está em [`docs/operations.md`](docs/operations.md).
+**Regra de ouro:** após editar relatórios ou reconstruir dados, rode `run.cmd render` localmente antes do push (o CI falha se o freeze estiver desatualizado).
 
 Espelho opcional: como `output/site` é um site estático completo, ele pode ser espelhado em qualquer CDN (ex.: `netlify deploy --dir=output/site`).
 

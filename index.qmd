@@ -16,7 +16,6 @@ Estudo descritivo e reprodutível da distribuição de **renda, tributação e p
 - **[Sumário executivo](reports/executive-summary.html)** — principais achados em formato curto.
 - **[Apêndice técnico](reports/technical-appendix.html)** — contratos de dados, fórmulas, validações e proveniência.
 - **[Metodologia](docs/methodology.html)** e **[limitações](docs/limitations.html)** — decisões conceituais e fronteiras do estudo.
-- **[Diagnóstico técnico](docs/diagnostico-tecnico.html)** — auditoria independente do compêndio: correções, mudanças metodológicas e agenda de pesquisa.
 
 Os relatórios também estão disponíveis em PDF pelo link "Outros formatos" de cada página.
 
