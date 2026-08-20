@@ -14,13 +14,18 @@ ui <- bslib::page_navbar(
       "Os dados representam declarações válidas do IRPF, não toda a população brasileira."
     )
   ),
-  bslib::nav_panel("Visão geral", shiny::uiOutput("overview_panel")),
-  bslib::nav_panel("Evolução", shiny::uiOutput("evolution_panel")),
-  bslib::nav_panel("Topos da renda", shiny::uiOutput("top_panel")),
-  bslib::nav_panel("Rendimentos e imposto", shiny::uiOutput("composition_panel")),
-  bslib::nav_panel("Bens e dívidas", shiny::uiOutput("wealth_panel")),
-  bslib::nav_panel("Estados e regiões", shiny::uiOutput("regions_panel")),
-  bslib::nav_panel("Metodologia e dados", shiny::uiOutput("methodology_panel")),
+  # A UI dos módulos entra direto no navbar, e não por uiOutput/renderUI: saídas
+  # de abas ocultas ficam suspensas até a aba ser aberta, de modo que os selects
+  # ainda não existiriam quando os updateSelectInput da inicialização são
+  # enviados — as mensagens se perdiam e cinco das sete abas ficavam com os
+  # filtros vazios.
+  bslib::nav_panel("Visão geral", mod_overview_ui("overview")),
+  bslib::nav_panel("Evolução", mod_evolution_ui("evolution")),
+  bslib::nav_panel("Topos da renda", mod_top_ui("top")),
+  bslib::nav_panel("Rendimentos e imposto", mod_composition_ui("composition")),
+  bslib::nav_panel("Bens e dívidas", mod_wealth_ui("wealth")),
+  bslib::nav_panel("Estados e regiões", mod_regions_ui("regions")),
+  bslib::nav_panel("Metodologia e dados", mod_methodology_ui("methodology")),
   footer = shiny::tags$footer(
     class = "app-footer",
     "Fonte: Receita Federal do Brasil. Índices de desigualdade e polarização são aproximações com dados agrupados."
@@ -28,13 +33,6 @@ ui <- bslib::page_navbar(
 )
 
 server <- function(input, output, session) {
-  output$overview_panel <- shiny::renderUI(mod_overview_ui("overview"))
-  output$evolution_panel <- shiny::renderUI(mod_evolution_ui("evolution"))
-  output$top_panel <- shiny::renderUI(mod_top_ui("top"))
-  output$composition_panel <- shiny::renderUI(mod_composition_ui("composition"))
-  output$wealth_panel <- shiny::renderUI(mod_wealth_ui("wealth"))
-  output$regions_panel <- shiny::renderUI(mod_regions_ui("regions"))
-  output$methodology_panel <- shiny::renderUI(mod_methodology_ui("methodology"))
   mod_overview_server("overview", bundle)
   mod_evolution_server("evolution", bundle)
   mod_top_server("top", bundle)

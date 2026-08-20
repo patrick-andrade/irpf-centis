@@ -13,6 +13,7 @@ Rodada de revisão técnica e primeira publicação estática.
 - Filtro geográfico inoperante nos gráficos "nacionais" dos relatórios (`plot_metric_evolution`/`plot_top_shares` misturavam as 29 geografias por captura na máscara de dados do `dplyr::filter`).
 - Três abas do painel (Rendimentos, Bens e dívidas, Estados) falhavam em silêncio sem dados; agora exibem o cartão padrão de dados ausentes.
 - Linha da aba "Evolução" nunca era desenhada (estética `text` fragmentava os grupos do `geom_line`).
+- Cinco das sete abas do painel abriam com os filtros vazios no navegador: a UI de cada aba era montada por `renderUI` e as saídas de abas ocultas ficam suspensas, então os `updateSelectInput` da inicialização chegavam antes de os selects existirem e se perdiam. A UI dos módulos passa a entrar direto no navbar, com teste de regressão sobre o HTML inicial do painel.
 - Deflatores IPCA ausentes deixavam todos os valores reais `NA` silenciosamente; o pipeline agora aborta com orientação.
 - `quality_gate` passou a bloquear de fato a escrita de `data/processed/` e do bundle do painel no grafo do `targets`.
 - Fronteira de ponto flutuante nas participações de topo (top 0,01%) protegida por tolerância numérica.
