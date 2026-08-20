@@ -4,6 +4,39 @@ Todas as alterações relevantes deste projeto serão documentadas neste arquivo
 
 O formato segue *Keep a Changelog* e as versões públicas usarão versionamento baseado no ano da edição dos dados.
 
+## [Não publicado]
+
+Revisão de visualização e comunicação, com duas correções de dados encontradas
+pelo caminho.
+
+### Corrigido
+
+- **Campos deslocados em 2017–2021.** Nos arquivos monolíticos, o cabeçalho traz um rótulo a mais que as colunas de dados: "Rendimentos recebidos de Pessoa Física/Exterior — Aluguéis" aparece repetido em duas colunas vizinhas e a última coluna rotulada ("Quantidade de Dependentes") não tem dados. A partir da duplicata, cada coluna de dados recebia o rótulo da coluna seguinte. O efeito publicado: "Imposto Devido" lia os valores de "Imóveis", e a alíquota efetiva média de 2017–2021 saía entre 97% e 123% no relatório, com máximo de 270.697.056% nos dados curados. Corrigido em `read_receita_sheet()`, que detecta o rótulo órfão e realinha. As alíquotas nacionais passam a 5,96%, 6,02%, 6,03% e 5,71% em 2017, 2019, 2020 e 2021, coerentes com 5,84%, 5,62% e 5,79% em 2022–2024. `distribution_bins` não era afetado — Gini, participações de topo e demais indicadores de desigualdade estavam corretos.
+- **Campos de bens e direitos sem mapeamento em 2017–2022.** A anotação de unidade (`[R$ milhões]`, `[R$]`) entrava no texto do cabeçalho e derrubava os padrões ancorados de `fields.csv`, que só funcionavam no layout de 2024 por reconhecimento posicional. `assets_real_estate`, `assets_movable`, `assets_financial`, `assets_other` e `assets_total` ficavam como `unmapped_*` em seis dos oito anos, deixando a aba "Bens e dívidas" e a seção patrimonial do relatório sem dados fora de 2023–2024. A unidade passa a ser descartada antes da resolução do campo.
+- Alíquota efetiva só é publicada quando o conceito de renda do ranking contém a renda tributada. Em RB5, RB9 e RB10 um grupo pode ter renda do conceito próxima de zero e ainda dever imposto sobre rendimentos fora dele; a razão agora fica `NA` em vez de produzir milhares por cento. `tax_due` e `rank_sum` seguem íntegros.
+- Sufixos monetários do painel em português: `scales::cut_short_scale()` escrevia "R$ 500B", que em português não é quinhentos bilhões.
+- Mapa por UF em escala de classes com limites declarados, no lugar da escala contínua — com Wolfson variando de 0,35 a 4,50 entre estados, a escala contínua colapsava o contraste das outras 26 UFs para acomodar uma.
+- UFs identificadas por nome no relatório e no painel, não por sigla.
+
+### Adicionado
+
+- `R/viz.R`: camada de visualização compartilhada entre relatórios e painel — tema, escalas com domínio declarado, paleta acessível e anotação. Sincronizada para `app/R/viz.R` por `sync_app_viz()`, com teste que falha se as duas divergirem e teste que barra pacote fora do conjunto disponível em WebAssembly.
+- Escalas com faixa declarada em vez de ajuste automático ao dado. Índices ganham amplitude mínima (0,15 para Gini de renda) e âncoras redondas; participações e alíquotas partem sempre do zero; primeira e última quebra coincidem com os limites do eixo. O Gini patrimonial passa a usar âncora fixa de 0,70 a 1,00: em dezesseis anos a série varia menos de 0,03, e a escala anterior transformava essa estabilidade em penhasco. Segue Correll, Bertini & Franconeri (CHI 2020), que mediram que indicar o truncamento não desfaz o exagero percebido.
+- Detalhe do topo da distribuição em eixo ordinal de largura igual, no relatório e no painel. Os 20 grupos disjuntos do topo ocupavam 2% da largura em escala de percentil, comprimindo num penhasco de dois pixels o achado mais noticiável do estudo: em 2024 a alíquota efetiva sobe até 9,9% no percentil 90 e cai para 0,86% no 0,01% mais rico.
+- Gráfico de sensibilidade ao grupo 120, com a série calculada com e sem o top 0,01%.
+- Portões de plausibilidade dos indicadores derivados (`R/validation.R`): alíquota efetiva fora de [0, 1] e Gini/Atkinson fora de [0, 1] reprovam a construção; cobertura da alíquota, Wolfson > 1, Palma > 50 e saltos anuais de Gini viram avisos registrados em `quality-checks.csv`. Um segundo alvo `derived_quality_gate` barra a escrita dos produtos.
+- Títulos-mensagem e texto alternativo (`fig-alt`) em todas as figuras dos relatórios.
+- Rótulos diretos no fim das linhas, com separação automática, no lugar de legendas em ordem alfabética que não coincidiam com a ordem vertical das séries.
+- Variação contra o ano anterior nos cartões da visão geral do painel.
+
+### Alterado
+
+- Rampa sequencial para séries aninhadas (RTB ⊂ RB3 ⊂ RB4; Top 10% ⊃ Top 1% ⊃ Top 0,1%), que a paleta qualitativa anterior desordenava, e Okabe-Ito para categorias sem ordem. O mesmo `#F2A900` era "RB3" num gráfico e "ponto de destaque" em outro; `#005A9C` e `#6A1B9A` convergem sob deuteranopia e eram justamente os extremos da comparação de conceitos.
+- Grades menores removidas e grade maior restrita ao eixo da medida.
+- RB5 sai da comparação de conceitos do relatório: com o top 1% acima de 65%, comprimia a variação de RTB, RB3 e RB4.
+- Wolfson e Palma rotulados como instáveis no seletor do painel; a visão geral mostra a participação do top 0,1% no lugar do Wolfson.
+- Ano-calendário 2018 documentado como não comparável em `docs/limitations.md`, após conferência célula a célula contra o arquivo oficial: o grupo 120 traz soma de R$ 948,3 bilhões e média de R$ 298,1 milhões por declaração, contra R$ 115,5 bilhões e R$ 37,9 milhões em 2017. Os valores são os publicados pela Receita e foram preservados.
+
 ## [0.2.0] — 2026-08-20
 
 Rodada de revisão técnica e primeira publicação estática.

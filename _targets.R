@@ -75,13 +75,25 @@ list(
   ),
   tar_target(effective_tax, effective_tax_rates(distribution_bins, income_components)),
   tar_target(theil_decomposition, theil_decomposition_uf(distribution_bins_nominal, "RB4")),
+  # Segundo portão: o primeiro valida a estrutura da fonte, este valida se os
+  # indicadores derivados são possíveis (alíquota em [0,1], Gini em [0,1]).
+  tar_target(
+    derived_quality_checks,
+    run_derived_quality_checks(distribution_metrics, effective_tax)
+  ),
+  tar_target(derived_quality_gate, assert_quality(derived_quality_checks)),
+  tar_target(
+    all_quality_checks,
+    dplyr::bind_rows(quality_checks, derived_quality_checks)
+  ),
   tar_target(
     processed_files,
     {
       quality_gate
+      derived_quality_gate
       write_processed_outputs(
         distribution_bins, income_components, distribution_metrics,
-        effective_tax, theil_decomposition, quality_checks,
+        effective_tax, theil_decomposition, all_quality_checks,
         hierarchy_reconciliation, wealth_ranked_national, wealth_metrics,
         coverage_context
       )
@@ -92,6 +104,7 @@ list(
     app_bundle,
     {
       quality_gate
+      derived_quality_gate
       write_app_bundle(
         income_components, distribution_metrics, effective_tax,
         theil_decomposition, wealth_ranked_national, wealth_metrics,

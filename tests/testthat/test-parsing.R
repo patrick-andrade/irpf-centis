@@ -66,3 +66,60 @@ test_that("workbook ignora abas não distributivas e aborta sem nenhuma aba vál
   writexl::write_xlsx(list(Capa = junk), only_junk, col_names = FALSE)
   expect_error(parse_receita_workbook(only_junk, 2024L, "x"), "Nenhuma aba distributiva")
 })
+
+test_that("detect_phantom_header só acusa rótulo órfão com duplicata vizinha", {
+  headers <- c("Centil", "Soma", "Soma", "Imposto Devido", "Bens")
+  # Última coluna sem dados e uma duplicata vizinha: assinatura de 2017-2021.
+  expect_equal(
+    detect_phantom_header(headers, c(TRUE, TRUE, TRUE, TRUE, FALSE)),
+    3L
+  )
+  # Todas as colunas com dados: layout limpo, nada a realinhar.
+  expect_true(is.na(detect_phantom_header(headers, rep(TRUE, 5))))
+  # Órfã sem duplicata: ambíguo, não se mexe.
+  expect_true(is.na(detect_phantom_header(
+    c("Centil", "Soma", "Imposto Devido", "Bens"), c(TRUE, TRUE, TRUE, FALSE)
+  )))
+})
+
+test_that("parser realinha o cabeçalho fantasma de 2017-2021", {
+  skip_if_not_installed("writexl")
+  path <- write_phantom_fixture_workbook("BRV")
+  parsed <- read_receita_sheet(path, "BRV", 2018L, "fixture-phantom")
+  reference <- fixture_bin_values()
+  bins <- parsed$distribution_bins[order(parsed$distribution_bins$bin_code), ]
+  ordered <- reference[order(reference$code), ]
+
+  # Sem o realinhamento, rank_sum receberia os valores de rank_cumulative.
+  expect_equal(bins$rank_sum, ordered$rank_sum)
+  expect_equal(bins$rank_cumulative, ordered$rank_cumulative)
+  expect_equal(bins$rank_mean, ordered$rank_mean)
+
+  components <- parsed$income_components
+  tax <- components[components$component_id == "tax_due", ]
+  tax <- tax[order(tax$bin_code), ]
+  expect_equal(tax$value_nominal, ordered$tax_due)
+  expect_false(any(grepl("^unmapped", components$component_id)))
+})
+
+test_that("cabeçalho descarta a anotação de unidade antes de resolver o campo", {
+  skip_if_not_installed("writexl")
+  path <- write_phantom_fixture_workbook("BRV", units = TRUE)
+  parsed <- read_receita_sheet(path, "BRV", 2018L, "fixture-units")
+  components <- parsed$income_components
+  expect_setequal(unique(components$component_id), c("tax_due", "dividends"))
+  tax <- components[components$component_id == "tax_due", ]
+  expect_equal(
+    tax$value_nominal[order(tax$bin_code)],
+    fixture_bin_values()$tax_due[order(fixture_bin_values()$code)]
+  )
+})
+
+test_that("layout dividido não sofre realinhamento", {
+  skip_if_not_installed("writexl")
+  path <- write_fixture_workbook("split", sheet = "BRV")
+  parsed <- read_receita_sheet(path, "BRV", 2024L, "fixture-split")
+  reference <- fixture_bin_values()
+  bins <- parsed$distribution_bins[order(parsed$distribution_bins$bin_code), ]
+  expect_equal(bins$rank_sum, reference$rank_sum[order(reference$code)])
+})

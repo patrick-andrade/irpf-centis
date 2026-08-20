@@ -16,8 +16,17 @@ effective_tax_rates <- function(distribution_bins, income_components) {
     ) |>
     dplyr::inner_join(tax, by = c("year", "geo_level", "geo_code", "ranking_id", "bin_code")) |>
     dplyr::mutate(
+      # A razão só é interpretável quando o conceito de renda do ranking contém
+      # a renda que foi tributada. Nos conceitos estreitos (RB5, RB9, RB10) um
+      # grupo pode ter renda do conceito próxima de zero e ainda dever imposto
+      # sobre rendimentos que ficam de fora dele — a divisão então produz
+      # "alíquotas" de milhares por cento, que não medem carga tributária
+      # nenhuma. `tax_due > rank_sum` é sinal suficiente de que o conceito não
+      # cobre a base tributada; nesses casos a razão fica NA. Os valores de
+      # `tax_due` e `rank_sum` permanecem na tabela, sem substituição.
       effective_rate = dplyr::if_else(
-        is.finite(.data$rank_sum) & .data$rank_sum > 0,
+        is.finite(.data$rank_sum) & .data$rank_sum > 0 &
+          is.finite(.data$tax_due) & .data$tax_due <= .data$rank_sum,
         .data$tax_due / .data$rank_sum,
         NA_real_
       )
@@ -38,7 +47,11 @@ effective_tax_summary <- function(effective_tax) {
       ) |>
       dplyr::mutate(
         group = group,
-        effective_rate = dplyr::if_else(.data$income > 0, .data$tax_due / .data$income, NA_real_)
+        effective_rate = dplyr::if_else(
+          .data$income > 0 & .data$tax_due <= .data$income,
+          .data$tax_due / .data$income,
+          NA_real_
+        )
       )
   })
 }

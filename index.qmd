@@ -9,6 +9,24 @@ Os resultados descrevem **declarações válidas do IRPF**, não toda a populaç
 
 Estudo descritivo e reprodutível da distribuição de **renda, tributação e patrimônio** entre declarantes do IRPF, por centis, anos-calendário **2017–2024** (série patrimonial de ordenação direta: **2006–2021**), para o Brasil e as unidades da Federação.
 
+## Três termos que aparecem em tudo
+
+**Centil.** A distribuição é cortada em cem faixas de igual número de
+declarações. O centil 1 reúne o 1% de menor renda; o centil 99, o 1% de maior
+renda. O topo é ainda subdividido: o 1% mais rico em dez partes e o 0,1% mais
+rico em outras dez, num total de 118 grupos que não se sobrepõem.
+
+**RB4.** O conceito de renda usado como lente principal: rendimentos
+tributáveis, isentos e sujeitos à tributação exclusiva ou definitiva, excluídas
+doações e heranças. É mais amplo que o rendimento tributável bruto (RTB), que
+cobre apenas a parcela sujeita à tabela progressiva.
+
+**Dados agrupados.** A Receita publica totais e médias por grupo, não
+declarações individuais. Todos os indicadores aqui são estimados a partir
+dessas médias e não enxergam a variação dentro de cada grupo — são
+aproximações, e o [apêndice técnico](reports/technical-appendix.html) mostra
+quanto de indeterminação isso deixa.
+
 ## Explore
 
 - **[Painel interativo](app/)** — indicadores por ano, geografia e conceito de renda, mapa por UF, composição de rendimentos, alíquota efetiva e patrimônio. Roda inteiramente no seu navegador (WebAssembly); a primeira carga leva alguns instantes.

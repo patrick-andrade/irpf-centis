@@ -66,6 +66,109 @@ validate_series_coverage <- function(distribution_bins) {
   )
 }
 
+# Os portões abaixo checam plausibilidade dos indicadores derivados, não a
+# estrutura da fonte. Existem porque a alíquota efetiva de 2017–2021 chegou a
+# ser publicada acima de 100% sem que nada no pipeline reclamasse: o defeito só
+# apareceu no gráfico, e depois de publicado.
+validate_effective_rate_range <- function(effective_tax) {
+  rates <- effective_tax$effective_rate
+  finite <- rates[is.finite(rates)]
+  out_of_range <- sum(finite < 0 | finite > 1)
+  faixa <- tibble::tibble(
+    check = "effective_rate_range",
+    status = ifelse(out_of_range == 0L, "pass", "fail"),
+    detail = ifelse(
+      out_of_range == 0L,
+      "Alíquotas efetivas dentro de [0, 1]",
+      paste0(
+        out_of_range, " grupo(s) com alíquota efetiva fora de [0, 1]; máximo ",
+        scales::percent(max(finite), accuracy = 0.1)
+      )
+    )
+  )
+  # A supressão da razão em conceitos estreitos não pode ser silenciosa: sem
+  # esta contagem, uma cobertura que caísse por defeito de parsing passaria
+  # como se fosse a regra conceitual funcionando.
+  suprimidos <- sum(is.na(rates))
+  cobertura <- tibble::tibble(
+    check = "effective_rate_coverage",
+    status = ifelse(suprimidos == 0L, "pass", "warn"),
+    detail = paste0(
+      suprimidos, " de ", length(rates),
+      " grupo(s) sem alíquota interpretável (imposto acima da renda do conceito",
+      " ou renda nula); concentrados nos conceitos estreitos RB5, RB9 e RB10"
+    )
+  )
+  dplyr::bind_rows(faixa, cobertura)
+}
+
+validate_index_ranges <- function(metrics) {
+  bounded <- c("gini_grouped", "atkinson_grouped")
+  offenders <- purrr::map_int(bounded, function(column) {
+    values <- metrics[[column]]
+    sum(is.finite(values) & (values < 0 | values > 1))
+  })
+  # Wolfson e Palma não são limitados por construção, mas explodem quando a
+  # mediana do grupo tende a zero — é artefato de fórmula, não desigualdade.
+  unstable <- sum(is.finite(metrics$wolfson_grouped) & metrics$wolfson_grouped > 1) +
+    sum(is.finite(metrics$palma) & metrics$palma > 50)
+  dplyr::bind_rows(
+    tibble::tibble(
+      check = "bounded_index_range",
+      status = ifelse(sum(offenders) == 0L, "pass", "fail"),
+      detail = ifelse(
+        sum(offenders) == 0L,
+        "Gini e Atkinson dentro de [0, 1]",
+        paste(sum(offenders), "distribuições com índice limitado fora de [0, 1]")
+      )
+    ),
+    tibble::tibble(
+      check = "unstable_index_values",
+      status = ifelse(unstable == 0L, "pass", "warn"),
+      detail = paste(
+        unstable,
+        "distribuição(ões) com Wolfson > 1 ou Palma > 50; artefato de mediana próxima de zero"
+      )
+    )
+  )
+}
+
+validate_year_over_year <- function(metrics, threshold = 0.05) {
+  national <- metrics |>
+    dplyr::filter(.data$geo_level == "national") |>
+    dplyr::arrange(.data$ranking_id, .data$year) |>
+    dplyr::group_by(.data$ranking_id) |>
+    dplyr::mutate(jump = abs(.data$gini_grouped - dplyr::lag(.data$gini_grouped))) |>
+    dplyr::ungroup() |>
+    dplyr::filter(is.finite(.data$jump), .data$jump > threshold)
+  tibble::tibble(
+    check = "gini_year_over_year",
+    status = ifelse(nrow(national) == 0L, "pass", "warn"),
+    detail = ifelse(
+      nrow(national) == 0L,
+      paste0("Nenhum salto nacional de Gini acima de ", threshold, " entre anos consecutivos"),
+      paste0(
+        nrow(national), " salto(s) nacional(is) de Gini acima de ", threshold, ": ",
+        paste(paste0(national$ranking_id, "/", national$year), collapse = ", ")
+      )
+    )
+  )
+}
+
+run_derived_quality_checks <- function(metrics, effective_tax) {
+  if (nrow(metrics) == 0L) {
+    return(tibble::tibble(
+      check = "derived_available", status = "fail",
+      detail = "Nenhum indicador derivado calculado"
+    ))
+  }
+  dplyr::bind_rows(
+    validate_effective_rate_range(effective_tax),
+    validate_index_ranges(metrics),
+    validate_year_over_year(metrics)
+  )
+}
+
 reconcile_hierarchy <- function(distribution_bins, tolerance = 0.01) {
   wide <- distribution_bins |>
     dplyr::select("year", "geo_code", "ranking_id", "bin_code", "contributors", "rank_sum") |>

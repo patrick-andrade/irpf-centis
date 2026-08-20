@@ -14,6 +14,7 @@ format:
 ```{r}
 #| include: false
 source("../R/utils.R", encoding = "UTF-8")
+source("../R/viz.R", encoding = "UTF-8")
 source("../R/report_helpers.R", encoding = "UTF-8")
 data <- load_report_data()
 has_data <- report_has_data(data)
@@ -65,7 +66,14 @@ Os resultados descrevem declarações e valores informados à Receita. Mudanças
 
 ```{r}
 #| fig-cap: "Participação dos grupos superiores na RB4 declarada"
-if (has_data) plot_top_shares(data$metrics)
+#| fig-alt: "Três séries de participação na renda declarada entre 2017 e 2024, todas partindo do zero no eixo vertical e rotuladas no fim da linha. O top 10% vai de 48,3% a 52,2%, o top 1% de 19,8% a 25,1% e o top 0,1% de 9,3% a 13,0%, com pico em 2018 nas três."
+if (has_data) {
+  plot_top_shares(
+    data$metrics,
+    titulo = "O 1% mais rico ampliou sua fatia da renda declarada",
+    subtitulo = "Participação na RB4, Brasil. O top 10% contém o top 1%, que contém o top 0,1%."
+  )
+}
 ```
 
 O detalhamento do topo usa 118 grupos disjuntos. Os agregados 100 e 110 são preservados para auditoria, mas não entram novamente nas somas.
@@ -78,8 +86,20 @@ O detalhamento do topo usa 118 grupos disjuntos. Os agregados 100 e 110 são pre
 
 ```{r}
 #| fig-cap: "Evolução do Gini agrupado da RB4 entre declarantes"
-if (has_data) plot_metric_evolution(data$metrics, "gini_grouped", "Gini agrupado")
+#| fig-alt: "Série do Gini da renda declarada entre 2017 e 2024, em eixo de 0,52 a 0,70 com o primeiro e o último valor rotulados. Parte de 0,577 em 2017, salta para 0,666 em 2018, retorna a 0,584 em 2019 e sobe gradualmente até 0,604 em 2024."
+if (has_data) {
+  plot_metric_evolution(
+    data$metrics, "gini_grouped", "Gini agrupado",
+    titulo = "A desigualdade da renda declarada terminou 2024 acima de 2017",
+    subtitulo = "Gini agrupado da RB4, Brasil, com valores inicial e final rotulados."
+  )
+}
 ```
+
+O valor de 2018 depende de um único grupo, o top 0,01%, cujos números na fonte
+oficial se afastam muito dos anos vizinhos. O relatório completo traz a série
+calculada sem esse grupo, e as [limitações](../docs/limitations.html) registram
+a conferência célula a célula contra o arquivo de origem.
 
 ```{r}
 if (has_data) {
@@ -134,10 +154,13 @@ Nos dados ampliados de 2017–2024, bens e dívidas são observados ao longo da 
 
 ```{r}
 #| fig-cap: "Gini patrimonial agrupado na ordenação direta por bens e direitos"
+#| fig-alt: "Série do Gini patrimonial entre 2006 e 2021, em eixo que vai de 0,70 a 1,00. A linha permanece próxima de 0,86 durante todo o período, com variação total inferior a 0,03, e termina em 0,880 em 2021."
 if (has_data && nrow(data$wealth_metrics) > 0L) {
   plot_metric_evolution(
     data$wealth_metrics, "gini_grouped", "Gini patrimonial agrupado",
-    ranking = "WEALTH_DIRECT"
+    ranking = "WEALTH_DIRECT", ancora = c(0.70, 1.00),
+    titulo = "A concentração do patrimônio é altíssima e quase não se moveu",
+    subtitulo = "Gini patrimonial agrupado, ordenação direta por bens e direitos. Eixo de 0,70 a 1,00."
   )
 }
 ```

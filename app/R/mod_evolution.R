@@ -37,14 +37,31 @@ mod_evolution_server <- function(id, bundle) {
     output$plot <- shiny::renderPlot({
       d <- selected()
       shiny::validate(shiny::need(nrow(d) > 0L, "Sem dados para a seleção."))
-      p <- ggplot2::ggplot(d, ggplot2::aes(.data$year, .data[[input$metric]], group = 1)) +
-        ggplot2::geom_line(colour = "#005A9C", linewidth = 1) +
-        ggplot2::geom_point(colour = "#F2A900", size = 3) +
-        ggplot2::scale_x_continuous(breaks = d$year) +
-        ggplot2::labs(x = NULL, y = NULL, caption = "Estimativa com dados agrupados do IRPF") +
-        ggplot2::theme_minimal(base_size = 12)
-      if (grepl("share$", input$metric)) p <- p + ggplot2::scale_y_continuous(labels = scales::label_percent(decimal.mark = ","))
-      p
+      d <- d[is.finite(d[[input$metric]]), , drop = FALSE]
+      shiny::validate(shiny::need(nrow(d) > 0L, "Indicador não definido para a seleção."))
+      rotulo <- names(metric_choices)[match(input$metric, metric_choices)]
+
+      # Participações partem do zero; índices ganham amplitude mínima para que
+      # uma variação pequena não ocupe a altura inteira do painel.
+      escala_y <- if (grepl("share$", input$metric)) {
+        escala_participacao(d[[input$metric]], nome = rotulo)
+      } else {
+        escala_indice(d[[input$metric]], nome = rotulo)
+      }
+      formatar <- if (grepl("share$", input$metric)) {
+        rotulo_percentual(0.1)
+      } else {
+        rotulo_indice(0.001)
+      }
+
+      ggplot2::ggplot(d, ggplot2::aes(.data$year, .data[[input$metric]], group = 1)) +
+        ggplot2::geom_line(colour = cor_destaque(1), linewidth = 1) +
+        ggplot2::geom_point(colour = cor_destaque(1), size = 2.6) +
+        rotular_extremos(d, "year", input$metric, formatar = formatar) +
+        escala_ano(d$year) +
+        escala_y +
+        ggplot2::labs(x = NULL, caption = "Estimativa com dados agrupados do IRPF.") +
+        tema_irpf(base_size = 13, direcao = "y")
     })
   })
 }

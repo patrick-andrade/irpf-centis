@@ -46,21 +46,33 @@ synthetic_app_bundle <- function() {
     ) |>
     dplyr::select(-"component")
 
-  share_cuts <- c(0, 0.5, 0.9, 0.99, 0.999, 1)
+  # Inclui os grupos disjuntos do topo (99, 101-109, 111-120) além dos centis
+  # baixos: sem eles o painel de detalhe do topo não teria o que desenhar, e é
+  # justamente ali que está a queda da alíquota que o estudo quer comunicar.
+  codigos_fixture <- c(1L, 50L, 90L, 95L, 99L, 101:109, 111:120)
+  limites <- purrr::map_dfr(codigos_fixture, bin_attributes)
   effective_tax <- tidyr::expand_grid(
     year = 2023:2024,
     geo_code = c("BR", "SP"),
-    bin_code = 1:5
+    bin_code = codigos_fixture
   ) |>
+    dplyr::left_join(
+      dplyr::mutate(limites, bin_code = codigos_fixture) |>
+        dplyr::select("bin_code", "share_lower", "share_upper"),
+      by = "bin_code"
+    ) |>
     dplyr::mutate(
       geo_level = ifelse(.data$geo_code == "BR", "national", "state"),
       ranking_id = "RB4",
-      share_lower = share_cuts[.data$bin_code],
-      share_upper = share_cuts[.data$bin_code + 1L],
       contributors = 100,
-      tax_due = 10 * .data$bin_code,
       rank_sum = 100 * .data$bin_code,
-      effective_rate = .data$tax_due / .data$rank_sum
+      # Alíquota sobe até o percentil 99 e cai no topo, como na série real.
+      effective_rate = ifelse(
+        .data$bin_code <= 99L,
+        0.10 * .data$share_upper,
+        0.10 * (1 - (.data$bin_code - 99L) / 25)
+      ),
+      tax_due = .data$effective_rate * .data$rank_sum
     )
 
   square <- function(codarea, offset) {

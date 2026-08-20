@@ -15,7 +15,15 @@ mod_composition_ui <- function(id) {
       bslib::card(
         bslib::card_header("Alíquota efetiva média por posição na distribuição"),
         shiny::p(class = "small text-muted", "Imposto devido dividido pela renda RB4 de cada grupo; média com dados agrupados, sem variação interna aos grupos."),
-        shiny::plotOutput(ns("tax_curve"), height = "360px")
+        shiny::plotOutput(ns("tax_curve"), height = "320px"),
+        shiny::p(
+          class = "small text-muted",
+          paste(
+            "O último 1% da distribuição reúne 20 grupos divulgados, que na escala",
+            "acima ocupariam 1% da largura. Abaixo, cada um recebe a mesma largura."
+          )
+        ),
+        shiny::plotOutput(ns("tax_curve_top"), height = "320px")
       )
     )
   )
@@ -39,35 +47,65 @@ mod_composition_server <- function(id, bundle) {
         dplyr::slice_max(.data$value, n = 12, with_ties = FALSE) |>
         dplyr::arrange(.data$value)
       shiny::validate(shiny::need(nrow(d) > 0L, "Sem componentes para a seleção."))
-      p <- ggplot2::ggplot(d, ggplot2::aes(.data$value, stats::reorder(.data$field_label, .data$value))) +
-        ggplot2::geom_col(fill = "#005A9C") +
-        ggplot2::scale_x_continuous(labels = scales::label_number(
-          prefix = "R$ ", scale_cut = scales::cut_short_scale()
-        )) +
-        ggplot2::labs(x = "Valor declarado em R$ de 2024", y = NULL) +
-        ggplot2::theme_minimal(base_size = 11)
-      p
+      # Barras: o zero é obrigatório, porque o comprimento é a mensagem. A
+      # grade útil aqui é a vertical, no eixo do valor.
+      ggplot2::ggplot(d, ggplot2::aes(.data$value, stats::reorder(.data$field_label, .data$value))) +
+        ggplot2::geom_col(fill = cor_destaque(1), width = 0.72) +
+        escala_dinheiro(c(0, d$value), eixo = "x", nome = "Valor declarado em R$ de 2024") +
+        ggplot2::labs(y = NULL) +
+        tema_irpf(direcao = "x")
     })
-    output$tax_curve <- shiny::renderPlot({
+    aliquotas <- shiny::reactive({
       shiny::req(input$year, input$geo)
-      shiny::validate(shiny::need(nrow(bundle$effective_tax) > 0L, "Alíquotas efetivas não disponíveis."))
-      d <- bundle$effective_tax |>
+      bundle$effective_tax |>
         dplyr::filter(
           .data$year == as.integer(input$year), .data$geo_code == input$geo,
           is.finite(.data$effective_rate)
         ) |>
         dplyr::arrange(.data$share_upper)
+    })
+
+    output$tax_curve <- shiny::renderPlot({
+      shiny::validate(shiny::need(nrow(bundle$effective_tax) > 0L, "Alíquotas efetivas não disponíveis."))
+      d <- aliquotas() |> dplyr::filter(.data$bin_code <= 99L)
       shiny::validate(shiny::need(nrow(d) > 0L, "Sem alíquotas para a seleção."))
       ggplot2::ggplot(d, ggplot2::aes(.data$share_upper, .data$effective_rate)) +
-        ggplot2::geom_line(colour = "#005A9C", linewidth = 0.8) +
-        ggplot2::geom_point(colour = "#005A9C", size = 1) +
-        ggplot2::scale_x_continuous(labels = scales::label_percent(decimal.mark = ",")) +
-        ggplot2::scale_y_continuous(labels = scales::label_percent(accuracy = 0.1, decimal.mark = ",")) +
-        ggplot2::labs(
-          x = "Posição na distribuição (limite superior do grupo)",
-          y = "Alíquota efetiva média"
+        ggplot2::annotate(
+          "rect", xmin = 0.99, xmax = 1, ymin = -Inf, ymax = Inf,
+          fill = cores_irpf$grade, alpha = 0.7
         ) +
-        ggplot2::theme_minimal(base_size = 11)
+        ggplot2::geom_line(colour = cor_destaque(1), linewidth = 0.9) +
+        escala_participacao(
+          d$share_upper, eixo = "x", ancora = c(0, 1),
+          nome = "Posição na distribuição (limite superior do grupo)"
+        ) +
+        escala_aliquota(d$effective_rate, nome = "Alíquota efetiva média") +
+        linha_zero("h") +
+        tema_irpf(direcao = "y")
+    })
+
+    # Detalhe do topo em eixo ordinal: é onde a alíquota cai, e em escala de
+    # percentil os 20 grupos ficariam comprimidos em 1% da largura.
+    output$tax_curve_top <- shiny::renderPlot({
+      shiny::validate(shiny::need(nrow(bundle$effective_tax) > 0L, "Alíquotas efetivas não disponíveis."))
+      d <- aliquotas() |>
+        dplyr::filter(.data$bin_code %in% codigos_topo) |>
+        dplyr::mutate(posicao = eixo_ordinal_topo(.data$share_upper))
+      shiny::validate(shiny::need(nrow(d) > 0L, "Sem alíquotas no topo para a seleção."))
+      extremos <- d[c(which.max(d$effective_rate), which.max(d$share_upper)), ]
+      ggplot2::ggplot(d, ggplot2::aes(.data$posicao, .data$effective_rate, group = 1)) +
+        ggplot2::geom_line(colour = cor_destaque(1), linewidth = 0.9) +
+        ggplot2::geom_point(colour = cor_destaque(1), size = 1.8) +
+        ggplot2::geom_text(
+          data = extremos,
+          mapping = ggplot2::aes(label = rotulo_percentual(0.1)(.data$effective_rate)),
+          vjust = -1.1, size = 3.2, colour = cores_irpf$tinta
+        ) +
+        escala_aliquota(d$effective_rate, nome = "Alíquota efetiva média") +
+        linha_zero("h") +
+        ggplot2::labs(x = "Percentil de renda (limite superior de cada grupo)") +
+        tema_irpf(direcao = "y") +
+        ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, hjust = 1, size = 8))
     })
   })
 }

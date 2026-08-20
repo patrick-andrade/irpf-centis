@@ -54,6 +54,24 @@ bin_attributes <- function(bin_code) {
   dplyr::mutate(result, is_leaf = !.data$is_aggregate)
 }
 
+# Nos arquivos monolíticos de 2017–2021 o cabeçalho traz um rótulo a mais que
+# as colunas de dados: "Rendimentos recebidos de Pessoa Física/Exterior -
+# Aluguéis" aparece repetido em duas colunas vizinhas, e a última coluna
+# rotulada ("Quantidade de Dependentes") fica sem dados. A partir da duplicata,
+# cada coluna de dados passa a receber o rótulo da coluna seguinte: era assim
+# que "Imposto Devido" lia os valores de "Imóveis" e a alíquota efetiva
+# resultava em 97% a 123%. O layout de 2022 em diante não tem a duplicata, e
+# esta detecção se desliga sozinha nele.
+detect_phantom_header <- function(headers, column_has_data) {
+  n <- length(headers)
+  if (n < 2L) return(NA_integer_)
+  # A assinatura é um rótulo final órfão: cabeçalho presente, coluna sem dado.
+  if (isTRUE(column_has_data[[n]]) || !nzchar(headers[[n]])) return(NA_integer_)
+  repeated <- which(headers[-1] == headers[-n] & nzchar(headers[-n]))
+  if (length(repeated) != 1L) return(NA_integer_)
+  as.integer(repeated[[1]] + 1L)
+}
+
 resolve_field_ids <- function(headers) {
   fields <- read_schema("fields")
   normalized <- normalize_text(headers)
@@ -115,8 +133,26 @@ read_receita_sheet <- function(path, sheet, year, source_id) {
   headers <- purrr::map_chr(keep_cols, function(j) {
     parts <- unlist(char[header_row:(data_start - 1L), j], use.names = FALSE)
     parts <- parts[!is.na(parts) & stringr::str_squish(parts) != ""]
-    stringr::str_squish(paste(unique(parts), collapse = " | "))
+    # A anotação de unidade ("[R$ milhões]", "[R$]") identifica a escala, não o
+    # campo, e muda de ano para ano. Mantê-la no texto do cabeçalho fazia os
+    # padrões ancorados de fields.csv falharem fora do layout de 2024, deixando
+    # os campos de bens e direitos sem mapeamento em 2017–2022.
+    labels <- parts[!stringr::str_detect(stringr::str_squish(parts), "^\\[.*\\]$")]
+    if (length(labels) == 0L) labels <- parts
+    stringr::str_squish(paste(unique(labels), collapse = " | "))
   })
+  column_has_data <- purrr::map_lgl(
+    keep_cols, function(j) any(!is.na(raw[[j]][data_rows]))
+  )
+  phantom <- detect_phantom_header(headers, column_has_data)
+  if (!is.na(phantom)) {
+    # Descartar o rótulo duplicado realinha os rótulos seguintes com os dados
+    # que lhes pertencem; a última coluna (sem dados) sai junto para manter
+    # rótulos e colunas com o mesmo comprimento.
+    headers <- headers[-phantom]
+    keep_cols <- keep_cols[-length(keep_cols)]
+  }
+
   field_ids <- resolve_field_ids(headers)
   values <- raw[data_rows, keep_cols, drop = FALSE]
   values[[1]] <- analytical_codes[data_rows]

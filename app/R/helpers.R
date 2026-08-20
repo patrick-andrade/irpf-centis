@@ -34,14 +34,18 @@ ranking_label <- function(bundle, ranking_id) {
   if (nrow(row) == 0L) ranking_id else row$label[[1]]
 }
 
+# Wolfson e Palma não são limitados por construção e explodem quando a mediana
+# do grupo tende a zero — chegam a 4,5 e a 25 em algumas UFs, o que é artefato
+# de fórmula e não desigualdade. Ficam disponíveis, mas rotulados, para que o
+# leitor não os compare entre UFs como se fossem medidas estáveis.
 metric_choices <- c(
   "Gini agrupado" = "gini_grouped",
   "Theil T agrupado" = "theil_t_grouped",
   "Atkinson (ε = 0,5)" = "atkinson_grouped",
-  "Wolfson" = "wolfson_grouped",
   "Participação do top 1%" = "top_1_share",
   "Participação do top 0,1%" = "top_0_1_share",
-  "Palma" = "palma"
+  "Wolfson (instável em algumas UFs)" = "wolfson_grouped",
+  "Palma (instável em algumas UFs)" = "palma"
 )
 
 format_metric <- function(value, metric) {

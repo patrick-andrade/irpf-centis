@@ -42,11 +42,11 @@ cash_book,40,deduction,Livro-caixa,BRL,sum,livro-caixa|livro caixa
 simplified_return_count,41,count,Optantes pelo desconto simplificado,count,sum,optantes.*simplificado
 simplified_discount,42,deduction,Desconto simplificado,BRL,sum,^desconto simplificado
 tax_due,43,tax,Imposto devido,BRL,sum,imposto devido
-assets_total,44,asset,Total de bens e direitos,BRL,sum,^total bens e direitos$
-assets_real_estate,45,asset,Imóveis,BRL,sum,^im[oó]veis$
-assets_movable,46,asset,Móveis,BRL,sum,^m[oó]veis$
-assets_financial,47,asset,Ativos financeiros,BRL,sum,^financeiros$
-assets_other,48,asset,Outros bens e direitos,BRL,sum,^outros bens e direitos$
+assets_total,44,asset,Total de bens e direitos,BRL,sum,total bens e direitos$
+assets_real_estate,45,asset,Imóveis,BRL,sum,im[oó]veis$
+assets_movable,46,asset,Móveis,BRL,sum,(^| )m[oó]veis$
+assets_financial,47,asset,Ativos financeiros,BRL,sum,financeiros$
+assets_other,48,asset,Outros bens e direitos,BRL,sum,outros bens e direitos$
 assets_total_br,49,asset,Total de bens e direitos no Brasil,BRL,sum,total bens e direitos.*brasil
 assets_real_estate_br,50,asset,Imóveis no Brasil,BRL,sum,im[oó]veis.*brasil
 assets_movable_br,51,asset,Móveis no Brasil,BRL,sum,m[oó]veis.*brasil

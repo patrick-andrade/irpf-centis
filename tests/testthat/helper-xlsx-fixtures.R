@@ -81,6 +81,48 @@ write_fixture_workbook <- function(layout = c("split", "monolithic"), sheet = "B
   path
 }
 
+# Reproduz a assinatura dos arquivos de 2017-2021: um rótulo repetido em duas
+# colunas vizinhas e uma última coluna rotulada sem dados. Sem realinhamento,
+# toda coluna a partir da duplicata recebe o rótulo da coluna seguinte, e
+# "Imposto Devido" passa a ler os valores da coluna de bens.
+write_phantom_fixture_workbook <- function(sheet = "BRV", units = FALSE) {
+  bins <- fixture_bin_values()
+  primary <- ifelse(bins$code <= 100, as.character(bins$code), NA_character_)
+  secondary <- ifelse(bins$code %in% 101:110, as.character(bins$code - 100L), NA_character_)
+  tertiary <- ifelse(bins$code %in% 111:120, as.character(bins$code - 110L), NA_character_)
+
+  # O rótulo duplicado entra depois de "Soma do RB4"; a coluna sob ele carrega
+  # o dado do campo seguinte, exatamente como na fonte.
+  labels <- c(
+    "Quantidade de Contribuintes", "Limite Superior do RB4", "Soma do RB4",
+    "Soma do RB4", "Acumulado do RB4", "Média do RB4", "Imposto Devido",
+    "Lucros e Dividendos"
+  )
+  data_columns <- list(
+    bins$contributors, bins$rank_upper, bins$rank_sum, bins$rank_cumulative,
+    bins$rank_mean, bins$tax_due, bins$dividends
+  )
+  unit_row <- if (units) "[R$ milhões]" else NULL
+  pad <- function(header, values) {
+    c(header, unit_row, if (is.null(values)) rep(NA_character_, nrow(bins)) else as.character(values))
+  }
+  hierarchy_pad <- function(values) c(NA_character_, if (units) NA_character_ else NULL, values)
+
+  columns <- c(
+    list(
+      c("Centil", if (units) NA_character_ else NULL, primary),
+      hierarchy_pad(secondary),
+      hierarchy_pad(tertiary)
+    ),
+    purrr::map2(labels, c(data_columns, list(NULL)), pad)
+  )
+  frame <- as.data.frame(columns, stringsAsFactors = FALSE, check.names = FALSE)
+  names(frame) <- paste0("c", seq_along(frame))
+  path <- tempfile(pattern = "fixture-phantom-", fileext = ".xlsx")
+  writexl::write_xlsx(stats::setNames(list(frame), sheet), path, col_names = FALSE)
+  path
+}
+
 write_wealth_fixture_workbook <- function(sheet = "BR07") {
   codes <- c(0L, 1:99, 100L, 101:109, 110L, 111:120)
   contributors <- c(50, rep(100, 99), 100, rep(10, 9), 10, rep(1, 10))

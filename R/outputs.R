@@ -70,6 +70,31 @@ write_app_bundle <- function(income_components, metrics, effective_tax, theil_de
   path
 }
 
+# O painel roda isolado no navegador: `app/app.R` carrega apenas `app/R/*.R`, e
+# o shinylive empacota só o diretório `app`. Por isso a camada de visualização
+# precisa existir também lá dentro. A cópia é gerada, não editada à mão, e
+# `test-viz-sync.R` falha se as duas divergirem.
+sync_app_viz <- function(origem = "R/viz.R", destino = "app/R/viz.R") {
+  fonte <- project_path(origem)
+  alvo <- project_path(destino)
+  conteudo <- readLines(fonte, encoding = "UTF-8", warn = FALSE)
+  cabecalho <- c(
+    "# GERADO AUTOMATICAMENTE — não edite este arquivo.",
+    paste0("# Cópia de ", origem, ", sincronizada por sync_app_viz()."),
+    ""
+  )
+  writeLines(c(cabecalho, conteudo), alvo, useBytes = TRUE)
+  alvo
+}
+
+app_viz_em_sincronia <- function(origem = "R/viz.R", destino = "app/R/viz.R") {
+  alvo <- project_path(destino)
+  if (!fs::file_exists(alvo)) return(FALSE)
+  atual <- readLines(alvo, encoding = "UTF-8", warn = FALSE)
+  esperado <- readLines(project_path(origem), encoding = "UTF-8", warn = FALSE)
+  identical(utils::tail(atual, length(esperado)), esperado)
+}
+
 check_release_checklist <- function(path = "internal/release-checklist.md") {
   # O checklist é documentação interna e não faz parte do repositório público
   # (ver internal/README.md); por isso a publicação só pode ser montada na

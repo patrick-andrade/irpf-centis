@@ -42,28 +42,34 @@ mod_wealth_server <- function(id, bundle) {
         dplyr::group_by(.data$component_id, .data$field_label) |>
         dplyr::summarise(value = sum(.data$value_real, na.rm = TRUE), .groups = "drop")
       shiny::validate(shiny::need(nrow(d) > 0L, "Sem dados patrimoniais para a seleção."))
-      p <- ggplot2::ggplot(d, ggplot2::aes(stats::reorder(.data$field_label, .data$value), .data$value, fill = .data$component_id == "debts")) +
-        ggplot2::geom_col(show.legend = FALSE) +
-        ggplot2::scale_fill_manual(values = c(`FALSE` = "#005A9C", `TRUE` = "#A51C30")) +
-        ggplot2::scale_y_continuous(labels = scales::label_number(
-          prefix = "R$ ", scale_cut = scales::cut_short_scale()
-        )) +
-        ggplot2::labs(x = NULL, y = "Valor declarado em R$ de 2024") +
-        ggplot2::theme_minimal(base_size = 11) +
-        ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 25, hjust = 1))
-      p
+      # Barras horizontais: dispensam rótulo inclinado e o comprimento fica
+      # comparável numa linha de base comum. Bens e dívidas são categorias
+      # qualitativas, então entram na paleta Okabe-Ito, não na rampa ordinal.
+      cores <- stats::setNames(cor_destaque(2), c("Bens e direitos", "Dívidas e ônus"))
+      d$tipo <- ifelse(d$component_id == "debts", "Dívidas e ônus", "Bens e direitos")
+      ggplot2::ggplot(d, ggplot2::aes(.data$value, stats::reorder(.data$field_label, .data$value), fill = .data$tipo)) +
+        ggplot2::geom_col(width = 0.72) +
+        ggplot2::scale_fill_manual(values = cores, name = NULL) +
+        escala_dinheiro(c(0, d$value), eixo = "x", nome = "Valor declarado em R$ de 2024") +
+        ggplot2::labs(y = NULL) +
+        tema_irpf(direcao = "x")
     })
     output$direct_plot <- shiny::renderPlot({
       shiny::validate(shiny::need(nrow(bundle$wealth_metrics) > 0L, "Série patrimonial direta não disponível."))
       d <- bundle$wealth_metrics
-      p <- ggplot2::ggplot(d, ggplot2::aes(.data$year, .data$gini_grouped)) +
-        ggplot2::geom_line(colour = "#6A1B9A", linewidth = 0.9) +
-        ggplot2::geom_point(colour = "#6A1B9A", size = 2) +
-        ggplot2::scale_x_continuous(breaks = d$year) +
-        ggplot2::labs(x = NULL, y = "Gini patrimonial agrupado") +
-        ggplot2::theme_minimal(base_size = 11) +
+      d <- d[is.finite(d$gini_grouped), , drop = FALSE]
+      shiny::validate(shiny::need(nrow(d) > 0L, "Série patrimonial direta não disponível."))
+      # Âncora fixa de 0,70 a 1,00: a série inteira cabe em 0,03 de amplitude, e
+      # uma escala ajustada ao dado transformaria estabilidade em penhasco.
+      ggplot2::ggplot(d, ggplot2::aes(.data$year, .data$gini_grouped)) +
+        ggplot2::geom_line(colour = cor_destaque(1), linewidth = 0.9) +
+        ggplot2::geom_point(colour = cor_destaque(1), size = 2) +
+        rotular_extremos(d, "year", "gini_grouped", formatar = rotulo_indice(0.001)) +
+        escala_ano(d$year) +
+        escala_indice(d$gini_grouped, ancora = c(0.70, 1.00), nome = "Gini patrimonial agrupado") +
+        ggplot2::labs(x = NULL, caption = "Eixo de 0,70 a 1,00: a série varia menos de 0,03 em dezesseis anos.") +
+        tema_irpf(direcao = "y") +
         ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, hjust = 1))
-      p
     })
   })
 }

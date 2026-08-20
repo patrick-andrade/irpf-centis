@@ -15,6 +15,9 @@ format:
 ```{r}
 #| include: false
 source("../R/utils.R", encoding = "UTF-8")
+source("../R/viz.R", encoding = "UTF-8")
+source("../R/harmonization.R", encoding = "UTF-8")
+source("../R/inequality.R", encoding = "UTF-8")
 source("../R/taxation.R", encoding = "UTF-8")
 source("../R/report_helpers.R", encoding = "UTF-8")
 data <- load_report_data()
@@ -34,14 +37,39 @@ if (!has_data) data_unavailable_callout()
 
 # Evolução nacional
 
+O ano-calendário de 2018 aparece destacado em todas as séries nacionais. A causa
+está documentada em [limitações](../docs/limitations.html): um único grupo, o
+top 0,01%, traz na fonte oficial valores muito acima dos anos vizinhos. Os
+números são preservados como publicados, e a seção de robustez mostra as mesmas
+séries calculadas sem esse grupo.
+
 ```{r}
 #| fig-cap: "Evolução do Gini agrupado da RB4 entre declarantes do IRPF"
-if (has_data) plot_metric_evolution(data$metrics, "gini_grouped", "Gini agrupado")
+#| fig-alt: "Série do Gini da renda declarada entre 2017 e 2024, em eixo de 0,52 a 0,70 com o primeiro e o último valor rotulados. A série parte de 0,577 em 2017, salta para 0,666 em 2018, retorna a 0,584 em 2019 e sobe gradualmente até 0,604 em 2024."
+if (has_data) {
+  plot_metric_evolution(
+    data$metrics, "gini_grouped", "Gini agrupado", faixa_gini = TRUE,
+    titulo = "A desigualdade da renda declarada terminou 2024 acima de 2017",
+    subtitulo = "Gini agrupado da RB4, Brasil, com valores inicial e final rotulados."
+  )
+}
 ```
+
+A faixa dos limites de Gastwirth está desenhada, mas é estreita demais para ser
+percebida: a distância entre o limite inferior e o superior do Gini é da ordem
+de 0,0002. A indeterminação que os dados agrupados deixam neste indicador é,
+portanto, muito menor que a variação entre anos.
 
 ```{r}
 #| fig-cap: "Participações dos grupos superiores na RB4 declarada"
-if (has_data) plot_top_shares(data$metrics)
+#| fig-alt: "Três séries de participação na renda declarada entre 2017 e 2024, todas partindo do zero no eixo vertical e rotuladas no fim da linha. O top 10% vai de 48,3% a 52,2%, o top 1% de 19,8% a 25,1% e o top 0,1% de 9,3% a 13,0%, com pico em 2018 nas três."
+if (has_data) {
+  plot_top_shares(
+    data$metrics,
+    titulo = "O 1% mais rico ampliou sua fatia da renda declarada",
+    subtitulo = "Participação na RB4, Brasil. Grupos aninhados: o top 10% contém o top 1%, que contém o top 0,1%."
+  )
+}
 ```
 
 ```{=typst}
@@ -79,25 +107,46 @@ A alíquota efetiva média divide o imposto devido pela renda RB4 de cada grupo 
 
 ```{r}
 #| fig-cap: "Alíquota efetiva média por posição na distribuição da RB4, ano mais recente"
-if (has_data && nrow(data$effective_tax) > 0L) {
-  plot_effective_rate_curve(data$effective_tax, year = max(data$effective_tax$year))
-}
-```
-
-```{r}
-#| fig-cap: "Alíquota efetiva média no topo da distribuição (a partir do percentil 90), ano mais recente"
+#| fig-alt: "Curva da alíquota efetiva média ao longo dos percentis 1 a 99, começando no zero. A alíquota fica próxima de zero até o percentil 15, sobe de forma contínua a partir daí e chega a cerca de 9,9% no percentil 90, estabilizando até o percentil 99. Uma faixa sombreada marca o último 1% da distribuição, detalhado no gráfico seguinte."
 if (has_data && nrow(data$effective_tax) > 0L) {
   plot_effective_rate_curve(
-    data$effective_tax,
-    year = max(data$effective_tax$year), min_share = 0.90
+    data$effective_tax, year = max(data$effective_tax$year),
+    titulo = "A alíquota efetiva sobe ao longo da distribuição — até o percentil 90",
+    subtitulo = "Imposto devido sobre a renda RB4 do grupo, Brasil, ano-calendário mais recente."
   )
 }
 ```
 
+O último por cento da distribuição concentra 20 grupos divulgados, que em escala
+de percentil ocupariam 1% da largura do gráfico acima. O gráfico seguinte dá a
+cada um desses grupos a mesma largura.
+
+```{r}
+#| fig-cap: "Alíquota efetiva média nos vinte grupos disjuntos do topo, ano mais recente"
+#| fig-alt: "Alíquota efetiva média nos vinte grupos divulgados do topo da distribuição, cada um com a mesma largura no eixo horizontal. A alíquota parte de cerca de 7,4% no grupo que termina no percentil 99, cai de forma contínua ao longo dos décimos do top 1% e do top 0,1%, e chega a 0,9% no último grupo, o 0,01% mais rico."
+if (has_data && nrow(data$effective_tax) > 0L) {
+  plot_effective_rate_top(
+    data$effective_tax, year = max(data$effective_tax$year),
+    titulo = "No topo, a alíquota efetiva não sobe: ela cai",
+    subtitulo = "Vinte grupos disjuntos do topo, cada um com a mesma largura no eixo. Brasil, ano-calendário mais recente."
+  )
+}
+```
+
+A queda decorre da composição da renda no topo: rendimentos isentos e sujeitos à
+tributação exclusiva ganham peso conforme se sobe na distribuição, e a RB4 os
+inclui. É a leitura de @gobetti_orair2017 sobre a progressividade limitada do
+IRPF nos estratos superiores.
+
 ```{r}
 #| fig-cap: "Evolução da alíquota efetiva média por grupos da distribuição"
+#| fig-alt: "Quatro séries de alíquota efetiva média entre 2017 e 2024, com eixo vertical começando no zero e rótulos no fim de cada linha. A alíquota de todos os declarantes fica entre 5,6% e 6,0%, exceto em 2018. A do top 1% cai de 4,4% em 2017 para 3,0% em 2024, e a do top 0,1% permanece abaixo dela em todo o período."
 if (has_data && nrow(data$effective_tax) > 0L) {
-  plot_effective_rate_evolution(effective_tax_summary(data$effective_tax))
+  plot_effective_rate_evolution(
+    effective_tax_summary(data$effective_tax),
+    titulo = "A carga sobre o topo caiu enquanto a geral ficou estável",
+    subtitulo = "Alíquota efetiva média por grupo da distribuição da RB4, Brasil."
+  )
 }
 ```
 
@@ -107,13 +156,23 @@ Nos arquivos ampliados, os bens são observados ao longo de uma distribuição o
 
 ```{r}
 #| fig-cap: "Evolução do Gini patrimonial agrupado, com ordenação direta por bens e direitos"
+#| fig-alt: "Série do Gini patrimonial entre 2006 e 2021, em eixo que vai de 0,70 a 1,00. A linha permanece próxima de 0,86 durante todo o período, com variação total inferior a 0,03, e termina em 0,880 em 2021."
 if (has_data && nrow(data$wealth_metrics) > 0L) {
+  # Âncora fixa de 0,70 a 1,00: a série inteira cabe em 0,03 de amplitude, e
+  # uma escala ajustada ao dado transformaria estabilidade em penhasco.
   plot_metric_evolution(
     data$wealth_metrics, "gini_grouped", "Gini patrimonial agrupado",
-    ranking = "WEALTH_DIRECT"
+    ranking = "WEALTH_DIRECT", ancora = c(0.70, 1.00),
+    titulo = "A concentração do patrimônio é altíssima e quase não se moveu",
+    subtitulo = "Gini patrimonial agrupado, ordenação direta por bens e direitos, Brasil. Eixo de 0,70 a 1,00."
   )
 }
 ```
+
+Em dezesseis anos a série varia menos de 0,03 ponto de Gini, num patamar muito
+alto. A escolha de mostrar o eixo de 0,70 a 1,00, e não a faixa estreita ocupada
+pelos dados, é deliberada: numa escala ajustada ao dado, essa estabilidade
+apareceria como oscilação acentuada.
 
 # Estados e regiões
 
@@ -139,13 +198,51 @@ Os indicadores centrais são recalculados sob conceitos alternativos de renda �
 
 ```{r}
 #| fig-cap: "Gini agrupado nacional sob conceitos alternativos de renda"
-if (has_data) plot_ranking_comparison(data$metrics, "gini_grouped", "Gini agrupado")
+#| fig-alt: "Três séries de Gini entre 2017 e 2024, uma por conceito de renda, rotuladas no fim da linha e em rampa de cor que segue o aninhamento dos conceitos. RB4 corre no patamar mais alto, RB3 logo abaixo e RTB no mais baixo, com trajetórias paralelas e o mesmo pico em 2018."
+if (has_data) {
+  plot_ranking_comparison(
+    data$metrics, "gini_grouped", "Gini agrupado",
+    titulo = "O nível muda com o conceito de renda; a trajetória, não",
+    subtitulo = "Gini agrupado nacional sob RTB, RB3 e RB4. Conceitos aninhados: RTB ⊂ RB3 ⊂ RB4."
+  )
+}
 ```
 
 ```{r}
 #| fig-cap: "Participação do top 1% nacional sob conceitos alternativos de renda"
-if (has_data) plot_ranking_comparison(data$metrics, "top_1_share", "Participação do top 1%")
+#| fig-alt: "Três séries de participação do top 1% na renda entre 2017 e 2024, com eixo vertical a partir do zero. RB4 vai de 19,8% a 25,1%, RB3 acompanha um pouco abaixo e RTB permanece próxima de 11% em todo o período."
+if (has_data) {
+  plot_ranking_comparison(
+    data$metrics, "top_1_share", "Participação do top 1%",
+    titulo = "Quanto mais ampla a definição de renda, maior a fatia do topo",
+    subtitulo = "Participação do 1% mais rico sob RTB, RB3 e RB4, Brasil."
+  )
+}
 ```
+
+A RB5 fica fora destes painéis: com o top 1% acima de 65%, ela comprimiria a
+variação de RTB, RB3 e RB4 — que é justamente o contraste em exame. Os valores
+da RB5 constam de `distribution-metrics.parquet`.
+
+## Dependência do grupo mais alto
+
+```{r}
+#| fig-cap: "Gini agrupado da RB4 com e sem o grupo do top 0,01%"
+#| fig-alt: "Duas séries de Gini entre 2017 e 2024 na mesma escala. A série com todos os grupos apresenta pico acentuado em 2018; a série calculada sem o top 0,01% é visivelmente mais baixa e não apresenta esse pico, evoluindo de forma suave ao longo do período."
+if (has_data) {
+  plot_sensibilidade_topo(
+    data$bins, data$metrics, "gini_grouped", "Gini agrupado",
+    titulo = "Um grupo de 0,01% das declarações governa a série",
+    subtitulo = "Gini agrupado da RB4 com todos os grupos e sem o grupo 120, Brasil."
+  )
+}
+```
+
+O grupo 120 reúne cerca de 4 mil declarações entre mais de 41 milhões. Retirá-lo
+desloca a série inteira e elimina o pico de 2018. Isso não indica erro de
+cálculo: mede quanto os indicadores de desigualdade dependem do estrato mais
+alto, e por que a comparação entre anos exige checar a estabilidade da fonte
+nesse grupo.
 
 Como robustez adicional à ausência de informação intragrupo, o apêndice técnico reporta limites inferior e superior do Gini no espírito de @gastwirth1972: o limite inferior corresponde ao trapézio sobre as médias de grupo e o superior à máxima desigualdade interna compatível com médias e limites monetários divulgados. Mudanças associadas a campos não comparáveis ou revisões da base são destacadas, nunca suavizadas automaticamente.
 

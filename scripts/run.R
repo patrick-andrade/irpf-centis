@@ -52,9 +52,11 @@ if (command == "discover") {
   quarto::quarto_render(".")
 } else if (command == "site") {
   quarto::quarto_render(".")
+  sync_app_viz()
   source("scripts/export-app.R")
   cli::cli_alert_success("Site completo em output/site (relatórios + painel).")
 } else if (command == "app") {
+  sync_app_viz()
   shiny::runApp("app", launch.browser = interactive())
 } else if (command == "release") {
   path <- create_release_bundle()

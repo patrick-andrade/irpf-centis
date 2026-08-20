@@ -34,9 +34,13 @@ test_that("curva e evolução da alíquota efetiva usam os filtros esperados", {
   bundle <- synthetic_app_bundle()
   curve <- plot_effective_rate_curve(bundle$effective_tax, year = 2024)
   expect_setequal(unique(curve$data$geo_code), "BR")
-  expect_equal(nrow(curve$data), 5L)
-  top_curve <- plot_effective_rate_curve(bundle$effective_tax, year = 2024, min_share = 0.5)
-  expect_true(all(top_curve$data$share_lower >= 0.5))
+  # O painel principal cobre a distribuição até o centil 99; o topo tem gráfico
+  # próprio, em eixo ordinal, porque em escala de percentil os 20 grupos do
+  # topo ocupam 2% da largura.
+  expect_true(all(curve$data$bin_code <= 99L))
+  top <- plot_effective_rate_top(bundle$effective_tax, year = 2024)
+  expect_true(all(top$data$bin_code %in% codigos_topo))
+  expect_s3_class(top$data$posicao, "factor")
   summary <- effective_tax_summary(bundle$effective_tax)
   evolution <- plot_effective_rate_evolution(summary)
   expect_setequal(unique(evolution$data$geo_code), "BR")
@@ -47,5 +51,7 @@ test_that("tabela estadual usa renda média real com rótulo de 2024", {
   metrics <- report_metrics_fixture()
   table <- latest_metrics_table(metrics)
   expect_true("Renda média (R$ de 2024)" %in% names(table))
-  expect_setequal(table$UF, c("SP", "RJ"))
+  # Nome por extenso: código de UF não é leitura de público geral.
+  expect_setequal(table$`Unidade da Federação`, c("São Paulo", "Rio de Janeiro"))
+  expect_false("UF" %in% names(table))
 })
