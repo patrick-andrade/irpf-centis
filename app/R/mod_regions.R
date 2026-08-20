@@ -55,7 +55,7 @@ mod_regions_server <- function(id, bundle) {
         ggplot2::geom_col(fill = "#005A9C") +
         ggplot2::labs(x = NULL, y = NULL, caption = "Centis calculados separadamente dentro de cada UF.") +
         ggplot2::theme_minimal(base_size = 11)
-      if (grepl("share$", input$metric)) p <- p + ggplot2::scale_x_continuous(labels = scales::label_percent())
+      if (grepl("share$", input$metric)) p <- p + ggplot2::scale_x_continuous(labels = scales::label_percent(decimal.mark = ","))
       p
     })
     output$table <- shiny::renderTable({

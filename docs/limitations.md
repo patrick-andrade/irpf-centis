@@ -1,4 +1,6 @@
-# Limitações
+---
+title: "Limitações"
+---
 
 1. O universo contém declarantes do IRPF, não a população brasileira completa.
 2. Declarações conjuntas e dependentes impedem interpretar cada declaração como uma pessoa.

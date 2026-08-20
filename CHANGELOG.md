@@ -4,7 +4,7 @@ Todas as alterações relevantes deste projeto serão documentadas neste arquivo
 
 O formato segue *Keep a Changelog* e as versões públicas usarão versionamento baseado no ano da edição dos dados.
 
-## [0.2.0] — 2026-08-19
+## [0.2.0] — 2026-08-20
 
 Rodada de auditoria técnica e primeira publicação estática. Diagnóstico completo em `docs/diagnostico-tecnico.md`.
 
@@ -19,6 +19,7 @@ Rodada de auditoria técnica e primeira publicação estática. Diagnóstico com
 - `Dockerfile` mínimo e correto (não copia mais 179 MB de dados desnecessários); documentado como seguro de migração.
 - ~1.600 avisos de deprecação do tidyselect (`.data$` em `select`/`pull`/`pivot_longer`) eliminados.
 - Bundle do painel não transporta mais um `distribution_bins` vazio nem dependência espúria de rebuild.
+- Formatação numérica em português nos relatórios e no painel: `scales` usava as convenções do inglês e imprimia `R$ 154,061` (lido como cento e cinquenta e quatro reais) onde o valor é `R$ 154.061`; milhar passa a usar ponto e decimal, vírgula, também nos eixos dos gráficos e nos cartões do painel.
 
 ### Adicionado
 
@@ -32,6 +33,7 @@ Rodada de auditoria técnica e primeira publicação estática. Diagnóstico com
 - Site Quarto (`type: website`) com landing page, navbar e diagnóstico técnico; painel exportado para WebAssembly (shinylive) em `output/site/app`.
 - Workflow `deploy-pages.yml`: publicação automática no GitHub Pages a partir do `_freeze/` committed, sem dados no CI.
 - Comando `run.cmd site` (render + export do painel).
+- `scripts/verify-invariance.R` e `docs/verificacao-invariancia.md`: comparação reprodutível entre o snapshot pré-correção e a reexecução completa do pipeline, coluna a coluna.
 
 ### Alterado
 

@@ -23,17 +23,17 @@ mod_overview_server <- function(id, bundle) {
         ),
         bslib::value_box(
           title = "Gini agrupado",
-          value = scales::number(row$gini_grouped, accuracy = 0.001),
+          value = scales::number(row$gini_grouped, accuracy = 0.001, decimal.mark = ","),
           showcase = bsicons::bs_icon("bar-chart")
         ),
         bslib::value_box(
           title = "Participação do top 1%",
-          value = scales::percent(row$top_1_share, accuracy = 0.1),
+          value = scales::percent(row$top_1_share, accuracy = 0.1, decimal.mark = ","),
           showcase = bsicons::bs_icon("graph-up-arrow")
         ),
         bslib::value_box(
           title = "Wolfson agrupado",
-          value = scales::number(row$wolfson_grouped, accuracy = 0.001),
+          value = scales::number(row$wolfson_grouped, accuracy = 0.001, decimal.mark = ","),
           showcase = bsicons::bs_icon("arrows-expand")
         ),
         bslib::card(

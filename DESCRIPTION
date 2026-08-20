@@ -2,7 +2,7 @@ Package: irpfcentis
 Type: Project
 Title: Distribuição de Renda e Patrimônio no IRPF por Centis
 Version: 0.2.0
-Authors@R: person("Patrick", "Andrade", role = c("aut", "cre"), email = "pkandrade@gmail.com")
+Authors@R: person("Patrick", "Andrade", role = c("aut", "cre"), email = "70705477+patrick-andrade@users.noreply.github.com")
 Description: Compêndio de pesquisa reprodutível para aquisição, harmonização,
     análise e divulgação dos dados agregados do IRPF por centis.
 License: MIT + file LICENSE

@@ -5,9 +5,9 @@ type: software
 authors:
   - family-names: "Andrade"
     given-names: "Patrick"
-    email: "pkandrade@gmail.com"
+    email: "70705477+patrick-andrade@users.noreply.github.com"
 version: 0.2.0
-date-released: 2026-08-19
+date-released: 2026-08-20
 license: MIT
 repository-code: "https://github.com/patrick-andrade/irpf-centis"
 url: "https://patrick-andrade.github.io/irpf-centis/"

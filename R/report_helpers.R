@@ -1,3 +1,30 @@
+# Formatação numérica em português: milhar com ponto, decimal com vírgula.
+# `scales` usa as convenções do inglês por padrão, o que faria "R$ 154,061"
+# ser lido como cento e cinquenta e quatro reais em vez de cento e cinquenta
+# e quatro mil.
+fmt_brl <- function(x, accuracy = 1) {
+  scales::label_currency(
+    prefix = "R$ ", accuracy = accuracy,
+    big.mark = ".", decimal.mark = ","
+  )(x)
+}
+
+fmt_count <- function(x) {
+  scales::label_number(accuracy = 1, big.mark = ".", decimal.mark = ",")(x)
+}
+
+fmt_index <- function(x, accuracy = 0.001) {
+  scales::number(x, accuracy = accuracy, big.mark = ".", decimal.mark = ",")
+}
+
+fmt_share <- function(x, accuracy = 0.1) {
+  scales::percent(x, accuracy = accuracy, big.mark = ".", decimal.mark = ",")
+}
+
+label_share_ptbr <- function(accuracy = 0.1) {
+  scales::label_percent(accuracy = accuracy, big.mark = ".", decimal.mark = ",")
+}
+
 read_processed_or_empty <- function(file, type = c("parquet", "csv")) {
   type <- match.arg(type)
   path <- project_path("data/processed", file)
@@ -50,7 +77,7 @@ plot_top_shares <- function(metrics, geo_code = "BR", ranking = "RB4") {
   ggplot2::ggplot(data, ggplot2::aes(.data$year, .data$share, colour = .data$group)) +
     ggplot2::geom_line(linewidth = 0.9) +
     ggplot2::geom_point(size = 2) +
-    ggplot2::scale_y_continuous(labels = scales::label_percent(accuracy = 0.1)) +
+    ggplot2::scale_y_continuous(labels = label_share_ptbr(0.1)) +
     ggplot2::scale_x_continuous(breaks = sort(unique(data$year))) +
     ggplot2::scale_colour_manual(values = c("Top 10%" = "#005A9C", "Top 1%" = "#A51C30", "Top 0,1%" = "#F2A900")) +
     ggplot2::labs(x = NULL, y = "Participação na renda", colour = NULL) +
@@ -75,7 +102,7 @@ plot_ranking_comparison <- function(metrics, metric, label, geo_code = "BR",
     ggplot2::theme_minimal(base_size = 11) +
     ggplot2::theme(legend.position = "bottom")
   if (grepl("share$", metric)) {
-    plot <- plot + ggplot2::scale_y_continuous(labels = scales::label_percent(accuracy = 0.1))
+    plot <- plot + ggplot2::scale_y_continuous(labels = label_share_ptbr(0.1))
   }
   plot
 }
@@ -92,8 +119,8 @@ plot_effective_rate_curve <- function(effective_tax, year, geo_code = "BR",
   ggplot2::ggplot(data, ggplot2::aes(.data$share_upper, .data$effective_rate)) +
     ggplot2::geom_line(colour = "#005A9C", linewidth = 0.8) +
     ggplot2::geom_point(colour = "#005A9C", size = 1.1) +
-    ggplot2::scale_x_continuous(labels = scales::label_percent(accuracy = 0.1)) +
-    ggplot2::scale_y_continuous(labels = scales::label_percent(accuracy = 0.1)) +
+    ggplot2::scale_x_continuous(labels = label_share_ptbr(0.1)) +
+    ggplot2::scale_y_continuous(labels = label_share_ptbr(0.1)) +
     ggplot2::labs(
       x = "Posição na distribuição (limite superior do grupo)",
       y = "Alíquota efetiva média",
@@ -115,7 +142,7 @@ plot_effective_rate_evolution <- function(effective_tax_summary, geo_code = "BR"
     ggplot2::geom_line(linewidth = 0.9) +
     ggplot2::geom_point(size = 2) +
     ggplot2::scale_x_continuous(breaks = sort(unique(data$year))) +
-    ggplot2::scale_y_continuous(labels = scales::label_percent(accuracy = 0.1)) +
+    ggplot2::scale_y_continuous(labels = label_share_ptbr(0.1)) +
     ggplot2::scale_colour_manual(values = c(
       "Todos os declarantes" = "#4D4D4D", "Top 10%" = "#005A9C",
       "Top 1%" = "#A51C30", "Top 0,1%" = "#F2A900"

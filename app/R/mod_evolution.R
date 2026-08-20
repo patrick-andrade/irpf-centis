@@ -43,7 +43,7 @@ mod_evolution_server <- function(id, bundle) {
         ggplot2::scale_x_continuous(breaks = d$year) +
         ggplot2::labs(x = NULL, y = NULL, caption = "Estimativa com dados agrupados do IRPF") +
         ggplot2::theme_minimal(base_size = 12)
-      if (grepl("share$", input$metric)) p <- p + ggplot2::scale_y_continuous(labels = scales::label_percent())
+      if (grepl("share$", input$metric)) p <- p + ggplot2::scale_y_continuous(labels = scales::label_percent(decimal.mark = ","))
       p
     })
   })

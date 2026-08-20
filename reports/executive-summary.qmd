@@ -95,7 +95,7 @@ if (has_data) {
     dplyr::arrange(dplyr::desc(.data$Valor))
   composition <- composition |>
     dplyr::rename(`Grupo de rendimento` = "component_group") |>
-    dplyr::mutate(`Valor (R$ de 2024)` = scales::label_currency(prefix = "R$ ", accuracy = 1)(.data$Valor), .keep = "unused") |>
+    dplyr::mutate(`Valor (R$ de 2024)` = fmt_brl(.data$Valor), .keep = "unused") |>
     dplyr::select("Grupo de rendimento", "Valor (R$ de 2024)")
   print(knitr::kable(composition, format = "pipe"))
 }
@@ -115,10 +115,10 @@ if (has_data) {
     dplyr::slice_head(n = 10)
   state_table <- state_table |>
     dplyr::mutate(
-      Declarantes = scales::label_number(accuracy = 1)(.data$Declarantes),
-      `Renda média (R$ de 2024)` = scales::label_currency(prefix = "R$ ", accuracy = 1)(.data$`Renda média (R$ de 2024)`),
-      `Gini agrupado` = scales::number(.data$`Gini agrupado`, accuracy = 0.001),
-      `Top 1%` = scales::percent(.data$`Top 1%`, accuracy = 0.1)
+      Declarantes = fmt_count(.data$Declarantes),
+      `Renda média (R$ de 2024)` = fmt_brl(.data$`Renda média (R$ de 2024)`),
+      `Gini agrupado` = fmt_index(.data$`Gini agrupado`),
+      `Top 1%` = fmt_share(.data$`Top 1%`)
     )
   print(knitr::kable(state_table, format = "pipe"))
 }

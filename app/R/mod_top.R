@@ -26,10 +26,10 @@ mod_top_server <- function(id, bundle) {
       shiny::validate(shiny::need(nrow(d) == 1L, "Sem dados para a seleção."))
       bslib::layout_columns(
         col_widths = c(3, 3, 3, 3),
-        bslib::value_box("Top 10%", scales::percent(d$top_10_share, 0.1)),
-        bslib::value_box("Top 1%", scales::percent(d$top_1_share, 0.1)),
-        bslib::value_box("Top 0,1%", scales::percent(d$top_0_1_share, 0.1)),
-        bslib::value_box("Top 0,01%", scales::percent(d$top_0_01_share, 0.1)),
+        bslib::value_box("Top 10%", scales::percent(d$top_10_share, 0.1, decimal.mark = ",")),
+        bslib::value_box("Top 1%", scales::percent(d$top_1_share, 0.1, decimal.mark = ",")),
+        bslib::value_box("Top 0,1%", scales::percent(d$top_0_1_share, 0.1, decimal.mark = ",")),
+        bslib::value_box("Top 0,01%", scales::percent(d$top_0_01_share, 0.1, decimal.mark = ",")),
         bslib::card(
           bslib::card_header("Nota"),
           shiny::p("Os grupos detalhados do topo são disjuntos no cálculo. Os agregados 100 e 110 não são somados novamente.")

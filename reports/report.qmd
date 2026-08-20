@@ -65,8 +65,8 @@ if (has_data) {
     dplyr::mutate(share = .data$value / sum(.data$value))
   selected <- selected |>
     dplyr::mutate(
-      value = scales::label_currency(prefix = "R$ ", accuracy = 1)(.data$value),
-      share = scales::percent(.data$share, accuracy = 0.1)
+      value = fmt_brl(.data$value),
+      share = fmt_share(.data$share)
     ) |>
     dplyr::rename(`Valor (R$ de 2024)` = "value")
   print(knitr::kable(selected, format = "pipe"))
@@ -124,10 +124,10 @@ if (has_data) {
   table <- latest_metrics_table(data$metrics)
   table <- table |>
     dplyr::mutate(
-      Declarantes = scales::label_number(accuracy = 1)(.data$Declarantes),
-      `Renda média (R$ de 2024)` = scales::label_currency(prefix = "R$ ", accuracy = 1)(.data$`Renda média (R$ de 2024)`),
-      `Gini agrupado` = scales::number(.data$`Gini agrupado`, accuracy = 0.001),
-      `Top 1%` = scales::percent(.data$`Top 1%`, accuracy = 0.1)
+      Declarantes = fmt_count(.data$Declarantes),
+      `Renda média (R$ de 2024)` = fmt_brl(.data$`Renda média (R$ de 2024)`),
+      `Gini agrupado` = fmt_index(.data$`Gini agrupado`),
+      `Top 1%` = fmt_share(.data$`Top 1%`)
     )
   print(knitr::kable(table, format = "pipe"))
 }

@@ -61,8 +61,8 @@ mod_composition_server <- function(id, bundle) {
       ggplot2::ggplot(d, ggplot2::aes(.data$share_upper, .data$effective_rate)) +
         ggplot2::geom_line(colour = "#005A9C", linewidth = 0.8) +
         ggplot2::geom_point(colour = "#005A9C", size = 1) +
-        ggplot2::scale_x_continuous(labels = scales::label_percent()) +
-        ggplot2::scale_y_continuous(labels = scales::label_percent(accuracy = 0.1)) +
+        ggplot2::scale_x_continuous(labels = scales::label_percent(decimal.mark = ",")) +
+        ggplot2::scale_y_continuous(labels = scales::label_percent(accuracy = 0.1, decimal.mark = ",")) +
         ggplot2::labs(
           x = "Posição na distribuição (limite superior do grupo)",
           y = "Alíquota efetiva média"

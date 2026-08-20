@@ -45,5 +45,9 @@ metric_choices <- c(
 )
 
 format_metric <- function(value, metric) {
-  if (grepl("share$", metric)) scales::percent(value, accuracy = 0.1) else scales::number(value, accuracy = 0.001)
+  if (grepl("share$", metric)) {
+    scales::percent(value, accuracy = 0.1, big.mark = ".", decimal.mark = ",")
+  } else {
+    scales::number(value, accuracy = 0.001, big.mark = ".", decimal.mark = ",")
+  }
 }
