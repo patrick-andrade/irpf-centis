@@ -19,7 +19,7 @@ usage <- function() {
     "  render               Renderiza o site Quarto\n",
     "  site                 Renderiza o site e exporta o painel (shinylive)\n",
     "  app                  Inicia o painel Shiny\n",
-    "  release              Monta pacote local após o checklist\n",
+    "  release              Monta o pacote local de publicação\n",
     sep = ""
   )
 }

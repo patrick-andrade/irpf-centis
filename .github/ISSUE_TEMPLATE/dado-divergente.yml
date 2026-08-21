@@ -1,0 +1,37 @@
+name: Valor divergente
+description: Um número publicado parece incorreto ou não confere com outra fonte
+labels: ["dados"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Divergências que já existem nos arquivos da Receita são preservadas de
+        propósito — veja `docs/limitations.md` antes de abrir.
+  - type: input
+    id: onde
+    attributes:
+      label: Onde você viu
+      description: Página, aba do painel ou arquivo de dados curados.
+      placeholder: "Painel → Topos da renda; ou reports/report.html, seção 3"
+    validations:
+      required: true
+  - type: input
+    id: recorte
+    attributes:
+      label: Recorte
+      description: Ano, geografia, conceito de renda e grupo.
+      placeholder: "2024, São Paulo, RB4, top 0,1%"
+    validations:
+      required: true
+  - type: textarea
+    id: divergencia
+    attributes:
+      label: Valor exibido e valor esperado
+      description: Diga contra o quê você comparou — arquivo oficial, outra publicação, uma identidade contábil.
+    validations:
+      required: true
+  - type: textarea
+    id: extra
+    attributes:
+      label: Qualquer outra coisa
+      description: Célula da planilha original, link, captura de tela.

@@ -1,0 +1,11 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Metodologia e limitações
+    url: https://patrick-andrade.github.io/irpf-centis/docs/methodology.html
+    about: Antes de abrir, veja como os indicadores são calculados e o que o estudo não consegue dizer.
+  - name: Fontes oficiais da Receita Federal
+    url: https://www.gov.br/receitafederal/pt-br/centrais-de-conteudo/publicacoes/estudos/distribuicao-da-renda
+    about: Divergências que já existem nos arquivos originais devem ser reportadas à Receita, não aqui.
+  - name: Vulnerabilidade de segurança
+    url: https://github.com/patrick-andrade/irpf-centis/security/advisories/new
+    about: Não use issues públicas para relatar vulnerabilidade.

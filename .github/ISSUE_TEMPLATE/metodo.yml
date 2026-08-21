@@ -1,0 +1,28 @@
+name: Dúvida ou discordância de método
+description: Sobre uma escolha metodológica, uma interpretação ou a clareza de um resultado
+labels: ["método"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        As escolhas conceituais estão em `docs/methodology.md`, `docs/limitations.md`
+        e nos registros de decisão em `docs/decisions/`.
+  - type: input
+    id: escolha
+    attributes:
+      label: Qual escolha ou resultado
+      placeholder: "Uso do Gini agrupado como limite inferior; conceito RB4 como principal; ..."
+    validations:
+      required: true
+  - type: textarea
+    id: ponto
+    attributes:
+      label: Seu ponto
+      description: O que a escolha atual deixa passar, e o que você proporia no lugar.
+    validations:
+      required: true
+  - type: textarea
+    id: referencias
+    attributes:
+      label: Referências
+      description: Literatura ou prática estabelecida que sustenta o argumento.

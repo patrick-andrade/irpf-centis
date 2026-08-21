@@ -119,14 +119,12 @@ app_viz_em_sincronia <- function(origem = "R/viz.R", destino = "app/R/viz.R") {
 }
 
 check_release_checklist <- function(path = "internal/release-checklist.md") {
-  # O checklist é documentação interna e não faz parte do repositório público
-  # (ver internal/README.md); por isso a publicação só pode ser montada na
-  # máquina de quem mantém o projeto.
+  # O checklist não é versionado; a publicação só pode ser montada na máquina de
+  # quem mantém o projeto.
   full <- project_path(path)
   if (!fs::file_exists(full)) {
     rlang::abort(paste0(
-      "Publicação bloqueada: checklist não encontrado em ", path,
-      ". Ele é documentação interna e não vem no clone público."
+      "Publicação bloqueada: checklist não encontrado em ", path, "."
     ))
   }
   lines <- readLines(full, encoding = "UTF-8", warn = FALSE)

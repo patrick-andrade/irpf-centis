@@ -45,4 +45,6 @@ Os dados vêm dos estudos oficiais da Receita Federal — *Distribuição de Ren
 
 O código-fonte completo, o manifesto de fontes e as instruções de reprodução estão no [repositório GitHub](https://github.com/patrick-andrade/irpf-centis). Para citar, use os metadados do arquivo `CITATION.cff` do repositório.
 
+Correções e discordâncias de método podem ser registradas nas [issues do repositório](https://github.com/patrick-andrade/irpf-centis/issues).
+
 *Código sob licença MIT; textos e relatórios sob CC BY 4.0. Os dados originais pertencem às respectivas fontes oficiais.*

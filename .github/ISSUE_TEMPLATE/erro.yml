@@ -1,0 +1,43 @@
+name: Erro no código ou no painel
+description: Algo quebra, não carrega ou se comporta de forma inesperada
+labels: ["bug"]
+body:
+  - type: textarea
+    id: descricao
+    attributes:
+      label: O que acontece
+    validations:
+      required: true
+  - type: textarea
+    id: reproducao
+    attributes:
+      label: Como reproduzir
+      placeholder: |
+        1. Abrir o painel
+        2. Selecionar ...
+        3. ...
+    validations:
+      required: true
+  - type: textarea
+    id: esperado
+    attributes:
+      label: O que você esperava
+    validations:
+      required: true
+  - type: dropdown
+    id: onde
+    attributes:
+      label: Onde
+      options:
+        - Painel publicado (navegador)
+        - Site e relatórios publicados
+        - Pipeline local (run.sh / run.cmd)
+        - Painel local
+    validations:
+      required: true
+  - type: textarea
+    id: ambiente
+    attributes:
+      label: Ambiente
+      description: Para o painel publicado, navegador e sistema. Para uso local, saída de `sessionInfo()`.
+      render: text

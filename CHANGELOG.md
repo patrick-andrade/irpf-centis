@@ -9,6 +9,15 @@ O formato segue *Keep a Changelog* e as versões públicas usarão versionamento
 Revisão de visualização e comunicação, com duas correções de dados encontradas
 pelo caminho.
 
+### Adicionado
+
+- **Arquivos de comunidade recomendados pelo GitHub:** `CONTRIBUTING.md`, `CODE_OF_CONDUCT.md` (Contributor Covenant 2.1), `SECURITY.md` com canal privado de denúncia, três modelos de issue (`.github/ISSUE_TEMPLATE/`) e modelo de pull request. O repositório passa a completar o perfil de comunidade do GitHub.
+
+### Alterado
+
+- **README reescrito para leitor de fora.** Passa a abrir pelo que o estudo mede e onde vê-lo, com tabela dos produtos publicados, e sai de cena o painel de estado do desenvolvimento: gate de publicação e revisão humana pendente, aviso da existência de documentação interna, a instrução de push do mantenedor, a opção de espelho em CDN e a política de segredos de CI. A instrução de rodar `site` antes do push migra para `CONTRIBUTING.md`, onde é útil a quem contribui.
+- Mensagens e comentários voltados ao usuário deixam de narrar o processo interno de publicação (`scripts/run.R`, `R/outputs.R`, `.gitignore`).
+
 ### Corrigido
 
 - **Campos deslocados em 2017–2021.** Nos arquivos monolíticos, o cabeçalho traz um rótulo a mais que as colunas de dados: "Rendimentos recebidos de Pessoa Física/Exterior — Aluguéis" aparece repetido em duas colunas vizinhas e a última coluna rotulada ("Quantidade de Dependentes") não tem dados. A partir da duplicata, cada coluna de dados recebia o rótulo da coluna seguinte. O efeito publicado: "Imposto Devido" lia os valores de "Imóveis", e a alíquota efetiva média de 2017–2021 saía entre 97% e 123% no relatório, com máximo de 270.697.056% nos dados curados. Corrigido em `read_receita_sheet()`, que detecta o rótulo órfão e realinha. As alíquotas nacionais passam a 5,96%, 6,02%, 6,03% e 5,71% em 2017, 2019, 2020 e 2021, coerentes com 5,84%, 5,62% e 5,79% em 2022–2024. `distribution_bins` não era afetado — Gini, participações de topo e demais indicadores de desigualdade estavam corretos.
@@ -74,7 +83,7 @@ Rodada de revisão técnica e primeira publicação estática.
 
 ### Adicionado
 
-- Alíquota efetiva média por grupo da distribuição (`R/taxation.R`, `effective-tax.parquet`), com curvas no relatório e no painel — item previsto no plano v01 e ausente da implementação.
+- Alíquota efetiva média por grupo da distribuição (`R/taxation.R`, `effective-tax.parquet`), com curvas no relatório e no painel.
 - Limites inferior e superior do Gini com dados agrupados (Gastwirth 1972): colunas `gini_lower_bound`/`gini_upper_bound`.
 - Atkinson ε = 1 (média geométrica ponderada), antes retornava `NA`.
 - Métricas monetárias em reais de 2024 (`income_total_real`, `income_mean_real`) e rótulos "R$ de 2024" em relatórios e painel.
@@ -96,11 +105,10 @@ Rodada de revisão técnica e primeira publicação estática.
 
 - Código morto: `validate_manifest_files`, `empty_wealth_ranked_national`, `source_project_files`; perfil `_quarto-ci.yml`.
 
-## [Não publicado]
+## Desenvolvimento inicial
 
 ### Adicionado
 
-- Plano imutável da versão 01.
 - Fundação do projeto R, Quarto, targets e Shiny.
 - Contratos normalizados, aquisição auditável e validações hierárquicas.
 - Indicadores agrupados de desigualdade, concentração e polarização.

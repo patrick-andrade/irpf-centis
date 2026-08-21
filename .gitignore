@@ -35,7 +35,7 @@ reports/*_files/
 index_files/
 tmp/**
 
-# Documentação interna de desenvolvimento (ver internal/README.md)
+# Documentação interna de desenvolvimento
 internal/
 
 # Segredos e publicação
