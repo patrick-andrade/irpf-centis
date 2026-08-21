@@ -155,7 +155,7 @@ validate_year_over_year <- function(metrics, threshold = 0.05) {
   )
 }
 
-run_derived_quality_checks <- function(metrics, effective_tax) {
+run_derived_quality_checks <- function(metrics, effective_tax, wealth_bins, top_counts) {
   if (nrow(metrics) == 0L) {
     return(tibble::tibble(
       check = "derived_available", status = "fail",
@@ -165,7 +165,10 @@ run_derived_quality_checks <- function(metrics, effective_tax) {
   dplyr::bind_rows(
     validate_effective_rate_range(effective_tax),
     validate_index_ranges(metrics),
-    validate_year_over_year(metrics)
+    validate_year_over_year(metrics),
+    validate_debt_ratio_range(wealth_bins),
+    validate_asset_total_identity(wealth_bins),
+    validate_top_counts_nesting(top_counts)
   )
 }
 
@@ -234,4 +237,87 @@ assert_quality <- function(checks) {
     rlang::abort(paste("Falhas de qualidade:", paste(failures$check, collapse = ", ")))
   }
   invisible(checks)
+}
+
+# Estoque e fluxo declarados são não negativos, então a razão dívida/renda
+# também é. Valor negativo aponta campo trocado no layout, não declarante com
+# dívida negativa.
+validate_debt_ratio_range <- function(wealth_bins) {
+  if (nrow(wealth_bins) == 0L) {
+    return(tibble::tibble(
+      check = "debt_income_ratio_range", status = "fail",
+      detail = "Nenhum grupo com bens e dívidas"
+    ))
+  }
+  definidos <- sum(is.finite(wealth_bins$debt_income_ratio))
+  offenders <- sum(
+    is.finite(wealth_bins$debt_income_ratio) & wealth_bins$debt_income_ratio < 0
+  )
+  tibble::tibble(
+    check = "debt_income_ratio_range",
+    status = ifelse(offenders == 0L, "pass", "fail"),
+    detail = ifelse(
+      offenders == 0L,
+      paste0(
+        definidos, " de ", nrow(wealth_bins),
+        " grupos com razão dívida/renda definida e não negativa"
+      ),
+      paste(offenders, "grupos com razão dívida/renda negativa")
+    )
+  )
+}
+
+# A série de bens usa a soma das quatro famílias, porque o total consolidado só
+# é divulgado de 2022 em diante. Onde os dois existem precisam coincidir; se não
+# coincidirem, ou o layout mudou ou uma família deixou de ser lida.
+validate_asset_total_identity <- function(wealth_bins, tolerance = 0.005) {
+  comparaveis <- wealth_bins |>
+    dplyr::filter(
+      is.finite(.data$assets_total_real), is.finite(.data$assets_sum_real),
+      .data$assets_total_real > 0
+    ) |>
+    dplyr::mutate(
+      gap = abs(.data$assets_sum_real - .data$assets_total_real) /
+        .data$assets_total_real
+    )
+  offenders <- sum(comparaveis$gap > tolerance)
+  tibble::tibble(
+    check = "asset_total_identity",
+    status = ifelse(offenders == 0L, "pass", "fail"),
+    detail = ifelse(
+      nrow(comparaveis) == 0L,
+      "Nenhum grupo com total consolidado divulgado para conferir",
+      ifelse(
+        offenders == 0L,
+        paste(nrow(comparaveis), "grupos com soma das famílias igual ao total divulgado"),
+        paste(offenders, "grupos com soma das famílias fora do total divulgado")
+      )
+    )
+  )
+}
+
+# As contagens de topo são aninhadas: o top 1% cabe dentro do top 10%. Inversão
+# indica corte de grupo errado, não um dado da fonte.
+validate_top_counts_nesting <- function(top_counts) {
+  if (nrow(top_counts) == 0L) {
+    return(tibble::tibble(
+      check = "top_counts_nesting", status = "fail",
+      detail = "Nenhuma contagem de topo calculada"
+    ))
+  }
+  offenders <- top_counts |>
+    dplyr::arrange(.data$year, .data$geo_code, .data$ranking_id, .data$share_lower) |>
+    dplyr::group_by(.data$year, .data$geo_code, .data$ranking_id) |>
+    dplyr::mutate(quebra = .data$contributors > dplyr::lag(.data$contributors)) |>
+    dplyr::ungroup() |>
+    dplyr::filter(.data$quebra %in% TRUE)
+  tibble::tibble(
+    check = "top_counts_nesting",
+    status = ifelse(nrow(offenders) == 0L, "pass", "fail"),
+    detail = ifelse(
+      nrow(offenders) == 0L,
+      paste(nrow(top_counts), "contagens de topo aninhadas corretamente"),
+      paste(nrow(offenders), "recortes com contagem de topo fora da ordem")
+    )
+  )
 }

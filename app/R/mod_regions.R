@@ -15,7 +15,9 @@ mod_regions_ui <- function(id) {
           shiny::plotOutput(ns("plot"), height = "520px")
         ),
         shiny::tableOutput(ns("table"))
-      )
+      ),
+      shiny::uiOutput(ns("rodape")),
+      shiny::uiOutput(ns("conceitos"))
     )
   )
 }
@@ -102,6 +104,22 @@ mod_regions_server <- function(id, bundle) {
         d
       },
       striped = TRUE, hover = TRUE, align = "lrr"
+    )
+
+    output$rodape <- shiny::renderUI(bloco_rodape(
+      notas = paste(
+        "Cada UF é ordenada separadamente pela Receita: o centil 90 de uma UF",
+        "não tem o mesmo limite monetário do centil 90 de outra. O mapa compara",
+        "indicadores calculados dentro de cada UF, não centis nacionais."
+      ),
+      fonte = c(
+        fonte_receita,
+        "Malha estadual: IBGE."
+      )
+    ))
+
+    output$conceitos <- shiny::renderUI(
+      bloco_conceitos(bundle, rankings = "RB4", indicadores = input$metric)
     )
   })
 }

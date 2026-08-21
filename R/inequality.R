@@ -159,3 +159,46 @@ calculate_all_metrics <- function(distribution_bins, epsilon = 0.5) {
     dplyr::ungroup() |>
     dplyr::mutate(grouped_estimate = TRUE, atkinson_epsilon = epsilon)
 }
+
+# Participação de topo é percentual; o leitor pergunta quantas declarações são.
+# A resposta não sai do total multiplicado pelo corte: os grupos divulgados têm
+# tamanho fixado pela Receita e o arredondamento deles é o dado publicado.
+top_group_thresholds <- c(top_10 = 0.90, top_1 = 0.99, top_0_1 = 0.999, top_0_01 = 0.9999)
+top_group_labels <- c(top_10 = "10%", top_1 = "1%", top_0_1 = "0,1%", top_0_01 = "0,01%")
+
+top_group_counts <- function(distribution_bins, income_components, ranking = "RB4") {
+  chave <- c("year", "geo_level", "geo_code", "ranking_id", "bin_code")
+  # Contagens não são deflacionáveis: `dependents_count` sai de `value_nominal`,
+  # nunca de `value_real`.
+  dependentes <- income_components |>
+    dplyr::filter(
+      .data$ranking_id == ranking, .data$component_id == "dependents_count"
+    ) |>
+    dplyr::transmute(
+      .data$year, .data$geo_level, .data$geo_code, .data$ranking_id, .data$bin_code,
+      dependents = .data$value_nominal
+    )
+  base <- leaf_distribution(distribution_bins) |>
+    dplyr::filter(.data$ranking_id == ranking) |>
+    dplyr::select(dplyr::all_of(chave), "share_lower", "contributors", "joint_returns") |>
+    dplyr::left_join(dependentes, by = chave)
+
+  purrr::map_dfr(names(top_group_thresholds), function(nome) {
+    cutoff <- top_group_thresholds[[nome]]
+    rotulo <- unname(top_group_labels[[nome]])
+    base |>
+      dplyr::filter(.data$share_lower >= cutoff - share_tolerance) |>
+      dplyr::group_by(.data$year, .data$geo_level, .data$geo_code, .data$ranking_id) |>
+      dplyr::summarise(
+        # Sem `na.rm`: declarações conjuntas não são divulgadas até 2022 e campo
+        # ausente não pode virar zero. O NA propaga e o painel diz "não
+        # divulgado" em vez de exibir um total falso.
+        contributors = sum(.data$contributors),
+        joint_returns = sum(.data$joint_returns),
+        dependents = sum(.data$dependents),
+        .groups = "drop"
+      ) |>
+      dplyr::mutate(group = nome, group_label = rotulo, share_lower = cutoff)
+  }) |>
+    dplyr::arrange(.data$year, .data$geo_code, dplyr::desc(.data$share_lower))
+}

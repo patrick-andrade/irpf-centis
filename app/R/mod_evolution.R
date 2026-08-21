@@ -11,7 +11,9 @@ mod_evolution_ui <- function(id) {
       bslib::card(
         bslib::card_header(shiny::textOutput(ns("title"))),
         shiny::plotOutput(ns("plot"), height = "520px")
-      )
+      ),
+      shiny::uiOutput(ns("rodape")),
+      shiny::uiOutput(ns("conceitos"))
     )
   )
 }
@@ -60,8 +62,31 @@ mod_evolution_server <- function(id, bundle) {
         rotular_extremos(d, "year", input$metric, formatar = formatar) +
         escala_ano(d$year) +
         escala_y +
-        ggplot2::labs(x = NULL, caption = "Estimativa com dados agrupados do IRPF.") +
+        ggplot2::labs(x = NULL) +
         tema_irpf(base_size = 13, direcao = "y")
     })
+
+    output$rodape <- shiny::renderUI(bloco_rodape(
+      notas = c(
+        paste(
+          "Os índices são estimados a partir das médias e das quantidades dos",
+          "grupos divulgados; não observam a variação dentro de cada grupo."
+        ),
+        paste(
+          "O ano-calendário 2018 não é comparável aos vizinhos: um único grupo do",
+          "topo, preservado como publicado, eleva todos os conceitos de renda."
+        )
+      ),
+      fonte = fonte_receita
+    ))
+
+    output$conceitos <- shiny::renderUI(
+      bloco_conceitos(
+        bundle,
+        rankings = input$ranking,
+        indicadores = input$metric,
+        adicional = tabela_conceitos(bundle, destaque = input$ranking)
+      )
+    )
   })
 }

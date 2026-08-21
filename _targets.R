@@ -74,12 +74,14 @@ list(
     calculate_all_metrics(distribution_bins, project_config$analysis$atkinson_epsilon)
   ),
   tar_target(effective_tax, effective_tax_rates(distribution_bins, income_components)),
+  tar_target(wealth_bins, wealth_by_bin(distribution_bins, income_components)),
+  tar_target(top_counts, top_group_counts(distribution_bins, income_components)),
   tar_target(theil_decomposition, theil_decomposition_uf(distribution_bins_nominal, "RB4")),
   # Segundo portão: o primeiro valida a estrutura da fonte, este valida se os
   # indicadores derivados são possíveis (alíquota em [0,1], Gini em [0,1]).
   tar_target(
     derived_quality_checks,
-    run_derived_quality_checks(distribution_metrics, effective_tax)
+    run_derived_quality_checks(distribution_metrics, effective_tax, wealth_bins, top_counts)
   ),
   tar_target(derived_quality_gate, assert_quality(derived_quality_checks)),
   tar_target(
@@ -93,7 +95,7 @@ list(
       derived_quality_gate
       write_processed_outputs(
         distribution_bins, income_components, distribution_metrics,
-        effective_tax, theil_decomposition, all_quality_checks,
+        effective_tax, wealth_bins, top_counts, theil_decomposition, all_quality_checks,
         hierarchy_reconciliation, wealth_ranked_national, wealth_metrics,
         coverage_context
       )
@@ -106,8 +108,8 @@ list(
       quality_gate
       derived_quality_gate
       write_app_bundle(
-        income_components, distribution_metrics, effective_tax,
-        theil_decomposition, wealth_ranked_national, wealth_metrics,
+        income_components, distribution_metrics, effective_tax, wealth_bins,
+        top_counts, theil_decomposition, wealth_ranked_national, wealth_metrics,
         state_polygons
       )
     },

@@ -22,3 +22,122 @@
   max-width: 760px;
 }
 
+/* Aparato de rodapé de aba: nota, observação e fonte, nesta ordem. Fica colado
+   ao conteúdo que qualifica, antes do quadro de conceitos. */
+.bloco-rodape {
+  border-top: 1px solid #d9dee3;
+  color: #5b6770;
+  font-size: 0.88rem;
+  line-height: 1.5;
+  margin-top: 0.75rem;
+  padding-top: 0.6rem;
+}
+
+.bloco-rodape .rodape-linha {
+  margin-bottom: 0.35rem;
+}
+
+.bloco-rodape .rodape-rotulo {
+  color: #2f3b42;
+  font-weight: 600;
+  margin-right: 0.35rem;
+}
+
+.bloco-rodape .rodape-lista {
+  margin-bottom: 0.35rem;
+  padding-left: 1.2rem;
+}
+
+/* Quadro de conceitos: fecha a aba, depois dos gráficos, para não empurrar a
+   visualização para fora da primeira tela. */
+.bloco-conceitos {
+  margin-top: 1rem;
+}
+
+.bloco-conceitos .glossario-titulo {
+  color: #2f3b42;
+  font-weight: 600;
+  margin-bottom: 0.3rem;
+  margin-top: 0.6rem;
+}
+
+.bloco-conceitos .glossario-lista {
+  margin-bottom: 0.2rem;
+}
+
+.bloco-conceitos .glossario-lista dt {
+  color: #2f3b42;
+  font-weight: 600;
+}
+
+.bloco-conceitos .glossario-lista dd {
+  color: #3f4a52;
+  margin-bottom: 0.65rem;
+  margin-left: 1.1rem;
+}
+
+.bloco-conceitos .glossario-lista dd span {
+  display: block;
+}
+
+.bloco-conceitos .glossario-detalhe,
+.bloco-conceitos .glossario-nota {
+  color: #5b6770;
+  font-size: 0.9em;
+}
+
+.bloco-conceitos .glossario-nota {
+  font-style: italic;
+}
+
+.lista-referencias {
+  font-size: 0.9rem;
+  line-height: 1.5;
+  padding-left: 1.1rem;
+}
+
+.lista-referencias li {
+  margin-bottom: 0.55rem;
+}
+
+.tabela-conceitos {
+  font-size: 0.9rem;
+  width: 100%;
+}
+
+.tabela-conceitos th,
+.tabela-conceitos td {
+  border-bottom: 1px solid #e5e9ec;
+  padding: 0.35rem 0.5rem;
+  text-align: left;
+  vertical-align: top;
+}
+
+.tabela-conceitos tr.conceito-principal {
+  background: #f2f7fb;
+}
+
+.ficha-indicador {
+  border-top: 1px solid #e5e9ec;
+  margin-top: 1rem;
+  padding-top: 0.8rem;
+}
+
+.ficha-indicador:first-of-type {
+  border-top: none;
+}
+
+.ficha-indicador h4 {
+  font-size: 1.05rem;
+  margin-bottom: 0.4rem;
+}
+
+.ficha-indicador p {
+  margin-bottom: 0.4rem;
+}
+
+.grupo-downloads {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}

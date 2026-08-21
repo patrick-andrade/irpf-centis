@@ -1,7 +1,9 @@
 mod_overview_ui <- function(id) {
   ns <- shiny::NS(id)
   shiny::tagList(
-    shiny::uiOutput(ns("content"))
+    shiny::uiOutput(ns("content")),
+    shiny::uiOutput(ns("rodape")),
+    shiny::uiOutput(ns("conceitos"))
   )
 }
 
@@ -56,16 +58,30 @@ mod_overview_server <- function(id, bundle) {
           value = scales::percent(row$top_0_1_share, accuracy = 0.1, decimal.mark = ","),
           showcase = bsicons::bs_icon("arrows-expand"),
           variacao("top_0_1_share", pp, "p.p.")
-        ),
-        bslib::card(
-          full_screen = TRUE,
-          bslib::card_header("Como ler estes números"),
-          shiny::p("RB4 reúne rendimentos tributáveis, isentos e exclusivos, retirando doações e heranças."),
-          shiny::p("Os índices usam médias de grupos e não observam a desigualdade dentro de cada grupo."),
-          shiny::p("Uma declaração pode incluir titular, dependentes e declaração conjunta.")
         )
       )
     })
+
+    output$rodape <- shiny::renderUI({
+      if (!bundle_has_data(bundle)) return(NULL)
+      latest <- max(bundle$metrics$year)
+      bloco_rodape(
+        notas = c(nota_unidade, "Valores monetários em R$ de 2024, deflacionados pelo IPCA anual médio."),
+        observacoes = paste0(
+          "Os cartões acima trazem o Brasil no conceito central de renda (RB4), ",
+          "no ano-calendário ", latest, ", com a variação contra o ano anterior."
+        ),
+        fonte = fonte_receita
+      )
+    })
+
+    output$conceitos <- shiny::renderUI(
+      bloco_conceitos(
+        bundle,
+        rankings = "RB4",
+        indicadores = c("gini_grouped", "top_1_share", "top_0_1_share")
+      )
+    )
   })
 }
 

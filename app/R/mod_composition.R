@@ -24,7 +24,9 @@ mod_composition_ui <- function(id) {
           )
         ),
         shiny::plotOutput(ns("tax_curve_top"), height = "320px")
-      )
+      ),
+      shiny::uiOutput(ns("rodape")),
+      shiny::uiOutput(ns("conceitos"))
     )
   )
 }
@@ -107,5 +109,35 @@ mod_composition_server <- function(id, bundle) {
         tema_irpf(direcao = "y") +
         ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, hjust = 1, size = 8))
     })
+
+    output$rodape <- shiny::renderUI(bloco_rodape(
+      notas = c(
+        paste(
+          "Os valores são somas declaradas em cada grupo, em R$ de 2024;",
+          "ausência de campo na fonte não é convertida em zero."
+        ),
+        paste(
+          "A alíquota efetiva média divide o imposto devido pela renda ampla",
+          "declarada (RB4), e não pela base de cálculo legal."
+        )
+      ),
+      fonte = fonte_receita
+    ))
+
+    output$conceitos <- shiny::renderUI(
+      bloco_conceitos(
+        bundle,
+        rankings = "RB4",
+        indicadores = "effective_rate",
+        extras = list(texto_livre(
+          "Grupos de campos",
+          paste(
+            "Tributáveis, exclusivos, isentos, deduções e imposto são os grupos",
+            "semânticos dos campos divulgados pela Receita. Somá-los entre si",
+            "duplicaria rendimentos que já entram no conceito de ordenação."
+          )
+        ))
+      )
+    )
   })
 }

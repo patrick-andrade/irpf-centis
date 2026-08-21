@@ -1,12 +1,12 @@
-ranking_id,roman,table_number,label,definition,primary,year_min,year_max
-RTB,I,1,Renda Tributável Bruta,Rendimentos tributáveis brutos declarados,0,2017,
-RB1,II,2,Renda ampliada 1,RTB + rendimentos de sócio ou titular de MPE + lucros e dividendos,0,2017,
-RB2,III,3,Renda ampliada 2,RB1 + rendimentos sujeitos à tributação exclusiva ou definitiva,0,2017,
-RB3,IV,4,Renda ampliada 3,RB2 + parcelas isentas selecionadas de aposentadoria atividade rural poupança e incorporações,0,2017,
-RB4,V,5,Renda ampla sem transferências patrimoniais,RTB + rendimentos isentos + exclusivos ou definitivos - doações e heranças,1,2017,
-RB5,VI,6,Rendimentos empresariais isentos,Lucros e dividendos + rendimentos de sócio ou titular de MPE optante pelo Simples,0,2017,
-RB6,VII,7,Base e capital 1,Base de cálculo + lucros e dividendos + aplicações financeiras + renda variável + aluguéis,0,2017,
-RB7,VIII,8,Base e capital 2,RB6 + rendimentos de sócio ou titular de MPE optante pelo Simples,0,2017,
-RB8,IX,9,Base de cálculo,Base de cálculo do imposto de renda,0,2017,
-RB9,X,10,Rendimentos do Simples,Rendimentos de sócio ou titular de MPE optante pelo Simples exceto pró-labore aluguéis e serviços,0,2017,
-RB10,XI,11,Desconto simplificado,Valor do desconto simplificado,0,2022,
+ranking_id,roman,table_number,label,definition,primary,year_min,year_max,formula,reference_keys
+RTB,I,1,Renda Tributável Bruta,"Rendimentos tributáveis brutos declarados, antes das deduções legais.",0,2017,,"Rendimentos tributáveis brutos",rfb_centis
+RB1,II,2,Renda ampliada 1,"Acrescenta à renda tributável os rendimentos empresariais isentos: a parcela do sócio ou titular de micro e pequena empresa e os lucros e dividendos recebidos.",0,2017,,"RTB + rendimentos de sócio ou titular de MPE + lucros e dividendos",rfb_centis
+RB2,III,3,Renda ampliada 2,"Acrescenta à RB1 os rendimentos sujeitos à tributação exclusiva ou definitiva na fonte, como aplicações financeiras, décimo terceiro salário e ganhos de capital.",0,2017,,"RB1 + rendimentos sujeitos à tributação exclusiva ou definitiva",rfb_centis
+RB3,IV,4,Renda ampliada 3,"Acrescenta à RB2 parcelas isentas selecionadas: aposentadoria acima de 65 anos, atividade rural, poupança e incorporação de reservas.",0,2017,,"RB2 + parcelas isentas selecionadas",rfb_centis
+RB4,V,5,Renda ampla sem transferências patrimoniais,"Conceito central do estudo. Reúne rendimentos tributáveis, isentos e sujeitos à tributação exclusiva ou definitiva, retirando as transferências patrimoniais — doações e heranças — que são mudança de titularidade de estoque, não renda do período.",1,2017,,"RTB + rendimentos isentos + rendimentos exclusivos ou definitivos − doações e heranças",rfb_centis;medeiros_souza_castro2015;gobetti_orair2017
+RB5,VI,6,Rendimentos empresariais isentos,"Isola os rendimentos empresariais recebidos por pessoa física sem incidência na tabela progressiva.",0,2017,,"Lucros e dividendos + rendimentos de sócio ou titular de MPE do Simples",rfb_centis;gobetti_orair2017
+RB6,VII,7,Base e capital 1,"Soma a base de cálculo legal aos rendimentos de capital declarados.",0,2017,,"Base de cálculo + lucros e dividendos + aplicações financeiras + renda variável + aluguéis",rfb_centis
+RB7,VIII,8,Base e capital 2,"Acrescenta à RB6 os rendimentos de sócio ou titular de micro e pequena empresa optante pelo Simples.",0,2017,,"RB6 + rendimentos de sócio ou titular de MPE do Simples",rfb_centis
+RB8,IX,9,Base de cálculo,"Base de cálculo do imposto de renda: a parcela da renda efetivamente alcançada pela tabela progressiva.",0,2017,,"Base de cálculo do imposto de renda",rfb_centis
+RB9,X,10,Rendimentos do Simples,"Isola os rendimentos de sócio ou titular de micro e pequena empresa optante pelo Simples, excluídos pró-labore, aluguéis e serviços.",0,2017,,"Rendimentos de sócio ou titular de MPE do Simples",rfb_centis
+RB10,XI,11,Desconto simplificado,"Isola o valor do desconto simplificado utilizado na declaração. Divulgado a partir do ano-calendário 2022.",0,2022,,"Valor do desconto simplificado",rfb_centis

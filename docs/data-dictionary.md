@@ -28,3 +28,15 @@ Uma linha por ano e geografia. Deve identificar claramente numerador, denominado
 
 Série suplementar nacional em que a ordenação é realizada diretamente pelo patrimônio declarado. Seu esquema específico é mantido separado para evitar confusão com bens observados dentro dos centis de renda.
 
+
+## `wealth_by_bin`
+
+Uma linha por ano, geografia e grupo disjunto de RB4, com bens e dívidas observados dentro dos grupos ordenados por renda. Contém a soma das quatro famílias de bens (`assets_sum_real`), o total consolidado quando divulgado (`assets_total_real`, de 2022 em diante), as dívidas e ônus, a participação de cada grupo nos estoques do recorte (`assets_share`, `debt_share`) e a razão dívida/renda (`debt_income_ratio` = `debts_real / rank_sum_real`; `NA` quando a renda do grupo é nula). Exportado em `data/processed/wealth-by-bin.parquet`; o bundle do painel recebe um recorte de colunas.
+
+## `top_group_counts`
+
+Uma linha por ano, geografia, ranking e grupo de topo (`top_10`, `top_1`, `top_0_1`, `top_0_01`). Soma as folhas disjuntas acima do limiar e registra `contributors`, `joint_returns` e `dependents`. `joint_returns` é `NA` nos anos em que a fonte não divulga o campo. Exportado em `data/processed/top-group-counts.parquet`.
+
+## Contratos de glossário
+
+`config/schema/indicators.csv` define cada indicador exibido: rótulo, definição, leitura, faixa, a nota metodológica de cálculo com dados agrupados e as chaves bibliográficas. `config/schema/references.csv` projeta `reports/references.bib` num formato que o painel consegue renderizar sem pandoc; `test-glossary.R` falha se os dois divergirem.

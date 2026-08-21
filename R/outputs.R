@@ -1,4 +1,4 @@
-write_processed_outputs <- function(distribution_bins, income_components, metrics, effective_tax, theil_decomposition, quality_checks, hierarchy_reconciliation, wealth_ranked_national, wealth_metrics, coverage_context) {
+write_processed_outputs <- function(distribution_bins, income_components, metrics, effective_tax, wealth_bins, top_counts, theil_decomposition, quality_checks, hierarchy_reconciliation, wealth_ranked_national, wealth_metrics, coverage_context) {
   out <- project_path("data/processed")
   fs::dir_create(out, recurse = TRUE)
   paths <- c(
@@ -6,6 +6,8 @@ write_processed_outputs <- function(distribution_bins, income_components, metric
     income_components = fs::path(out, "income-components.parquet"),
     metrics = fs::path(out, "distribution-metrics.parquet"),
     effective_tax = fs::path(out, "effective-tax.parquet"),
+    wealth_bins = fs::path(out, "wealth-by-bin.parquet"),
+    top_counts = fs::path(out, "top-group-counts.parquet"),
     theil_decomposition = fs::path(out, "theil-decomposition-uf.parquet"),
     quality_checks = fs::path(out, "quality-checks.csv"),
     hierarchy_reconciliation = fs::path(out, "hierarchy-reconciliation.csv"),
@@ -17,6 +19,8 @@ write_processed_outputs <- function(distribution_bins, income_components, metric
   arrow::write_parquet(income_components, paths[["income_components"]])
   arrow::write_parquet(metrics, paths[["metrics"]])
   arrow::write_parquet(effective_tax, paths[["effective_tax"]])
+  arrow::write_parquet(wealth_bins, paths[["wealth_bins"]])
+  arrow::write_parquet(top_counts, paths[["top_counts"]])
   arrow::write_parquet(theil_decomposition, paths[["theil_decomposition"]])
   readr::write_csv(quality_checks, paths[["quality_checks"]])
   readr::write_csv(hierarchy_reconciliation, paths[["hierarchy_reconciliation"]])
@@ -26,7 +30,7 @@ write_processed_outputs <- function(distribution_bins, income_components, metric
   unname(paths)
 }
 
-write_app_bundle <- function(income_components, metrics, effective_tax, theil_decomposition, wealth_ranked_national, wealth_metrics, state_polygons) {
+write_app_bundle <- function(income_components, metrics, effective_tax, wealth_bins, top_counts, theil_decomposition, wealth_ranked_national, wealth_metrics, state_polygons) {
   path <- project_path("app/data/app-bundle.rds")
   fs::dir_create(fs::path_dir(path), recurse = TRUE)
   bundle <- list(
@@ -57,12 +61,31 @@ write_app_bundle <- function(income_components, metrics, effective_tax, theil_de
         "share_lower", "share_upper", "contributors", "tax_due",
         "rank_sum", "effective_rate"
       ),
+    # O painel roda no navegador e paga cada coluna em tempo de primeira carga.
+    # Entram só as colunas que alguma aba desenha, mais `rank_sum_real`, que
+    # deixa o leitor conferir a razão dívida/renda no CSV baixado. As quatro
+    # famílias de bens ficam de fora porque a composição já vem agregada em
+    # `income_components`, e `assets_total_real` só existe de 2022 em diante,
+    # servindo à conferência do pipeline. A tabela completa continua em
+    # `data/processed/wealth-by-bin.parquet`.
+    wealth_by_bin = wealth_bins |>
+      dplyr::transmute(
+        year = as.integer(.data$year), .data$geo_code,
+        bin_code = as.integer(.data$bin_code),
+        .data$share_lower, .data$share_upper,
+        contributors = as.integer(.data$contributors),
+        .data$rank_sum_real, .data$assets_sum_real, .data$assets_share,
+        .data$debts_real, .data$debt_share, .data$debt_income_ratio
+      ),
+    top_group_counts = top_counts,
     theil_decomposition = theil_decomposition,
     wealth_ranked_national = wealth_ranked_national,
     wealth_metrics = wealth_metrics,
     state_polygons = state_polygons,
     geographies = read_schema("geographies"),
-    rankings = read_schema("rankings")
+    rankings = read_schema("rankings"),
+    indicators = read_schema("indicators"),
+    references = read_schema("references")
   )
   # gzip aumenta moderadamente o arquivo, mas reduz o tempo de primeira carga
   # em relação a xz e mantém o bundle portátil em hospedagem estática.

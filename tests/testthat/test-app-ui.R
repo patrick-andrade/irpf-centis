@@ -18,7 +18,8 @@ test_that("os filtros de todas as abas entram no HTML inicial do painel", {
     "evolution-geo", "evolution-ranking", "evolution-metric",
     "top-year", "top-geo",
     "composition-year", "composition-geo", "composition-group",
-    "wealth-year", "wealth-geo",
+    "assets-year", "assets-geo",
+    "debt-year", "debt-geo",
     "regions-year", "regions-metric"
   )
   for (id in filtros) {
@@ -29,11 +30,12 @@ test_that("os filtros de todas as abas entram no HTML inicial do painel", {
   }
 })
 
-test_that("o painel expõe as sete abas previstas", {
+test_that("o painel expõe as abas previstas, inclusive as do menu suspenso", {
   html <- as.character(htmltools::renderTags(app_ui_object())$html)
   abas <- c(
     "Visão geral", "Evolução", "Topos da renda", "Rendimentos e imposto",
-    "Bens e dívidas", "Estados e regiões", "Metodologia e dados"
+    "Patrimônio e dívidas", "Bens", "Dívidas", "Estados e regiões",
+    "Metodologia e dados"
   )
   for (aba in abas) {
     expect_true(
@@ -60,7 +62,7 @@ test_that("os gráficos declaram altura explícita", {
   saidas <- regmatches(
     html, gregexpr('class="shiny-plot-output[^>]*style="[^"]*"', html)
   )[[1]]
-  expect_gte(length(saidas), 7L)
+  expect_gte(length(saidas), 11L)
   for (s in saidas) {
     expect_true(
       grepl("height:[ ]?[1-9][0-9]*px", s),

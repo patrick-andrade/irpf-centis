@@ -23,7 +23,14 @@ ui <- bslib::page_navbar(
   bslib::nav_panel("Evolução", mod_evolution_ui("evolution")),
   bslib::nav_panel("Topos da renda", mod_top_ui("top")),
   bslib::nav_panel("Rendimentos e imposto", mod_composition_ui("composition")),
-  bslib::nav_panel("Bens e dívidas", mod_wealth_ui("wealth")),
+  # nav_menu mantém a navbar com sete entradas e ainda assim declara os dois
+  # painéis inline: o conteúdo entra no DOM no carregamento, então os
+  # updateSelectInput da inicialização encontram os selects.
+  bslib::nav_menu(
+    "Patrimônio e dívidas",
+    bslib::nav_panel("Bens", mod_assets_ui("assets")),
+    bslib::nav_panel("Dívidas", mod_debt_ui("debt"))
+  ),
   bslib::nav_panel("Estados e regiões", mod_regions_ui("regions")),
   bslib::nav_panel("Metodologia e dados", mod_methodology_ui("methodology")),
   footer = shiny::tags$footer(
@@ -37,7 +44,8 @@ server <- function(input, output, session) {
   mod_evolution_server("evolution", bundle)
   mod_top_server("top", bundle)
   mod_composition_server("composition", bundle)
-  mod_wealth_server("wealth", bundle)
+  mod_assets_server("assets", bundle)
+  mod_debt_server("debt", bundle)
   mod_regions_server("regions", bundle)
   mod_methodology_server("methodology", bundle)
 }

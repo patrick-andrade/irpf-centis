@@ -5,12 +5,16 @@ load_app_bundle <- function(path) {
     income_components = tibble::tibble(),
     metrics = tibble::tibble(),
     effective_tax = tibble::tibble(),
+    wealth_by_bin = tibble::tibble(),
+    top_group_counts = tibble::tibble(),
     theil_decomposition = tibble::tibble(),
     wealth_ranked_national = tibble::tibble(),
     wealth_metrics = tibble::tibble(),
     state_polygons = tibble::tibble(),
     geographies = tibble::tibble(),
-    rankings = tibble::tibble()
+    rankings = tibble::tibble(),
+    indicators = tibble::tibble(),
+    references = tibble::tibble()
   )
 }
 
@@ -32,6 +36,11 @@ leaf_codes <- c(1:99, 101:109, 111:120)
 ranking_label <- function(bundle, ranking_id) {
   row <- bundle$rankings[bundle$rankings$ranking_id == ranking_id, , drop = FALSE]
   if (nrow(row) == 0L) ranking_id else row$label[[1]]
+}
+
+geografia_nome <- function(bundle, geo_code) {
+  row <- bundle$geographies[bundle$geographies$geo_code == geo_code, , drop = FALSE]
+  if (nrow(row) == 0L) geo_code else row$geo_name[[1]]
 }
 
 # Wolfson e Palma não são limitados por construção e explodem quando a mediana
