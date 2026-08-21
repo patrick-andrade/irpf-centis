@@ -32,14 +32,16 @@ monetárias da RTB subnacional em 2017–2021 estão documentados em
 
 ## Enviando código
 
-1. Faça um fork e trabalhe num branch com nome descritivo.
-2. Restaure as dependências com `renv::restore()`.
-3. Rode `./run.sh check` (ou `run.cmd check` no Windows) — testes e lint
-   precisam passar.
-4. Se sua mudança afeta relatórios, dados ou visualizações, rode `./run.sh site`
-   antes de abrir o PR. O site é publicado a partir do `_freeze/` versionado, e
-   a CI falha se ele estiver desatualizado.
-5. Descreva no PR o que muda e, quando houver mudança de número publicado, qual
+O projeto está em **beta público** e o método ainda se move. Abra uma issue
+antes de escrever código: além de evitar trabalho perdido numa parte que está
+para mudar, é por ali que combinamos como executar o pipeline localmente, o que
+não está documentado nesta fase.
+
+Combinado o caminho, o pull request deve:
+
+1. Sair de um fork, num branch com nome descritivo.
+2. Passar em testes e lint.
+3. Descrever o que muda e, quando houver mudança de número publicado, qual
    número mudou e por quê.
 
 ### Convenções
@@ -67,4 +69,4 @@ A participação segue o [Código de Conduta](CODE_OF_CONDUCT.md).
 ## Licença da contribuição
 
 Ao contribuir, você concorda em licenciar código sob [MIT](LICENSE) e textos sob
-[CC BY 4.0](LICENSE-docs.md), como o restante do projeto.
+[CC BY-SA 4.0](LICENSE-docs.md), como o restante do projeto.

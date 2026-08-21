@@ -6,8 +6,13 @@ O formato segue *Keep a Changelog* e as versões públicas usarão versionamento
 
 ## [Não publicado]
 
+## [0.3.0] — 2026-08-21
+
 Revisão de visualização e comunicação, com duas correções de dados encontradas
-pelo caminho.
+pelo caminho, e a separação entre o que é público e o que é interno levada até
+o README, a licença e os metadados de citação.
+
+Primeira versão registrada com DOI.
 
 ### Adicionado
 
@@ -15,7 +20,10 @@ pelo caminho.
 
 ### Alterado
 
-- **README reescrito para leitor de fora.** Passa a abrir pelo que o estudo mede e onde vê-lo, com tabela dos produtos publicados, e sai de cena o painel de estado do desenvolvimento: gate de publicação e revisão humana pendente, aviso da existência de documentação interna, a instrução de push do mantenedor, a opção de espelho em CDN e a política de segredos de CI. A instrução de rodar `site` antes do push migra para `CONTRIBUTING.md`, onde é útil a quem contribui.
+- **README reescrito para leitor de fora.** Passa a abrir pelo que o estudo mede e onde vê-lo, com tabela dos produtos publicados, e sai de cena o painel de estado do desenvolvimento: gate de publicação e revisão humana pendente, aviso da existência de documentação interna, a instrução de push do mantenedor, a opção de espelho em CDN e a política de segredos de CI.
+- **Fase declarada e instruções de execução retiradas.** O README ganha a seção "Estado do projeto", que marca o beta público da versão e avisa que indicadores podem ser recalculados entre versões. A seção "Reproduzir localmente" sai por inteiro — pré-requisitos, comandos e fluxo de dados —, substituída por "Como está construído", que descreve a arquitetura sem ensinar a executá-la. `CONTRIBUTING.md` e o modelo de PR passam a pedir issue antes de código, e a combinação da execução local acontece por ali.
+- **Licença dos textos, dicionários de esquema e dados curados passa de CC BY 4.0 para CC BY-SA 4.0.** Reuso segue permitido, inclusive comercial, mas derivados precisam carregar a mesma licença. A mudança vale das versões seguintes em diante e não retroage sobre cópias distribuídas sob os termos anteriores; a nota está em `LICENSE-docs.md`. O código continua sob MIT.
+- `CITATION.cff` ganha resumo, palavras-chave ampliadas e ponteiro para a licença dos textos, preparando o registro de precedência com DOI.
 - Mensagens e comentários voltados ao usuário deixam de narrar o processo interno de publicação (`scripts/run.R`, `R/outputs.R`, `.gitignore`).
 
 ### Corrigido

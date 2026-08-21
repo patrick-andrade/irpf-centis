@@ -47,4 +47,4 @@ O código-fonte completo, o manifesto de fontes e as instruções de reproduçã
 
 Correções e discordâncias de método podem ser registradas nas [issues do repositório](https://github.com/patrick-andrade/irpf-centis/issues).
 
-*Código sob licença MIT; textos e relatórios sob CC BY 4.0. Os dados originais pertencem às respectivas fontes oficiais.*
+*Código sob licença MIT; textos, relatórios e dados curados sob CC BY-SA 4.0. Os dados originais pertencem às respectivas fontes oficiais.*

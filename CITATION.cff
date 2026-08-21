@@ -1,14 +1,25 @@
 cff-version: 1.2.0
-message: "Se utilizar este projeto, cite o repositório e as publicações oficiais da Receita Federal."
+message: "Se utilizar este projeto, cite-o conforme os metadados abaixo, registrando a versão, e cite também as publicações oficiais da Receita Federal."
 title: "Distribuição de renda e patrimônio no IRPF por centis"
+abstract: >-
+  Estudo descritivo e reprodutível da distribuição de renda, tributação e
+  patrimônio entre declarantes do Imposto de Renda da Pessoa Física no Brasil,
+  por centis, anos-calendário e unidades da Federação. Parte das tabelas
+  agregadas publicadas pela Receita Federal e calcula indicadores de
+  desigualdade, concentração e polarização sobre dados agrupados — Gini com
+  limites de Gastwirth, Theil, Atkinson, Wolfson, Esteban-Ray, participações de
+  topo, Palma e alíquota efetiva média. Cobre 2017-2024 para renda e 2006-2021
+  para a série patrimonial de ordenação direta. Projeto em beta público:
+  indicadores podem ser recalculados entre versões.
 type: software
 authors:
   - family-names: "Andrade"
     given-names: "Patrick"
     email: "70705477+patrick-andrade@users.noreply.github.com"
-version: 0.2.0
-date-released: 2026-08-20
+version: 0.3.0
+date-released: 2026-08-21
 license: MIT
+license-url: "https://github.com/patrick-andrade/irpf-centis/blob/main/LICENSE-docs.md"
 repository-code: "https://github.com/patrick-andrade/irpf-centis"
 url: "https://patrick-andrade.github.io/irpf-centis/"
 keywords:
@@ -16,4 +27,6 @@ keywords:
   - distribuição de renda
   - desigualdade
   - patrimônio
+  - tributação
+  - dados tributários
   - Brasil

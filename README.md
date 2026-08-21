@@ -9,9 +9,19 @@ Estudo descritivo e reprodutível da distribuição de renda, tributação e pat
 
 > **Universo dos dados.** Os resultados descrevem **declarações válidas do IRPF**, não toda a população brasileira. Uma declaração pode reunir titular, dependentes e declaração conjunta. Centis estaduais são posições relativas dentro de cada UF e não equivalem aos mesmos cortes monetários nacionais. Todos os indicadores são aproximações calculadas sobre dados agrupados.
 
+## Estado do projeto
+
+**Beta público — versão 0.3.0.** Os resultados estão publicados para escrutínio, e o método segue em revisão: indicadores podem ser recalculados e recortes podem mudar entre versões. Ao citar um número, registre a versão de onde ele veio e confira se houve revisão depois. O [apêndice técnico](https://patrick-andrade.github.io/irpf-centis/reports/technical-appendix.html) registra os pontos que já se sabe estarem em aberto.
+
+As instruções de execução local do pipeline não fazem parte desta fase. O código, os contratos de dados e a metodologia estão publicados; para executar o pipeline ou colaborar, [abra uma issue](https://github.com/patrick-andrade/irpf-centis/issues).
+
 ## O que este repositório acrescenta
 
-Os estudos oficiais por centis são publicados em planilhas cujo layout muda de ano para ano, e os indicadores de desigualdade precisam ser calculados por quem os usa. Aqui esse trabalho está feito e versionado: a aquisição registra a procedência de cada arquivo, o pipeline é auditável ponta a ponta e o cálculo de cada valor publicado pode ser refeito a partir das fontes originais.
+Os estudos oficiais por centis são publicados em planilhas cujo layout muda de ano para ano, e os indicadores de desigualdade precisam ser calculados por quem os usa. Aqui esse trabalho está feito e versionado: a aquisição registra a procedência de cada arquivo, o pipeline é auditável ponta a ponta e cada valor publicado é rastreável até a fonte original.
+
+Nenhum produto é escrito sem que os portões de qualidade passem: chaves únicas, contagem de grupos, reconciliação hierárquica dos centis, faixas plausíveis dos indicadores derivados e identidade dos totais patrimoniais. Divergências que existem na própria fonte oficial são preservadas e exportadas como avisos, nunca corrigidas em silêncio.
+
+Os arquivos oficiais não são redistribuídos aqui: `data/metadata/sources-manifest.csv` registra a URL, a data de recuperação e o SHA-256 de cada um, para que sejam buscados na origem.
 
 ## O que o estudo cobre
 
@@ -35,39 +45,9 @@ Os estudos oficiais por centis são publicados em planilhas cujo layout muda de 
 
 Os relatórios também estão disponíveis em PDF, pelo link "Outros formatos" de cada página.
 
-## Reproduzir localmente
+## Como está construído
 
-### Pré-requisitos
-
-- R 4.6.0
-- Quarto 1.9 ou superior
-- Dependências restauradas com `renv::restore()`
-
-### Passo a passo
-
-```bash
-./run.sh discover        # lê as páginas oficiais e inventaria as fontes
-./run.sh download 2024   # baixa os arquivos e registra tamanho e SHA-256
-./run.sh context         # baixa os deflatores do IPCA e a malha estadual do IBGE
-./run.sh build           # executa o pipeline targets e grava os dados curados
-./run.sh check           # roda testes e validações
-./run.sh site            # renderiza o site e exporta o painel em output/site
-./run.sh app             # abre o painel Shiny localmente
-```
-
-No Windows, use `run.cmd` no lugar de `./run.sh`. `run.cmd help` lista todos os comandos.
-
-O pipeline não escreve nenhum produto sem que os portões de qualidade passem: chaves únicas, contagem de grupos, reconciliação hierárquica dos centis, faixas plausíveis dos indicadores derivados e identidade dos totais patrimoniais. Divergências que existem na própria fonte oficial são preservadas e exportadas como avisos, nunca corrigidas em silêncio.
-
-### O que o Git carrega
-
-Versionado: código, dicionários de esquema, documentação, o `_freeze/` dos relatórios (resultados já computados) e o bundle curado do painel. Fora do Git: dados brutos, o store do `targets`, bibliotecas locais e `output/`. Isso mantém o clone leve e faz o site publicar sem precisar dos dados originais.
-
-Os arquivos oficiais não são redistribuídos aqui — `data/metadata/sources-manifest.csv` traz a URL, a data de recuperação e o SHA-256 de cada um, e `./run.sh download` os busca na origem.
-
-### Como o site é publicado
-
-A cada push na `main`, o workflow [`deploy-pages.yml`](.github/workflows/deploy-pages.yml) renderiza o site a partir do freeze, exporta o painel shinylive e publica no GitHub Pages. O resultado é um site estático completo: não há servidor, banco nem segredo envolvido. `source-monitor.yml` apenas avisa quando a Receita publica uma nova edição — nada é republicado automaticamente.
+Pipeline em R orquestrado por [`targets`](https://books.ropensci.org/targets/), com aquisição verificada por SHA-256, harmonização dos layouts anuais contra contratos declarados em `config/schema/`, testes automatizados e portões de qualidade entre o cálculo e a publicação. Relatórios em Quarto; painel em Shiny, exportado para shinylive e servido como site estático no GitHub Pages — roda no navegador do leitor, sem servidor.
 
 ## Contribuir e tirar dúvidas
 
@@ -77,7 +57,9 @@ Correções, apontamentos de erro e dúvidas de método são bem-vindos: abra um
 
 ## Licença e citação
 
-Código sob [MIT](LICENSE); textos, relatórios e site sob [CC BY 4.0](LICENSE-docs.md). Os dados originais pertencem à Receita Federal do Brasil e ao IBGE. Para citar, use os metadados de [`CITATION.cff`](CITATION.cff).
+Código sob [MIT](LICENSE); textos, relatórios, site, dicionários de esquema e dados curados sob [CC BY-SA 4.0](LICENSE-docs.md) — reuso permitido, inclusive comercial, desde que com crédito e sob a mesma licença. Os dados originais pertencem à Receita Federal do Brasil e ao IBGE, e não são redistribuídos aqui.
+
+Para citar, use os metadados de [`CITATION.cff`](CITATION.cff) e registre a versão: o projeto está em beta e os números podem ser revistos entre versões.
 
 ## Fontes
 

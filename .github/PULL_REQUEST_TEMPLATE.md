@@ -13,8 +13,8 @@
 
 ## Checagens
 
-- [ ] `./run.sh check` passa (testes e lint)
+- [ ] Existe issue combinada antes deste PR (o projeto está em beta)
+- [ ] Testes e lint passam
 - [ ] Mudança de comportamento coberta por teste
-- [ ] `./run.sh site` rodado, se a mudança afeta relatórios, dados ou visualizações
 - [ ] Documentação atualizada, se o método ou o contrato de dados mudou
 - [ ] Nenhum dado bruto, credencial ou arquivo gerado adicionado ao repositório
