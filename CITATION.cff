@@ -20,6 +20,13 @@ version: 0.3.0
 date-released: 2026-08-21
 license: MIT
 license-url: "https://github.com/patrick-andrade/irpf-centis/blob/main/LICENSE-docs.md"
+identifiers:
+  - type: doi
+    value: "10.5281/zenodo.22046673"
+    description: "DOI permanente do projeto; resolve para a versão mais recente"
+  - type: doi
+    value: "10.5281/zenodo.22046674"
+    description: "DOI da versão 0.3.0"
 repository-code: "https://github.com/patrick-andrade/irpf-centis"
 url: "https://patrick-andrade.github.io/irpf-centis/"
 keywords:

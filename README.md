@@ -2,6 +2,7 @@
 
 [![Publicar site](https://github.com/patrick-andrade/irpf-centis/actions/workflows/deploy-pages.yml/badge.svg)](https://github.com/patrick-andrade/irpf-centis/actions/workflows/deploy-pages.yml)
 [![CI](https://github.com/patrick-andrade/irpf-centis/actions/workflows/ci.yml/badge.svg)](https://github.com/patrick-andrade/irpf-centis/actions/workflows/ci.yml)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.22046673.svg)](https://doi.org/10.5281/zenodo.22046673)
 
 Estudo descritivo e reprodutível da distribuição de renda, tributação e patrimônio entre declarantes do Imposto de Renda da Pessoa Física, por centis, anos-calendário e unidades da Federação. Parte das tabelas agregadas publicadas pela Receita Federal e entrega relatórios, um painel interativo e os dados curados que sustentam cada número.
 
@@ -60,6 +61,8 @@ Correções, apontamentos de erro e dúvidas de método são bem-vindos: abra um
 Código sob [MIT](LICENSE); textos, relatórios, site, dicionários de esquema e dados curados sob [CC BY-SA 4.0](LICENSE-docs.md) — reuso permitido, inclusive comercial, desde que com crédito e sob a mesma licença. Os dados originais pertencem à Receita Federal do Brasil e ao IBGE, e não são redistribuídos aqui.
 
 Para citar, use os metadados de [`CITATION.cff`](CITATION.cff) e registre a versão: o projeto está em beta e os números podem ser revistos entre versões.
+
+O projeto tem DOI permanente no Zenodo: **[10.5281/zenodo.22046673](https://doi.org/10.5281/zenodo.22046673)** resolve sempre para a versão mais recente; cada versão publicada também recebe o seu (a 0.3.0 é [10.5281/zenodo.22046674](https://doi.org/10.5281/zenodo.22046674)).
 
 ## Fontes
 

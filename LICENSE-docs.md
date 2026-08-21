@@ -18,7 +18,8 @@ Texto integral da licença: <https://creativecommons.org/licenses/by-sa/4.0/deed
 Atribuição sugerida:
 
 > Andrade, Patrick. *Distribuição de renda e patrimônio no IRPF por centis.*
-> Versão 0.3.0. Disponível em: <https://patrick-andrade.github.io/irpf-centis/>.
+> Versão 0.3.0, 2026. DOI: 10.5281/zenodo.22046673.
+> Disponível em: <https://patrick-andrade.github.io/irpf-centis/>.
 > Licença CC BY-SA 4.0.
 
 Os metadados de citação, incluindo versão e autoria, estão em `CITATION.cff`.
