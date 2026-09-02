@@ -9,9 +9,8 @@ permissions:
   contents: read
 
 env:
-  # renv 1.2.3 no restore fresco (cache GHA expirado) marca curl/writexl como
-  # instalados no download e depois os deixa de fora do grafo, sem R CMD INSTALL.
-  # pak instala o lockfile direto; o autoloader do renv não deve trocar a lib.
+  # renv 1.2.3 no restore fresco (cache GHA expirado) baixa curl/writexl e não
+  # os instala. CI instala as Imports da DESCRIPTION via pak/RSPM.
   RENV_CONFIG_AUTOLOADER_ENABLED: "false"
 
 jobs:
@@ -30,10 +29,8 @@ jobs:
         with:
           r-version: '4.6.0'
           use-public-rspm: true
-      - name: Restaurar lockfile
-        run: |
-          install.packages("pak")
-          pak::lockfile_install("renv.lock")
-        shell: Rscript {0}
+      - uses: r-lib/actions/setup-r-dependencies@v2
+        with:
+          extra-packages: any::testthat, any::lintr
       - name: Testes e lint
         run: Rscript scripts/run.R check

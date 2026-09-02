@@ -9,7 +9,7 @@ O formato segue *Keep a Changelog* e as versões públicas usarão versionamento
 ### Alterado
 
 - **Monitor de fontes oficiais.** O workflow deixa de restaurar o `renv` completo (que puxava `sf`/`units` e falhava sem `libudunits2`) e instala só os pacotes do scrape HTML. A agenda passa de mensal para trimestral (1º de jan/abr/jul/out).
-- **CI.** Restore fresco do `renv` 1.2.3 (cache do GitHub expirado) omitia `curl`/`writexl`. O workflow passa a instalar o lockfile com `pak`.
+- **CI.** Restore fresco do `renv` 1.2.3 (cache do GitHub expirado) omitia `curl`/`writexl`. O workflow instala as Imports da `DESCRIPTION` com `setup-r-dependencies` (pak/RSPM).
 
 ## [0.3.0] — 2026-08-21
 
