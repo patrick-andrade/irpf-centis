@@ -9,9 +9,10 @@ permissions:
   contents: read
 
 env:
-  # renv 1.2.3 no restore fresco (cache GHA expirado) omitia o erro de curl/writexl.
-  RENV_CONFIG_INSTALL_JOBS: "1"
-  RENV_CONFIG_INSTALL_VERBOSE: "true"
+  # renv 1.2.3 no restore fresco (cache GHA expirado) marca curl/writexl como
+  # instalados no download e depois os deixa de fora do grafo, sem R CMD INSTALL.
+  # pak instala o lockfile direto; o autoloader do renv não deve trocar a lib.
+  RENV_CONFIG_AUTOLOADER_ENABLED: "false"
 
 jobs:
   test:
@@ -29,6 +30,10 @@ jobs:
         with:
           r-version: '4.6.0'
           use-public-rspm: true
-      - uses: r-lib/actions/setup-renv@v2
+      - name: Restaurar lockfile
+        run: |
+          install.packages("pak")
+          pak::lockfile_install("renv.lock")
+        shell: Rscript {0}
       - name: Testes e lint
         run: Rscript scripts/run.R check
