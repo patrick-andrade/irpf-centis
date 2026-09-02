@@ -26,11 +26,11 @@ jobs:
       - name: Dependências de sistema do scrape
         run: |
           sudo apt-get update
-          sudo apt-get install -y libcurl4-openssl-dev libssl-dev libxml2-dev
+          sudo apt-get install -y libcurl4-openssl-dev libssl-dev pkg-config libxml2-dev
       - name: Pacotes do scrape
         run: |
           install.packages(c(
-            "cli", "digest", "dplyr", "fs", "httr2", "purrr",
+            "cli", "curl", "digest", "dplyr", "fs", "httr2", "purrr",
             "readr", "rlang", "rvest", "stringi", "stringr",
             "tibble", "xml2", "yaml"
           ))

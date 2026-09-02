@@ -9,6 +9,7 @@ O formato segue *Keep a Changelog* e as versões públicas usarão versionamento
 ### Alterado
 
 - **Monitor de fontes oficiais.** O workflow deixa de restaurar o `renv` completo (que puxava `sf`/`units` e falhava sem `libudunits2`) e instala só os pacotes do scrape HTML. A agenda passa de mensal para trimestral (1º de jan/abr/jul/out).
+- **CI.** Restore fresco do `renv` (cache do GitHub expirado) passa a instalar em série, com `pkg-config`/`zlib`, para o binário de `curl` não falhar em silêncio.
 
 ## [0.3.0] — 2026-08-21
 
