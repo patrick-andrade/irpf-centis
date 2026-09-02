@@ -2,11 +2,17 @@ name: Monitor de fontes oficiais
 
 on:
   workflow_dispatch:
+  # Estudos da Receita saem ~1×/ano. Trimestral pega edição nova em até 90 dias
+  # sem e-mail mensal de falha de ambiente. 11:17 UTC (8:17 BRT).
   schedule:
-    - cron: '17 11 1 * *'
+    - cron: '17 11 1 1,4,7,10 *'
 
 permissions:
   contents: read
+
+env:
+  # Sem renv: o scrape HTML não precisa de sf, units, arrow nem GDAL.
+  RENV_CONFIG_AUTOLOADER_ENABLED: "false"
 
 jobs:
   discover:
@@ -17,7 +23,18 @@ jobs:
         with:
           r-version: '4.6.0'
           use-public-rspm: true
-      - uses: r-lib/actions/setup-renv@v2
+      - name: Dependências de sistema do scrape
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libcurl4-openssl-dev libssl-dev pkg-config libxml2-dev
+      - name: Pacotes do scrape
+        run: |
+          install.packages(c(
+            "cli", "curl", "digest", "dplyr", "fs", "httr2", "purrr",
+            "readr", "rlang", "rvest", "stringi", "stringr",
+            "tibble", "xml2", "yaml"
+          ))
+        shell: Rscript {0}
       - name: Descobrir edições sem publicar
         run: Rscript scripts/check-sources.R
       - uses: actions/upload-artifact@v4
