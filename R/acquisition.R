@@ -126,6 +126,22 @@ read_discovered_sources <- function(path = "data/metadata/sources-discovered.csv
   readr::read_csv(project_path(path), show_col_types = FALSE)
 }
 
+# Identidade de uma fonte no inventário. year pode ser NA na família de
+# patrimônio (série histórica numa única página); na_matches = "na" evita
+# falso positivo nessas linhas.
+discovered_source_keys <- c("dataset_family", "year", "download_url")
+
+diff_discovered_sources <- function(current, baseline) {
+  dplyr::full_join(
+    dplyr::mutate(current, current = TRUE),
+    dplyr::mutate(baseline, baseline = TRUE),
+    by = discovered_source_keys,
+    suffix = c("_current", "_baseline"),
+    na_matches = "na"
+  ) |>
+    dplyr::filter(is.na(.data$current) | is.na(.data$baseline))
+}
+
 read_source_manifest <- function(path = "data/metadata/sources-manifest.csv") {
   if (!fs::file_exists(project_path(path))) {
     return(tibble::tibble(

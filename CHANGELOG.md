@@ -6,6 +6,10 @@ O formato segue *Keep a Changelog* e as versões públicas usarão versionamento
 
 ## [Não publicado]
 
+### Alterado
+
+- **Monitor de fontes oficiais.** O workflow deixa de restaurar o `renv` completo (que puxava `sf`/`units` e falhava sem `libudunits2`) e instala só os pacotes do scrape HTML. A agenda passa de mensal para trimestral (1º de jan/abr/jul/out).
+
 ## [0.3.0] — 2026-08-21
 
 Revisão de visualização e comunicação, com duas correções de dados encontradas
