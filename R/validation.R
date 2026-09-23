@@ -29,7 +29,10 @@ validate_bin_counts <- function(distribution_bins) {
   counts <- distribution_bins |>
     dplyr::group_by(.data$year, .data$geo_code, .data$ranking_id) |>
     dplyr::summarise(
-      ok = identical(sort(as.integer(.data$bin_code)), 1:120),
+      ok = length(.data$bin_code) == 120L &&
+        is.numeric(.data$bin_code) &&
+        all(is.finite(.data$bin_code)) &&
+        identical(sort(as.double(.data$bin_code)), as.double(1:120)),
       .groups = "drop"
     )
   tibble::tibble(

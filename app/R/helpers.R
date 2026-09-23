@@ -22,6 +22,15 @@ bundle_has_data <- function(bundle) {
   nrow(bundle$metrics) > 0L
 }
 
+component_totals <- function(data) {
+  data |>
+    dplyr::group_by(.data$component_id, .data$field_label) |>
+    dplyr::summarise(
+      value = if (all(is.na(.data$value_real))) NA_real_ else sum(.data$value_real, na.rm = TRUE),
+      .groups = "drop"
+    )
+}
+
 data_missing_ui <- function() {
   bslib::card(
     class = "missing-data-card",

@@ -71,6 +71,28 @@ test_that("download alterado não substitui arquivo existente", {
   expect_identical(readBin(file, "raw", n = 100L), charToRaw("arquivo anterior"))
 })
 
+test_that("fonte nova não reutiliza arquivo local sem hash registrado", {
+  root <- tempfile(pattern = "irpf-untracked-")
+  on.exit(unlink(root, recursive = TRUE), add = TRUE)
+  file <- fs::path(root, "data/raw/receita_expanded/2099/fixture.xlsx")
+  fs::dir_create(fs::path_dir(file), recurse = TRUE)
+  writeBin(charToRaw("arquivo sem registro"), file)
+  row <- tibble::tibble(
+    source_id = "new-source", dataset_family = "receita_expanded",
+    year = 2099L, extension = "xlsx", file_name = "fixture.xlsx",
+    label = "Fixture", layout = "expanded_national",
+    page_url = "https://example.org/", download_url = "https://example.org/fixture.xlsx"
+  )
+  subject <- download_one_source
+  sandbox <- new.env(parent = environment(subject))
+  sandbox$source_destination <- function(...) file
+  sandbox$fetch_source_file <- function(...) stop("download indevido")
+  environment(subject) <- sandbox
+
+  expect_error(subject(row, expected_sha256 = NULL), "sem hash registrado")
+  expect_identical(readBin(file, "raw", n = 100L), charToRaw("arquivo sem registro"))
+})
+
 test_that("URL nova não reutiliza o arquivo local de outra fonte", {
   row <- tibble::tibble(
     source_id = "nova-fonte", dataset_family = "receita_expanded",
@@ -89,4 +111,25 @@ test_that("URL nova não reutiliza o arquivo local de outra fonte", {
   environment(subject) <- sandbox
 
   expect_error(subject(row), "Caminho local já vinculado a outra fonte")
+})
+
+test_that("destino repetido entre fontes selecionadas é barrado antes do primeiro download", {
+  row <- tibble::tibble(
+    source_id = c("fonte-a", "fonte-b"), dataset_family = "receita_expanded",
+    year = 2099L, extension = "xlsx", file_name = "mesmo-arquivo.xlsx",
+    label = "Fixture", layout = "expanded_national",
+    page_url = "https://example.org/",
+    download_url = c("https://example.org/a.xlsx", "https://example.org/b.xlsx")
+  )
+  called <- 0L
+  subject <- download_sources
+  sandbox <- new.env(parent = environment(subject))
+  sandbox$read_source_manifest <- function(...) {
+    tibble::tibble(source_id = character(), local_path = character())
+  }
+  sandbox$download_one_source <- function(...) called <<- called + 1L
+  environment(subject) <- sandbox
+
+  expect_error(subject(row), "Fontes selecionadas compartilham o mesmo destino")
+  expect_equal(called, 0L)
 })

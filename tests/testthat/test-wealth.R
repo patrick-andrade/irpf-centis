@@ -56,7 +56,10 @@ test_that("métricas patrimoniais ficam em domínios plausíveis com o grupo zer
       .data$population_share_upper > 0.99
     )
   expect_equal(nrow(crossing), 1L)
+  expect_true(is.na(metrics$top_10_share))
   expect_true(is.na(metrics$top_1_share))
+  expect_true(is.na(metrics$top_0_1_share))
+  expect_true(is.na(metrics$top_0_01_share))
   expect_true(is.na(metrics$bottom_40_share))
   expect_true(is.na(metrics$palma))
   expect_true(is.na(metrics$income_mean_real))

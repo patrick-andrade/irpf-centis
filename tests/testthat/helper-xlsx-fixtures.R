@@ -51,9 +51,10 @@ fixture_value_columns <- function(bins) {
 }
 
 write_fixture_workbook <- function(layout = c("split", "monolithic"), sheet = "BRV",
-                                   extra_sheets = list()) {
+                                   extra_sheets = list(), first_bin_code = NULL) {
   layout <- match.arg(layout)
   bins <- fixture_bin_values()
+  if (!is.null(first_bin_code)) bins$code[[1]] <- first_bin_code
   values <- fixture_value_columns(bins)
   if (layout == "split") {
     columns <- c(

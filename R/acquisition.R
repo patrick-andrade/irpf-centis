@@ -171,6 +171,12 @@ download_one_source <- function(row, overwrite = FALSE, expected_sha256 = NULL) 
   destination <- source_destination(row)
   fs::dir_create(fs::path_dir(destination), recurse = TRUE)
 
+  if (fs::file_exists(destination) && is.null(expected_sha256) && !isTRUE(overwrite)) {
+    rlang::abort(paste(
+      "Arquivo local sem hash registrado para a fonte nova:", destination,
+      "; revise a proveniência ou use overwrite = TRUE para baixar novamente."
+    ))
+  }
   if (fs::file_exists(destination) && !isTRUE(overwrite)) {
     actual_sha256 <- check_source_hash(destination, expected_sha256, row$source_id[[1]])
     return(tibble::tibble(
@@ -219,28 +225,46 @@ download_sources <- function(discovered, years = NULL, include_pdf = TRUE, overw
   if (nrow(selected) == 0L) rlang::abort("Nenhuma fonte selecionada para download.")
 
   existing <- read_source_manifest()
-  new_rows <- purrr::map_dfr(seq_len(nrow(selected)), function(i) {
+  destinations <- purrr::map_chr(seq_len(nrow(selected)), function(i) {
+    as.character(fs::path_rel(source_destination(selected[i, , drop = FALSE])))
+  })
+  destination_keys <- if (.Platform$file == "windows") tolower(destinations) else destinations
+  if (anyDuplicated(destination_keys)) {
+    rlang::abort(paste(
+      "Fontes selecionadas compartilham o mesmo destino:",
+      paste(unique(destinations[duplicated(destination_keys)]), collapse = ", ")
+    ))
+  }
+  if (anyDuplicated(selected$source_id)) {
+    rlang::abort("source_id duplicado nas fontes selecionadas.")
+  }
+  existing_paths <- as.character(existing$local_path)
+  if (.Platform$file == "windows") existing_paths <- tolower(existing_paths)
+  expected_sha256 <- rep(NA_character_, nrow(selected))
+  # Resolver todas as colisões e vínculos antes de iniciar qualquer download.
+  for (i in seq_len(nrow(selected))) {
     previous <- existing[which(existing$source_id == selected$source_id[[i]]), , drop = FALSE]
     if (nrow(previous) > 1L) {
       rlang::abort(paste("source_id duplicado no manifesto:", selected$source_id[[i]]))
     }
-    expected_sha256 <- NULL
     if (nrow(previous) == 1L) {
       if (!identical(previous$download_url[[1]], selected$download_url[[i]]) ||
           is.na(previous$sha256[[1]]) || !nzchar(previous$sha256[[1]])) {
         rlang::abort(paste("Proveniência incompleta ou divergente para:", selected$source_id[[i]]))
       }
-      expected_sha256 <- previous$sha256[[1]]
+      expected_sha256[[i]] <- previous$sha256[[1]]
     }
-    destination <- as.character(fs::path_rel(source_destination(selected[i, , drop = FALSE])))
     reused_path <- which(
-      existing$local_path == destination & existing$source_id != selected$source_id[[i]]
+      existing_paths == destination_keys[[i]] & existing$source_id != selected$source_id[[i]]
     )
     if (length(reused_path) > 0L) {
-      rlang::abort(paste("Caminho local já vinculado a outra fonte:", destination))
+      rlang::abort(paste("Caminho local já vinculado a outra fonte:", destinations[[i]]))
     }
+  }
+  new_rows <- purrr::map_dfr(seq_len(nrow(selected)), function(i) {
     cli::cli_inform(c("i" = "Baixando {selected$file_name[[i]]}"))
-    download_one_source(selected[i, ], overwrite = overwrite, expected_sha256 = expected_sha256)
+    expected <- if (is.na(expected_sha256[[i]])) NULL else expected_sha256[[i]]
+    download_one_source(selected[i, ], overwrite = overwrite, expected_sha256 = expected)
   })
 
   manifest <- dplyr::bind_rows(existing, new_rows) |>

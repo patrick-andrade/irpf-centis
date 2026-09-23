@@ -44,17 +44,22 @@ mod_composition_server <- function(id, bundle) {
           .data$year == as.integer(input$year), .data$geo_code == input$geo,
           .data$ranking_id == "RB4", .data$component_group == input$group
         ) |>
-        dplyr::group_by(.data$component_id, .data$field_label) |>
-        dplyr::summarise(value = sum(.data$value_real, na.rm = TRUE), .groups = "drop") |>
+        component_totals()
+      missing_count <- sum(is.na(d$value))
+      d <- d |>
+        dplyr::filter(is.finite(.data$value)) |>
         dplyr::slice_max(.data$value, n = 12, with_ties = FALSE) |>
         dplyr::arrange(.data$value)
-      shiny::validate(shiny::need(nrow(d) > 0L, "Sem componentes para a seleção."))
+      shiny::validate(shiny::need(nrow(d) > 0L, "Sem valores de componentes divulgados para a seleção."))
       # Barras: o zero é obrigatório, porque o comprimento é a mensagem. A
       # grade útil aqui é a vertical, no eixo do valor.
       ggplot2::ggplot(d, ggplot2::aes(.data$value, stats::reorder(.data$field_label, .data$value))) +
         ggplot2::geom_col(fill = cor_destaque(1), width = 0.72) +
         escala_dinheiro(c(0, d$value), eixo = "x", nome = "Valor declarado em R$ de 2024") +
-        ggplot2::labs(y = NULL) +
+        ggplot2::labs(
+          y = NULL,
+          caption = if (missing_count > 0L) paste(missing_count, "campo(s) sem valor divulgado fora do gráfico") else NULL
+        ) +
         tema_irpf(direcao = "x")
     }, alt = function() paste(
       "Barras horizontais dos componentes declarados em R$ de 2024 para",

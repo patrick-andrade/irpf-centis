@@ -50,8 +50,16 @@ test_that("120 linhas sem os códigos exatos de 1 a 120 reprovam", {
     year = 2024L, geo_code = "BR", ranking_id = "RB4", bin_code = 1:120
   )
   expect_equal(validate_bin_counts(bins)$status, "pass")
-  bins$bin_code[[120]] <- 121L
-  expect_equal(validate_bin_counts(bins)$status, "fail")
+  for (invalid in list(121, 1.5, Inf, NA_real_, 119L)) {
+    candidate <- bins
+    candidate$bin_code[[120]] <- invalid
+    expect_equal(validate_bin_counts(candidate)$status, "fail")
+  }
+  extra_missing <- dplyr::bind_rows(
+    bins,
+    dplyr::mutate(bins[1, ], bin_code = NA_real_)
+  )
+  expect_equal(validate_bin_counts(extra_missing)$status, "fail")
 })
 
 test_that("cobertura detecta ano inteiro ausente", {
