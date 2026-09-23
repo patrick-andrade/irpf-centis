@@ -8,12 +8,17 @@ project:
     - reports/executive-summary.qmd
     - docs/methodology.md
     - docs/limitations.md
+    - docs/reproducibility.md
+  resources:
+    - styles/fonts/*
 
 website:
   title: "IRPF por centis"
   site-url: https://patrick-andrade.github.io/irpf-centis
   repo-url: https://github.com/patrick-andrade/irpf-centis
   navbar:
+    background: light
+    pinned: true
     left:
       - href: index.qmd
         text: "Início"
@@ -44,9 +49,10 @@ execute:
 
 format:
   html:
-    theme:
-      light: cosmo
-      dark: darkly
+    theme: [default, styles/site.scss]
     toc: true
     toc-depth: 3
     code-fold: true
+    fig-width: 9
+    fig-height: 5
+    fig-responsive: true

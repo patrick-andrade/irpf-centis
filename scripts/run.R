@@ -46,7 +46,18 @@ if (command == "discover") {
 } else if (command == "check") {
   testthat::test_dir("tests/testthat", reporter = "summary", stop_on_failure = TRUE)
   if (requireNamespace("lintr", quietly = TRUE)) {
-    invisible(lapply(c("R", "app/R"), lintr::lint_dir))
+    lint_counts <- vapply(
+      c("R", "app/R"),
+      function(directory) length(lintr::lint_dir(directory)),
+      integer(1)
+    )
+    cat(
+      "Lint informativo (não bloqueante): ",
+      paste(names(lint_counts), lint_counts, sep = "=", collapse = "; "),
+      " apontamentos.\n", sep = ""
+    )
+  } else {
+    cat("Lint não verificado: pacote lintr indisponível.\n")
   }
 } else if (command == "render") {
   quarto::quarto_render(".")

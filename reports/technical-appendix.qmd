@@ -32,9 +32,12 @@ Todos os indicadores são estimados a partir de dados agrupados: cada grupo cont
 
 $$A_1 = 1 - \frac{\exp\left(\sum_i w_i \log y_i / \sum_i w_i\right)}{\mu}.$$
 
-Wolfson é calculado por [@wolfson1994]:
+Wolfson segue a forma do índice Foster–Wolfson apresentada no
+[manual da Statistics Canada](https://www23.statcan.gc.ca/imdb-bmdi/document/3889_DLI_D1_T22_V8-eng.pdf)
+[@wolfson1994]. Com $m$ como mediana aproximada e $L(0{,}5)$ como a
+participação acumulada da metade inferior:
 
-$$P_W = 2\frac{\mu}{m}\left[\frac{1}{2}-L\left(\frac{1}{2}\right)\right]-G.$$
+$$P_W = 2\frac{\mu}{m}\left[2\left(\frac{1}{2}-L\left(\frac{1}{2}\right)\right)-G\right].$$
 
 Esteban–Ray é suplementar e usa $\alpha\in\{1{,}0;1{,}3;1{,}6\}$ [@esteban_ray1994]. Nenhuma dessas medidas recupera a variação dentro dos grupos divulgados.
 

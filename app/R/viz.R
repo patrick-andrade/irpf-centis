@@ -20,11 +20,11 @@
 # wasm antes de entrar no DESCRIPTION.
 
 cores_irpf <- list(
-  tinta = "#1A1A1A",
-  texto_suave = "#5B6770",
-  grade = "#DDE2E6",
-  referencia = "#8A9199",
-  contexto = "#B0B7BD",
+  tinta = "#101D40",
+  texto_suave = "#586179",
+  grade = "#DBE3EF",
+  referencia = "#7D8BA1",
+  contexto = "#6B7890",
   fundo = "#FFFFFF"
 )
 
@@ -47,8 +47,7 @@ tema_irpf <- function(base_size = 12, direcao = c("y", "x", "ambos", "nenhum")) 
       panel.grid.major.y = if (direcao %in% c("y", "ambos")) linha_grade else vazio,
       panel.grid.major.x = if (direcao %in% c("x", "ambos")) linha_grade else vazio,
       panel.background = ggplot2::element_rect(fill = cores_irpf$fundo, colour = NA),
-      # O site oferece tema escuro; sem fundo explícito a figura fica
-      # transparente e o texto escuro some sobre o fundo do tema.
+      # O fundo branco mantém a leitura do SVG no site, no painel e no PDF.
       plot.background = ggplot2::element_rect(fill = cores_irpf$fundo, colour = NA),
       plot.title.position = "plot",
       plot.caption.position = "plot",

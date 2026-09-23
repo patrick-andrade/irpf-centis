@@ -10,6 +10,17 @@ test_that("distribuição igual tem desigualdade e polarização nulas", {
   expect_equal(grouped_wolfson(equal), 0, tolerance = 1e-12)
 })
 
+test_that("Wolfson aplica a normalização à diferença inteira", {
+  four <- tibble::tibble(
+    rank_mean = 1:4, contributors = rep(1, 4), rank_sum = 1:4,
+    share_upper = (1:4) / 4, rank_upper = 1:4
+  )
+  # L(0,5) = 3/10, G = 1/4, média = 5/2 e mediana agrupada = 2.
+  expected <- 2 * (2.5 / 2) * (2 * (0.5 - 0.3) - 0.25)
+  expect_equal(grouped_wolfson(four), expected, tolerance = 1e-12)
+  expect_equal(expected, 0.375)
+})
+
 test_that("índices agrupados ficam em domínios plausíveis", {
   data <- leaf_distribution(synthetic_distribution())
   metrics <- calculate_distribution_metrics(data)

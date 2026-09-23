@@ -11,6 +11,17 @@ test_that("resolve_field_ids mapeia por regex, marca não mapeados e desduplica"
   expect_equal(ids, c("centile", "contributors", "unmapped_3", "tax_due", "tax_due__duplicate_1"))
 })
 
+test_that("código fracionário não é truncado para um centil válido", {
+  expect_equal(parse_bin_code(c("1", "1,5", "Inf", NA, "120", "121")),
+               c(1L, NA_integer_, NA_integer_, NA_integer_, 120L, NA_integer_))
+  skip_if_not_installed("writexl")
+  path <- write_fixture_workbook("split", first_bin_code = 1.5)
+  expect_error(
+    read_receita_sheet(path, "BRV", 2024L, "fixture-fraction"),
+    "Código de centil inválido"
+  )
+})
+
 test_that("parser lê o layout dividido (2022-2024) com códigos diretos", {
   skip_if_not_installed("writexl")
   path <- write_fixture_workbook("split", sheet = "BRV")

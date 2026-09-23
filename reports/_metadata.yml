@@ -1,0 +1,11 @@
+format:
+  typst:
+    mainfont: "Noto Sans"
+    font-paths: ../styles/fonts
+    papersize: a4
+    margin:
+      x: 1in
+      y: 0.9in
+    include-before-body:
+      - text: |
+          #show heading: set text(font: "Noto Sans Display", fill: rgb("#101D40"))

@@ -12,9 +12,9 @@ Estudo descritivo e reprodutível da distribuição de renda, tributação e pat
 
 ## Estado do projeto
 
-**Beta público — versão 0.3.0.** Os resultados estão publicados para escrutínio, e o método segue em revisão: indicadores podem ser recalculados e recortes podem mudar entre versões. Ao citar um número, registre a versão de onde ele veio e confira se houve revisão depois. O [apêndice técnico](https://patrick-andrade.github.io/irpf-centis/reports/technical-appendix.html) registra os pontos que já se sabe estarem em aberto.
+**Beta público.** A última versão arquivada com DOI é a 0.3.0. O site acompanha a branch `main` e pode receber correções antes de uma nova versão arquivada; nesse caso, seus números podem diferir dos da 0.3.0. Ao citar um valor do site, registre também a data de consulta e o commit indicado no [histórico](CHANGELOG.md). O [apêndice técnico](https://patrick-andrade.github.io/irpf-centis/reports/technical-appendix.html) registra o método e as ressalvas.
 
-As instruções de execução local do pipeline não fazem parte desta fase. O código, os contratos de dados e a metodologia estão publicados; para executar o pipeline ou colaborar, [abra uma issue](https://github.com/patrick-andrade/irpf-centis/issues).
+O código, os contratos de dados, as fontes e os passos para [reproduzir a análise](docs/reproducibility.md) estão publicados. Resultados calculados a partir de arquivos oficiais podem mudar quando a fonte ou o método for revisto.
 
 ## O que este repositório acrescenta
 
@@ -43,6 +43,7 @@ Os arquivos oficiais não são redistribuídos aqui: `data/metadata/sources-mani
 | [Metodologia](docs/methodology.md) · [limitações](docs/limitations.md) | O método completo e o que estes números não conseguem dizer. |
 | [Dicionário de dados](docs/data-dictionary.md) · [proveniência](docs/provenance.md) | O contrato de cada tabela e a rastreabilidade até o arquivo oficial. |
 | [Decisões conceituais](docs/decisions) | Registros das escolhas que sustentam as leituras publicadas — universo, conceito de renda. |
+| [Revisão de 2026](docs/revisao-2026/README.md) | Matriz de fontes, diagnóstico de práticas e registro das verificações desta rodada. |
 
 Os relatórios também estão disponíveis em PDF, pelo link "Outros formatos" de cada página.
 
@@ -54,7 +55,7 @@ Pipeline em R orquestrado por [`targets`](https://books.ropensci.org/targets/), 
 
 Correções, apontamentos de erro e dúvidas de método são bem-vindos: abra uma [issue](https://github.com/patrick-andrade/irpf-centis/issues). Para um valor que não fecha, informe o recorte (ano, geografia, conceito de renda, grupo) e contra o quê a comparação foi feita.
 
-[CONTRIBUTING.md](CONTRIBUTING.md) traz o processo e as convenções de código. A participação segue o [Código de Conduta](CODE_OF_CONDUCT.md); vulnerabilidades têm canal próprio em [SECURITY.md](SECURITY.md).
+[CONTRIBUTING.md](CONTRIBUTING.md) explica como relatar um erro ou propor uma correção. Vulnerabilidades têm canal próprio em [SECURITY.md](SECURITY.md).
 
 ## Licença e citação
 

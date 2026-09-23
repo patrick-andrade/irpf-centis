@@ -30,6 +30,10 @@ Este relatório descreve a distribuição dos rendimentos, do imposto e dos bens
 
 A série principal cobre 2017–2024 e utiliza RB4 como conceito central: rendimentos tributáveis, isentos e sujeitos à tributação exclusiva ou definitiva, retiradas as transferências patrimoniais. Todos os índices são aproximações construídas com dados agrupados.
 
+::: {.callout-note title="Como ler os gráficos"}
+Os títulos resumem o padrão observado; eixos, período e unidade definem a medida. Legendas e notas registram escolhas de escala e ressalvas necessárias à comparação.
+:::
+
 ```{r}
 #| results: asis
 if (!has_data) data_unavailable_callout()
@@ -37,20 +41,22 @@ if (!has_data) data_unavailable_callout()
 
 # Evolução nacional
 
+::: {.callout-warning title="Atenção à comparação com 2018"}
 O ano-calendário de 2018 aparece destacado em todas as séries nacionais. A causa
 está documentada em [limitações](../docs/limitations.html): um único grupo, o
 top 0,01%, traz na fonte oficial valores muito acima dos anos vizinhos. Os
 números são preservados como publicados, e a seção de robustez mostra as mesmas
 séries calculadas sem esse grupo.
+:::
 
 ```{r}
-#| fig-cap: "Evolução do Gini agrupado da RB4 entre declarantes do IRPF"
+#| fig-cap: "Gini agrupado da RB4 entre declarantes do IRPF, Brasil, anos-calendário 2017–2024 (índice de 0 a 1)"
 #| fig-alt: "Série do Gini da renda declarada entre 2017 e 2024, em eixo de 0,52 a 0,70 com o primeiro e o último valor rotulados. A série parte de 0,577 em 2017, salta para 0,666 em 2018, retorna a 0,584 em 2019 e sobe gradualmente até 0,604 em 2024."
 if (has_data) {
   plot_metric_evolution(
     data$metrics, "gini_grouped", "Gini agrupado", faixa_gini = TRUE,
-    titulo = "A desigualdade da renda declarada terminou 2024 acima de 2017",
-    subtitulo = "Gini agrupado da RB4, Brasil, com valores inicial e final rotulados."
+    titulo = "Gini da renda declarada: 2024 acima de 2017",
+    subtitulo = "Gini agrupado da RB4, Brasil; valores inicial e final rotulados."
   )
 }
 ```
@@ -61,13 +67,13 @@ de 0,0002. A indeterminação que os dados agrupados deixam neste indicador é,
 portanto, muito menor que a variação entre anos.
 
 ```{r}
-#| fig-cap: "Participações dos grupos superiores na RB4 declarada"
+#| fig-cap: "Participação dos grupos superiores na RB4 declarada, Brasil, anos-calendário 2017–2024 (%)"
 #| fig-alt: "Três séries de participação na renda declarada entre 2017 e 2024, todas partindo do zero no eixo vertical e rotuladas no fim da linha. O top 10% vai de 48,3% a 52,2%, o top 1% de 19,8% a 25,1% e o top 0,1% de 9,3% a 13,0%, com pico em 2018 nas três."
 if (has_data) {
   plot_top_shares(
     data$metrics,
     titulo = "O 1% mais rico ampliou sua fatia da renda declarada",
-    subtitulo = "Participação na RB4, Brasil. Grupos aninhados: o top 10% contém o top 1%, que contém o top 0,1%."
+    subtitulo = "RB4, Brasil. Grupos aninhados: top 10%, top 1% e top 0,1%."
   )
 }
 ```
@@ -81,6 +87,7 @@ if (has_data) {
 Os componentes permitem acompanhar rendimentos do trabalho e empresariais, aplicações financeiras, lucros e dividendos, rendimentos isentos, deduções e imposto devido. Comparações intertemporais somente são apresentadas quando o dicionário anual confirma equivalência semântica.
 
 ```{r}
+#| results: asis
 if (has_data) {
   selected <- data$components |>
     dplyr::filter(
@@ -96,10 +103,19 @@ if (has_data) {
       value = fmt_brl(.data$value),
       share = fmt_share(.data$share)
     ) |>
-    dplyr::rename(`Valor (R$ de 2024)` = "value")
-  print(knitr::kable(selected, format = "pipe"))
+    dplyr::select(
+      `Tipo de rendimento` = "field_label",
+      `Valor (R$ de 2024)` = "value",
+      `Participação no recorte` = "share"
+    )
+  print(knitr::kable(
+    selected, format = "pipe",
+    caption = sprintf("Quatro componentes de rendimento destacados, Brasil, %d", max(data$components$year))
+  ))
 }
 ```
+
+*A participação nesta tabela usa a soma dos quatro componentes exibidos como denominador, não toda a renda RB4.*
 
 ## Tributação efetiva
 
@@ -111,8 +127,8 @@ A alíquota efetiva média divide o imposto devido pela renda RB4 de cada grupo 
 if (has_data && nrow(data$effective_tax) > 0L) {
   plot_effective_rate_curve(
     data$effective_tax, year = max(data$effective_tax$year),
-    titulo = "A alíquota efetiva sobe ao longo da distribuição — até o percentil 90",
-    subtitulo = "Imposto devido sobre a renda RB4 do grupo, Brasil, ano-calendário mais recente."
+    titulo = "Alíquota efetiva cresce até o percentil 90",
+    subtitulo = sprintf("Imposto devido / renda RB4 do grupo, Brasil, %d.", max(data$effective_tax$year))
   )
 }
 ```
@@ -127,8 +143,8 @@ cada um desses grupos a mesma largura.
 if (has_data && nrow(data$effective_tax) > 0L) {
   plot_effective_rate_top(
     data$effective_tax, year = max(data$effective_tax$year),
-    titulo = "No topo, a alíquota efetiva não sobe: ela cai",
-    subtitulo = "Vinte grupos disjuntos do topo, cada um com a mesma largura no eixo. Brasil, ano-calendário mais recente."
+    titulo = "No topo, a alíquota efetiva recua",
+    subtitulo = sprintf("Vinte grupos disjuntos em eixo ordinal, Brasil, %d.", max(data$effective_tax$year))
   )
 }
 ```
@@ -144,8 +160,8 @@ IRPF nos estratos superiores.
 if (has_data && nrow(data$effective_tax) > 0L) {
   plot_effective_rate_evolution(
     effective_tax_summary(data$effective_tax),
-    titulo = "A carga sobre o topo caiu enquanto a geral ficou estável",
-    subtitulo = "Alíquota efetiva média por grupo da distribuição da RB4, Brasil."
+    titulo = "Alíquota do topo cai; a geral fica estável",
+    subtitulo = "Imposto devido / renda RB4 por grupo, Brasil."
   )
 }
 ```
@@ -155,7 +171,7 @@ if (has_data && nrow(data$effective_tax) > 0L) {
 Nos arquivos ampliados, os bens são observados ao longo de uma distribuição ordenada por renda. Portanto, esta parte mede **concentração patrimonial ao longo da distribuição de renda**, não uma distribuição ordenada diretamente pelo patrimônio. A análise de desigualdade patrimonial em sentido estrito utiliza a coleção nacional específica de 2006–2021 [@rfb_wealth].
 
 ```{r}
-#| fig-cap: "Evolução do Gini patrimonial agrupado, com ordenação direta por bens e direitos"
+#| fig-cap: "Gini patrimonial agrupado com ordenação direta por bens e direitos, Brasil, 2006–2021 (índice de 0 a 1)"
 #| fig-alt: "Série do Gini patrimonial entre 2006 e 2021, em eixo que vai de 0,70 a 1,00. A linha permanece próxima de 0,86 durante todo o período, com variação total inferior a 0,03, e termina em 0,880 em 2021."
 if (has_data && nrow(data$wealth_metrics) > 0L) {
   # Âncora fixa de 0,70 a 1,00: a série inteira cabe em 0,03 de amplitude, e
@@ -163,9 +179,9 @@ if (has_data && nrow(data$wealth_metrics) > 0L) {
   plot_metric_evolution(
     data$wealth_metrics, "gini_grouped", "Gini patrimonial agrupado",
     ranking = "WEALTH_DIRECT", ancora = c(0.70, 1.00),
-    titulo = "A concentração do patrimônio é altíssima e quase não se moveu",
-    subtitulo = "Gini patrimonial agrupado, ordenação direta por bens e direitos, Brasil. Eixo de 0,70 a 1,00."
-  )
+    titulo = "Gini patrimonial alto e quase estável",
+    subtitulo = "Bens e direitos, Brasil; ordenação direta. Eixo de 0,70 a 1,00."
+  ) + ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, hjust = 1))
 }
 ```
 
@@ -178,7 +194,10 @@ apareceria como oscilação acentuada.
 
 Cada UF é ordenada separadamente. Os indicadores estaduais comparam o formato interno das distribuições, e não pessoas situadas nos mesmos limites monetários nacionais.
 
+A tabela reúne as UFs em ordem decrescente do Gini agrupado da RB4 no último ano. A renda média está em reais de 2024.
+
 ```{r}
+#| results: asis
 if (has_data) {
   table <- latest_metrics_table(data$metrics)
   table <- table |>
@@ -187,8 +206,16 @@ if (has_data) {
       `Renda média (R$ de 2024)` = fmt_brl(.data$`Renda média (R$ de 2024)`),
       `Gini agrupado` = fmt_index(.data$`Gini agrupado`),
       `Top 1%` = fmt_share(.data$`Top 1%`)
+    ) |>
+    dplyr::rename(
+      UF = `Unidade da Federação`,
+      `Renda média` = `Renda média (R$ de 2024)`,
+      Gini = `Gini agrupado`
     )
-  print(knitr::kable(table, format = "pipe"))
+  print(knitr::kable(
+    table, format = "pipe",
+    caption = sprintf("Indicadores estaduais da RB4, %d, em ordem decrescente de Gini", max(data$metrics$year))
+  ))
 }
 ```
 
@@ -202,8 +229,8 @@ Os indicadores centrais são recalculados sob conceitos alternativos de renda �
 if (has_data) {
   plot_ranking_comparison(
     data$metrics, "gini_grouped", "Gini agrupado",
-    titulo = "O nível muda com o conceito de renda; a trajetória, não",
-    subtitulo = "Gini agrupado nacional sob RTB, RB3 e RB4. Conceitos aninhados: RTB ⊂ RB3 ⊂ RB4."
+    titulo = "Conceito de renda muda o nível do Gini",
+    subtitulo = "RTB, RB3 e RB4, Brasil. Conceitos aninhados: RTB ⊂ RB3 ⊂ RB4."
   )
 }
 ```
@@ -214,8 +241,8 @@ if (has_data) {
 if (has_data) {
   plot_ranking_comparison(
     data$metrics, "top_1_share", "Participação do top 1%",
-    titulo = "Quanto mais ampla a definição de renda, maior a fatia do topo",
-    subtitulo = "Participação do 1% mais rico sob RTB, RB3 e RB4, Brasil."
+    titulo = "Renda mais ampla amplia a fatia do topo",
+    subtitulo = "Participação do top 1% sob RTB, RB3 e RB4, Brasil."
   )
 }
 ```
@@ -232,8 +259,8 @@ da RB5 constam de `distribution-metrics.parquet`.
 if (has_data) {
   plot_sensibilidade_topo(
     data$bins, data$metrics, "gini_grouped", "Gini agrupado",
-    titulo = "Um grupo de 0,01% das declarações governa a série",
-    subtitulo = "Gini agrupado da RB4 com todos os grupos e sem o grupo 120, Brasil."
+    titulo = "O grupo do top 0,01% altera a série do Gini",
+    subtitulo = "RB4 com todos os grupos e sem o grupo 120, Brasil."
   )
 }
 ```

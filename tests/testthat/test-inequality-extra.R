@@ -30,6 +30,17 @@ test_that("fronteira do top 0,01% tolera ruído de ponto flutuante", {
   expect_equal(income_share_top(data, 0.0001), 1 / 10000)
 })
 
+test_that("participação sem interpolação exige corte na fronteira de grupo", {
+  groups <- tibble::tibble(
+    share_lower = c(0, 0.5), share_upper = c(0.5, 1),
+    rank_sum = c(10, 90)
+  )
+  expect_true(is.na(income_share_top(groups, 0.10)))
+  expect_true(is.na(income_share_bottom(groups, 0.40)))
+  expect_equal(income_share_top(groups, 0.50), 0.90)
+  expect_equal(income_share_bottom(groups, 0.50), 0.10)
+})
+
 test_that("Esteban-Ray reproduz valor conhecido de dois pontos", {
   data <- tibble::tibble(rank_mean = c(0, 2), contributors = c(1, 1))
   expect_equal(grouped_esteban_ray(data, 1.0), 0.5, tolerance = 1e-12)

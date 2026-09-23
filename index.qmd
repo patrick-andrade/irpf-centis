@@ -1,49 +1,93 @@
 ---
-title: "Distribuição de renda e patrimônio no IRPF por centis"
 toc: false
 ---
 
-::: {.callout-important title="Universo dos dados"}
-Os resultados descrevem **declarações válidas do IRPF**, não toda a população brasileira. Uma declaração pode reunir titular, dependentes e declaração conjunta. Todos os índices são aproximações calculadas com dados agrupados divulgados pela Receita Federal.
+:::: {.landing-hero}
+<p class="landing-kicker">Economia aplicada · Brasil</p>
+
+# Renda, imposto e patrimônio no IRPF
+
+Estudo descritivo e reprodutível da distribuição entre **declarações válidas do IRPF**. Explore os resultados por centil, ano e unidade da Federação.
+
+::: {.landing-actions}
+[Ler os principais achados](reports/executive-summary.html) [Explorar o painel](app/)
+:::
+::::
+
+:::: {.landing-facts}
+::: {.landing-fact}
+**2017–2024**
+
+<span>Renda e tributação por ano-calendário</span>
+:::
+::: {.landing-fact}
+**2006–2021**
+
+<span>Série de patrimônio com ordenação direta</span>
+:::
+::: {.landing-fact}
+**118 grupos**
+
+<span>Faixas disjuntas para detalhar o topo</span>
+:::
+::::
+
+::: {.callout-important title="Quem os números representam"}
+Os resultados descrevem **declarações válidas do IRPF**, não toda a população brasileira. Uma declaração pode reunir titular, dependentes e declaração conjunta. Os índices são aproximações calculadas com dados agrupados divulgados pela Receita Federal.
 :::
 
-Estudo descritivo e reprodutível da distribuição de **renda, tributação e patrimônio** entre declarantes do IRPF, por centis, anos-calendário **2017–2024** (série patrimonial de ordenação direta: **2006–2021**), para o Brasil e as unidades da Federação.
+## Escolha uma leitura
 
-## Três termos que aparecem em tudo
+:::: {.landing-grid}
+::: {.landing-card}
+### [Sumário executivo](reports/executive-summary.html)
 
-**Centil.** A distribuição é cortada em cem faixas de igual número de
-declarações. O centil 1 reúne o 1% de menor renda; o centil 99, o 1% de maior
-renda. O topo é ainda subdividido: o 1% mais rico em dez partes e o 0,1% mais
-rico em outras dez, num total de 118 grupos que não se sobrepõem.
+Principais achados, gráficos centrais e ressalvas para uma primeira leitura.
+:::
+::: {.landing-card}
+### [Painel interativo](app/)
 
-**RB4.** O conceito de renda usado como lente principal: rendimentos
-tributáveis, isentos e sujeitos à tributação exclusiva ou definitiva, excluídas
-doações e heranças. É mais amplo que o rendimento tributável bruto (RTB), que
-cobre apenas a parcela sujeita à tabela progressiva.
+Compare anos, geografias e conceitos de renda. A primeira carga pode levar alguns instantes porque o painel roda no navegador.
+:::
+::: {.landing-card}
+### [Relatório completo](reports/report.html)
 
-**Dados agrupados.** A Receita publica totais e médias por grupo, não
-declarações individuais. Todos os indicadores aqui são estimados a partir
-dessas médias e não enxergam a variação dentro de cada grupo — são
-aproximações, e o [apêndice técnico](reports/technical-appendix.html) mostra
-quanto de indeterminação isso deixa.
+Evolução nacional, tipos de rendimento, tributação, patrimônio, estados e robustez.
+:::
+::: {.landing-card}
+### [Método e limites](docs/methodology.html)
 
-## Explore
+Definições, fórmulas e escolhas do estudo; veja também as [limitações](docs/limitations.html) e o [apêndice técnico](reports/technical-appendix.html).
+:::
+::::
 
-- **[Painel interativo](app/)** — indicadores por ano, geografia e conceito de renda, mapa por UF, composição de rendimentos, alíquota efetiva e patrimônio. Roda inteiramente no seu navegador (WebAssembly); a primeira carga leva alguns instantes.
-- **[Relatório](reports/report.html)** — evolução nacional, tipos de rendimento e tributação, patrimônio, estados e regiões, robustez e limitações.
-- **[Sumário executivo](reports/executive-summary.html)** — principais achados em formato curto.
-- **[Apêndice técnico](reports/technical-appendix.html)** — contratos de dados, fórmulas, validações e proveniência.
-- **[Metodologia](docs/methodology.html)** e **[limitações](docs/limitations.html)** — decisões conceituais e fronteiras do estudo.
+Os relatórios também estão disponíveis em PDF pelo link **Outros formatos** de cada página.
 
-Os relatórios também estão disponíveis em PDF pelo link "Outros formatos" de cada página.
+## Três termos para ler os resultados
 
-## Fontes e método
+:::: {.term-grid}
+::: {.term-card}
+### Centil
 
-Os dados vêm dos estudos oficiais da Receita Federal — *Distribuição de Renda por Centis* (estudo ampliado) e *Distribuição dos Bens e Direitos por Centis* — adquiridos com verificação de integridade (SHA-256) e transformados por um pipeline auditável em R (`targets`). Valores monetários são apresentados em reais de 2024, deflacionados pelo IPCA (IBGE). O conceito central de renda é a **RB4**: rendimentos tributáveis, isentos e sujeitos à tributação exclusiva ou definitiva, excluídas transferências patrimoniais.
+A distribuição é cortada em cem faixas de igual número de declarações. O centil 1 reúne o 1% de menor renda; o centil 100, o 1% de maior renda. O topo é ainda subdividido em grupos menores, num total de 118 faixas que não se sobrepõem.
+:::
+::: {.term-card}
+### RB4
 
-## Reprodução e citação
+Conceito principal de renda: rendimentos tributáveis, isentos e sujeitos à tributação exclusiva ou definitiva, excluídas doações e heranças. É mais amplo que o rendimento tributável bruto (RTB).
+:::
+::: {.term-card}
+### Dados agrupados
 
-O código-fonte completo e o manifesto de fontes estão no [repositório GitHub](https://github.com/patrick-andrade/irpf-centis). Para citar, use os metadados do arquivo `CITATION.cff` e o DOI permanente [10.5281/zenodo.22046673](https://doi.org/10.5281/zenodo.22046673), registrando a versão — o projeto está em beta e os números podem ser revistos.
+A Receita publica totais e médias por grupo, não declarações individuais. Os indicadores usam essas médias e não captam a variação dentro de cada grupo. O [apêndice técnico](reports/technical-appendix.html) examina essa indeterminação.
+:::
+::::
+
+## Fontes e reprodução
+
+Os dados vêm dos estudos oficiais da Receita Federal — *Distribuição de Renda por Centis* (estudo ampliado) e *Distribuição dos Bens e Direitos por Centis* — adquiridos com verificação de integridade (SHA-256) e transformados por um pipeline auditável em R (`targets`). Valores monetários são apresentados em reais de 2024, deflacionados pelo IPCA (IBGE).
+
+O código-fonte, o manifesto de fontes e os metadados de citação (`CITATION.cff`) estão no [repositório GitHub](https://github.com/patrick-andrade/irpf-centis). O [guia de reprodução](docs/reproducibility.html) explica como executar a análise. O DOI [10.5281/zenodo.22046673](https://doi.org/10.5281/zenodo.22046673) identifica a versão arquivada 0.3.0. O site pode receber correções posteriores: para citar os números exibidos agora, registre a data de acesso e o commit do repositório. O projeto está em beta e os números podem ser revistos.
 
 Correções e discordâncias de método podem ser registradas nas [issues do repositório](https://github.com/patrick-andrade/irpf-centis/issues).
 

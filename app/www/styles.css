@@ -1,15 +1,145 @@
+@font-face {
+  font-family: "Noto Sans";
+  src: url("fonts/NotoSans-Regular.ttf") format("truetype");
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Noto Sans";
+  src: url("fonts/NotoSans-Bold.ttf") format("truetype");
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Noto Sans Display";
+  src: url("fonts/NotoSansDisplay-Bold.ttf") format("truetype");
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+}
+
+:root {
+  --irpf-navy: #101d40;
+  --irpf-blue: #156df9;
+  --irpf-muted: #586179;
+  --irpf-rule: #dbe3ef;
+}
+
+body {
+  background: #f7f9fc;
+  color: var(--irpf-navy);
+  font-family: "Noto Sans", "Segoe UI", Arial, sans-serif;
+  line-height: 1.55;
+}
+
+h1, h2, h3, h4, .navbar-brand {
+  font-family: "Noto Sans Display", "Noto Sans", "Segoe UI", sans-serif;
+  letter-spacing: -0.02em;
+}
+
+.navbar {
+  background: #fff;
+  border-top: 4px solid var(--irpf-blue);
+  border-bottom: 1px solid var(--irpf-rule);
+  box-shadow: 0 3px 18px rgb(16 29 64 / 5%);
+}
+
+.navbar-brand { color: var(--irpf-navy); font-weight: 800; }
+.navbar .nav-link { font-weight: 600; }
+.navbar .nav-link.active { color: #0757cf; }
+
+.bslib-page-navbar > .container-fluid { max-width: 1440px; }
+.tab-content {
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: clamp(1rem, 2.5vw, 2rem);
+}
+
+.app-intro {
+  background: var(--irpf-navy);
+  border-radius: 10px;
+  color: #fff;
+  margin-bottom: 1.3rem;
+  padding: clamp(1.5rem, 3.5vw, 2.7rem);
+}
+.app-intro h1 {
+  color: #fff;
+  font-size: clamp(1.7rem, 3vw, 2.5rem);
+  font-weight: 800;
+  line-height: 1.17;
+  margin: .3rem 0 .65rem;
+}
+.app-intro p { max-width: 75ch; margin-bottom: 0; }
+.app-intro-kicker {
+  color: #a7c8ff;
+  font-size: .78rem;
+  font-weight: 700;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+}
+
+.card, .bslib-value-box {
+  background: #fff;
+  border: 1px solid var(--irpf-rule);
+  border-radius: 8px;
+  box-shadow: 0 3px 16px rgb(16 29 64 / 4%);
+}
+.card { margin-bottom: 1rem; }
+.card-header {
+  background: #fff;
+  border-bottom: 1px solid var(--irpf-rule);
+  color: var(--irpf-navy);
+  font-family: "Noto Sans Display", "Noto Sans", sans-serif;
+  font-weight: 700;
+  font-size: 1.03rem;
+  padding: .9rem 1.1rem;
+}
+.bslib-value-box { border-top: 4px solid var(--irpf-blue); }
+.bslib-value-box .value-box-value { font-variant-numeric: tabular-nums; }
+.bslib-value-box .value-box-title { font-weight: 700; }
+.bslib-value-box .text-muted { color: var(--irpf-muted) !important; }
+
+.bslib-sidebar-layout > .sidebar,
+.bslib-sidebar-layout .sidebar {
+  background: #eef3fa;
+  border: 1px solid var(--irpf-rule);
+  border-radius: 8px;
+}
+.sidebar label, .control-label { color: var(--irpf-navy); font-weight: 700; }
+.form-control, .selectize-input, .form-select { border-color: #a9b8ce; }
+.form-control:focus, .selectize-input.focus, .form-select:focus {
+  border-color: #156df9;
+  box-shadow: 0 0 0 .2rem rgb(21 109 249 / 16%);
+}
+.shiny-plot-output { max-width: 100%; }
+.table { font-variant-numeric: tabular-nums; }
+.table th, .tabela-conceitos th { background: #eaf1fb; color: var(--irpf-navy); }
+.table-responsive { overflow-x: auto; }
+.shiny-table-output { max-width: 100%; overflow-x: auto; }
+
+a { color: #0757cf; text-underline-offset: .17em; }
+a:hover { color: #003f9e; }
+.btn-link, .nav-tabs .nav-link { color: #0757cf; }
+.btn-link:hover, .nav-tabs .nav-link:hover { color: #003f9e; }
+a:focus-visible, button:focus-visible, .nav-link:focus-visible, select:focus-visible {
+  outline: 3px solid var(--irpf-blue);
+  outline-offset: 3px;
+}
+
 .universe-warning {
-  background: #fff4ce;
-  border-bottom: 1px solid #e0a800;
-  color: #4a3b00;
-  padding: 0.55rem 1rem;
-  text-align: center;
+  background: #fff7dc;
+  border-bottom: 1px solid #d5a827;
+  color: #453400;
+  padding: 0.65rem 1rem;
+  text-align: left;
   font-weight: 600;
 }
 
 .app-footer {
-  border-top: 1px solid #d9dee3;
-  color: #5b6770;
+  border-top: 1px solid var(--irpf-rule);
+  color: var(--irpf-muted);
   font-size: 0.9rem;
   margin-top: 1rem;
   padding: 1rem;
@@ -25,8 +155,8 @@
 /* Aparato de rodapé de aba: nota, observação e fonte, nesta ordem. Fica colado
    ao conteúdo que qualifica, antes do quadro de conceitos. */
 .bloco-rodape {
-  border-top: 1px solid #d9dee3;
-  color: #5b6770;
+  border-top: 1px solid var(--irpf-rule);
+  color: var(--irpf-muted);
   font-size: 0.88rem;
   line-height: 1.5;
   margin-top: 0.75rem;
@@ -38,7 +168,7 @@
 }
 
 .bloco-rodape .rodape-rotulo {
-  color: #2f3b42;
+  color: var(--irpf-navy);
   font-weight: 600;
   margin-right: 0.35rem;
 }
@@ -55,7 +185,7 @@
 }
 
 .bloco-conceitos .glossario-titulo {
-  color: #2f3b42;
+  color: var(--irpf-navy);
   font-weight: 600;
   margin-bottom: 0.3rem;
   margin-top: 0.6rem;
@@ -66,12 +196,12 @@
 }
 
 .bloco-conceitos .glossario-lista dt {
-  color: #2f3b42;
+  color: var(--irpf-navy);
   font-weight: 600;
 }
 
 .bloco-conceitos .glossario-lista dd {
-  color: #3f4a52;
+  color: var(--irpf-muted);
   margin-bottom: 0.65rem;
   margin-left: 1.1rem;
 }
@@ -82,7 +212,7 @@
 
 .bloco-conceitos .glossario-detalhe,
 .bloco-conceitos .glossario-nota {
-  color: #5b6770;
+  color: var(--irpf-muted);
   font-size: 0.9em;
 }
 
@@ -107,7 +237,7 @@
 
 .tabela-conceitos th,
 .tabela-conceitos td {
-  border-bottom: 1px solid #e5e9ec;
+  border-bottom: 1px solid var(--irpf-rule);
   padding: 0.35rem 0.5rem;
   text-align: left;
   vertical-align: top;
@@ -118,7 +248,7 @@
 }
 
 .ficha-indicador {
-  border-top: 1px solid #e5e9ec;
+  border-top: 1px solid var(--irpf-rule);
   margin-top: 1rem;
   padding-top: 0.8rem;
 }
@@ -140,4 +270,12 @@
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem;
+}
+
+@media (max-width: 767px) {
+  .tab-content { padding: 1rem .8rem; }
+  .app-intro { margin-bottom: 1rem; }
+  .card-body { min-width: 0; padding: 1rem .75rem; }
+  .shiny-plot-output { overflow-x: auto; }
+  .bslib-value-box .value-box-value { overflow-wrap: anywhere; }
 }

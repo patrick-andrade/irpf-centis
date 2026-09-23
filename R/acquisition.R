@@ -139,16 +139,46 @@ read_source_manifest <- function(path = "data/metadata/sources-manifest.csv") {
   readr::read_csv(project_path(path), show_col_types = FALSE)
 }
 
-download_one_source <- function(row, overwrite = FALSE) {
+source_destination <- function(row) {
   stopifnot(nrow(row) == 1L)
-  is_metadata <- row$extension[[1]] == "pdf"
+  root <- if (row$extension[[1]] == "pdf") "data/metadata/official" else "data/raw"
+  year_dir <- if (is.na(row$year[[1]])) "historical" else as.character(row$year[[1]])
+  project_path(root, row$dataset_family[[1]], year_dir, row$file_name[[1]])
+}
+
+check_source_hash <- function(path, expected_sha256 = NULL, source_id = NULL) {
+  actual <- digest::digest(path, algo = "sha256", file = TRUE)
+  if (!is.null(expected_sha256) && !identical(actual, expected_sha256)) {
+    rlang::abort(paste0(
+      "Hash divergente para fonte conhecida ", source_id,
+      "; arquivo preservado e manifesto não atualizado. Revisão necessária."
+    ))
+  }
+  actual
+}
+
+fetch_source_file <- function(row, path) {
+  response <- perform_download_with_retry(
+    request_official(row$download_url[[1]]), path = path
+  )
+  httr2::resp_check_status(response)
+  invisible(path)
+}
+
+download_one_source <- function(row, overwrite = FALSE, expected_sha256 = NULL) {
+  stopifnot(nrow(row) == 1L)
   family <- row$dataset_family[[1]]
-  year_dir <- ifelse(is.na(row$year[[1]]), "historical", as.character(row$year[[1]]))
-  root <- if (is_metadata) "data/metadata/official" else "data/raw"
-  destination <- project_path(root, family, year_dir, row$file_name[[1]])
+  destination <- source_destination(row)
   fs::dir_create(fs::path_dir(destination), recurse = TRUE)
 
+  if (fs::file_exists(destination) && is.null(expected_sha256) && !isTRUE(overwrite)) {
+    rlang::abort(paste(
+      "Arquivo local sem hash registrado para a fonte nova:", destination,
+      "; revise a proveniência ou use overwrite = TRUE para baixar novamente."
+    ))
+  }
   if (fs::file_exists(destination) && !isTRUE(overwrite)) {
+    actual_sha256 <- check_source_hash(destination, expected_sha256, row$source_id[[1]])
     return(tibble::tibble(
       source_id = row$source_id[[1]], dataset_family = family,
       year = as.integer(row$year[[1]]), label = row$label[[1]],
@@ -157,21 +187,18 @@ download_one_source <- function(row, overwrite = FALSE) {
       file_name = row$file_name[[1]], local_path = fs::path_rel(destination),
       retrieved_at = format(fs::file_info(destination)$modification_time, tz = "UTC", usetz = TRUE),
       bytes = as.double(fs::file_size(destination)),
-      sha256 = digest::digest(destination, algo = "sha256", file = TRUE),
+      sha256 = actual_sha256,
       status = "cached"
     ))
   }
 
   tmp <- tempfile(pattern = "irpf-download-", fileext = paste0(".", row$extension[[1]]))
   on.exit(if (fs::file_exists(tmp)) fs::file_delete(tmp), add = TRUE)
-  response <- perform_download_with_retry(
-    request_official(row$download_url[[1]]),
-    path = tmp
-  )
-  httr2::resp_check_status(response)
+  fetch_source_file(row, tmp)
   if (!fs::file_exists(tmp) || fs::file_size(tmp) == 0) {
     rlang::abort(paste("Download vazio:", row$download_url[[1]]))
   }
+  actual_sha256 <- check_source_hash(tmp, expected_sha256, row$source_id[[1]])
   if (fs::file_exists(destination)) fs::file_delete(destination)
   fs::file_move(tmp, destination)
 
@@ -183,7 +210,7 @@ download_one_source <- function(row, overwrite = FALSE) {
     file_name = row$file_name[[1]], local_path = fs::path_rel(destination),
     retrieved_at = format(Sys.time(), tz = "UTC", usetz = TRUE),
     bytes = as.double(fs::file_size(destination)),
-    sha256 = digest::digest(destination, algo = "sha256", file = TRUE),
+    sha256 = actual_sha256,
     status = "downloaded"
   )
 }
@@ -198,9 +225,46 @@ download_sources <- function(discovered, years = NULL, include_pdf = TRUE, overw
   if (nrow(selected) == 0L) rlang::abort("Nenhuma fonte selecionada para download.")
 
   existing <- read_source_manifest()
+  destinations <- purrr::map_chr(seq_len(nrow(selected)), function(i) {
+    as.character(fs::path_rel(source_destination(selected[i, , drop = FALSE])))
+  })
+  destination_keys <- if (.Platform$file == "windows") tolower(destinations) else destinations
+  if (anyDuplicated(destination_keys)) {
+    rlang::abort(paste(
+      "Fontes selecionadas compartilham o mesmo destino:",
+      paste(unique(destinations[duplicated(destination_keys)]), collapse = ", ")
+    ))
+  }
+  if (anyDuplicated(selected$source_id)) {
+    rlang::abort("source_id duplicado nas fontes selecionadas.")
+  }
+  existing_paths <- as.character(existing$local_path)
+  if (.Platform$file == "windows") existing_paths <- tolower(existing_paths)
+  expected_sha256 <- rep(NA_character_, nrow(selected))
+  # Resolver todas as colisões e vínculos antes de iniciar qualquer download.
+  for (i in seq_len(nrow(selected))) {
+    previous <- existing[which(existing$source_id == selected$source_id[[i]]), , drop = FALSE]
+    if (nrow(previous) > 1L) {
+      rlang::abort(paste("source_id duplicado no manifesto:", selected$source_id[[i]]))
+    }
+    if (nrow(previous) == 1L) {
+      if (!identical(previous$download_url[[1]], selected$download_url[[i]]) ||
+          is.na(previous$sha256[[1]]) || !nzchar(previous$sha256[[1]])) {
+        rlang::abort(paste("Proveniência incompleta ou divergente para:", selected$source_id[[i]]))
+      }
+      expected_sha256[[i]] <- previous$sha256[[1]]
+    }
+    reused_path <- which(
+      existing_paths == destination_keys[[i]] & existing$source_id != selected$source_id[[i]]
+    )
+    if (length(reused_path) > 0L) {
+      rlang::abort(paste("Caminho local já vinculado a outra fonte:", destinations[[i]]))
+    }
+  }
   new_rows <- purrr::map_dfr(seq_len(nrow(selected)), function(i) {
     cli::cli_inform(c("i" = "Baixando {selected$file_name[[i]]}"))
-    download_one_source(selected[i, ], overwrite = overwrite)
+    expected <- if (is.na(expected_sha256[[i]])) NULL else expected_sha256[[i]]
+    download_one_source(selected[i, ], overwrite = overwrite, expected_sha256 = expected)
   })
 
   manifest <- dplyr::bind_rows(existing, new_rows) |>

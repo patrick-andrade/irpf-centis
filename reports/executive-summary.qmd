@@ -3,6 +3,7 @@ title: "Sumário executivo"
 subtitle: "Distribuição de renda e patrimônio entre declarantes do IRPF"
 author: "Patrick Andrade"
 date: last-modified
+suppress-bibliography: true
 format:
   html:
     toc: false
@@ -34,17 +35,15 @@ if (has_data && nrow(data$wealth_metrics) > 1L) {
 
 # Mensagem central
 
+::: {.callout-note title="Universo e período"}
 Este estudo examina diferenças de renda, tributação e patrimônio entre declarações válidas do IRPF. Ele ilumina especialmente os estratos superiores, mas não substitui pesquisas domiciliares nem representa toda a população brasileira.
 
 A lente principal é a RB4: rendimentos tributáveis, isentos e sujeitos à tributação exclusiva ou definitiva, excluídas transferências patrimoniais. O período de renda cobre 2017–2024; a série de patrimônio diretamente ordenada por bens e direitos cobre 2006–2021.
+:::
 
 ```{r}
 #| results: asis
 if (!has_data) data_unavailable_callout()
-```
-
-```{=typst}
-#pagebreak()
 ```
 
 # Principais achados
@@ -65,13 +64,13 @@ Os resultados descrevem declarações e valores informados à Receita. Mudanças
 # Concentração nos grupos superiores
 
 ```{r}
-#| fig-cap: "Participação dos grupos superiores na RB4 declarada"
+#| fig-cap: "Participação dos grupos superiores na RB4 declarada, Brasil, anos-calendário 2017–2024 (%)"
 #| fig-alt: "Três séries de participação na renda declarada entre 2017 e 2024, todas partindo do zero no eixo vertical e rotuladas no fim da linha. O top 10% vai de 48,3% a 52,2%, o top 1% de 19,8% a 25,1% e o top 0,1% de 9,3% a 13,0%, com pico em 2018 nas três."
 if (has_data) {
   plot_top_shares(
     data$metrics,
     titulo = "O 1% mais rico ampliou sua fatia da renda declarada",
-    subtitulo = "Participação na RB4, Brasil. O top 10% contém o top 1%, que contém o top 0,1%."
+    subtitulo = "RB4, Brasil. Grupos aninhados: top 10%, top 1% e top 0,1%."
   )
 }
 ```
@@ -85,23 +84,26 @@ O detalhamento do topo usa 118 grupos disjuntos. Os agregados 100 e 110 são pre
 # Desigualdade e composição da renda
 
 ```{r}
-#| fig-cap: "Evolução do Gini agrupado da RB4 entre declarantes"
+#| fig-cap: "Gini agrupado da RB4 entre declarantes, Brasil, anos-calendário 2017–2024 (índice de 0 a 1)"
 #| fig-alt: "Série do Gini da renda declarada entre 2017 e 2024, em eixo de 0,52 a 0,70 com o primeiro e o último valor rotulados. Parte de 0,577 em 2017, salta para 0,666 em 2018, retorna a 0,584 em 2019 e sobe gradualmente até 0,604 em 2024."
 if (has_data) {
   plot_metric_evolution(
     data$metrics, "gini_grouped", "Gini agrupado",
-    titulo = "A desigualdade da renda declarada terminou 2024 acima de 2017",
-    subtitulo = "Gini agrupado da RB4, Brasil, com valores inicial e final rotulados."
+    titulo = "Gini da renda declarada: 2024 acima de 2017",
+    subtitulo = "Gini agrupado da RB4, Brasil; valores inicial e final rotulados."
   )
 }
 ```
 
+::: {.callout-warning title="O ponto de 2018"}
 O valor de 2018 depende de um único grupo, o top 0,01%, cujos números na fonte
 oficial se afastam muito dos anos vizinhos. O relatório completo traz a série
 calculada sem esse grupo, e as [limitações](../docs/limitations.html) registram
 a conferência célula a célula contra o arquivo de origem.
+:::
 
 ```{r}
+#| results: asis
 if (has_data) {
   latest <- max(data$components$year, na.rm = TRUE)
   composition <- data$components |>
@@ -114,10 +116,17 @@ if (has_data) {
     dplyr::summarise(Valor = sum(.data$value_real, na.rm = TRUE), .groups = "drop") |>
     dplyr::arrange(dplyr::desc(.data$Valor))
   composition <- composition |>
+    dplyr::mutate(component_group = dplyr::recode(
+      .data$component_group,
+      taxable = "Tributáveis", exclusive = "Tributação exclusiva", exempt = "Isentos"
+    )) |>
     dplyr::rename(`Grupo de rendimento` = "component_group") |>
     dplyr::mutate(`Valor (R$ de 2024)` = fmt_brl(.data$Valor), .keep = "unused") |>
     dplyr::select("Grupo de rendimento", "Valor (R$ de 2024)")
-  print(knitr::kable(composition, format = "pipe"))
+  print(knitr::kable(
+    composition, format = "pipe",
+    caption = sprintf("Grupos de rendimento declarados, Brasil, %d, RB4", latest)
+  ))
 }
 ```
 
@@ -129,7 +138,10 @@ if (has_data) {
 
 Os centis estaduais são calculados separadamente dentro de cada UF. Assim, a comparação descreve o formato interno das distribuições e não coloca pessoas de UFs distintas sob os mesmos cortes monetários nacionais.
 
+As dez UFs abaixo têm os maiores valores do Gini agrupado da RB4 no último ano. A renda média está em reais de 2024.
+
 ```{r}
+#| results: asis
 if (has_data) {
   state_table <- latest_metrics_table(data$metrics) |>
     dplyr::slice_head(n = 10)
@@ -139,8 +151,16 @@ if (has_data) {
       `Renda média (R$ de 2024)` = fmt_brl(.data$`Renda média (R$ de 2024)`),
       `Gini agrupado` = fmt_index(.data$`Gini agrupado`),
       `Top 1%` = fmt_share(.data$`Top 1%`)
+    ) |>
+    dplyr::rename(
+      UF = `Unidade da Federação`,
+      `Renda média` = `Renda média (R$ de 2024)`,
+      Gini = `Gini agrupado`
     )
-  print(knitr::kable(state_table, format = "pipe"))
+  print(knitr::kable(
+    state_table, format = "pipe",
+    caption = sprintf("Dez UFs com maior Gini agrupado da RB4, %d", max(data$metrics$year))
+  ))
 }
 ```
 
@@ -153,20 +173,16 @@ if (has_data) {
 Nos dados ampliados de 2017–2024, bens e dívidas são observados ao longo da distribuição de renda: trata-se de concentração patrimonial ao longo da renda. Para desigualdade patrimonial em sentido estrito, utiliza-se a série nacional ordenada diretamente por bens e direitos.
 
 ```{r}
-#| fig-cap: "Gini patrimonial agrupado na ordenação direta por bens e direitos"
+#| fig-cap: "Gini patrimonial agrupado na ordenação direta por bens e direitos, Brasil, 2006–2021 (índice de 0 a 1)"
 #| fig-alt: "Série do Gini patrimonial entre 2006 e 2021, em eixo que vai de 0,70 a 1,00. A linha permanece próxima de 0,86 durante todo o período, com variação total inferior a 0,03, e termina em 0,880 em 2021."
 if (has_data && nrow(data$wealth_metrics) > 0L) {
   plot_metric_evolution(
     data$wealth_metrics, "gini_grouped", "Gini patrimonial agrupado",
     ranking = "WEALTH_DIRECT", ancora = c(0.70, 1.00),
-    titulo = "A concentração do patrimônio é altíssima e quase não se moveu",
-    subtitulo = "Gini patrimonial agrupado, ordenação direta por bens e direitos. Eixo de 0,70 a 1,00."
-  )
+    titulo = "Gini patrimonial alto e quase estável",
+    subtitulo = "Bens e direitos, Brasil; ordenação direta. Eixo de 0,70 a 1,00."
+  ) + ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, hjust = 1))
 }
-```
-
-```{=typst}
-#pagebreak()
 ```
 
 # Como interpretar e usar

@@ -77,17 +77,24 @@ mod_assets_server <- function(id, bundle) {
           .data$ranking_id == "RB4", .data$component_group == "asset",
           .data$component_id %in% c("assets_real_estate", "assets_movable", "assets_financial", "assets_other")
         ) |>
-        dplyr::group_by(.data$component_id, .data$field_label) |>
-        dplyr::summarise(value = sum(.data$value_real, na.rm = TRUE), .groups = "drop")
-      shiny::validate(shiny::need(nrow(d) > 0L, "Sem dados patrimoniais para a seleção."))
+        component_totals()
+      missing <- d$field_label[is.na(d$value)]
+      d <- d |> dplyr::filter(is.finite(.data$value))
+      shiny::validate(shiny::need(nrow(d) > 0L, "Sem valores patrimoniais divulgados para a seleção."))
       # Barras horizontais: dispensam rótulo inclinado e o comprimento fica
       # comparável numa linha de base comum.
       ggplot2::ggplot(d, ggplot2::aes(.data$value, stats::reorder(.data$field_label, .data$value))) +
         ggplot2::geom_col(fill = cor_destaque(1), width = 0.72) +
         escala_dinheiro(c(0, d$value), eixo = "x", nome = "Valor declarado em R$ de 2024") +
-        ggplot2::labs(y = NULL) +
+        ggplot2::labs(
+          y = NULL,
+          caption = if (length(missing) > 0L) paste("Sem valor divulgado:", paste(missing, collapse = ", ")) else NULL
+        ) +
         tema_irpf(direcao = "x")
-    })
+    }, alt = function() paste(
+      "Barras horizontais com a composição de bens e direitos declarados, em R$ de 2024,",
+      input$geo, input$year, "."
+    ))
 
     patrimonio <- shiny::reactive({
       slice <- schema_slice(bundle, "wealth_by_bin")
@@ -117,7 +124,10 @@ mod_assets_server <- function(id, bundle) {
         ) +
         escala_dinheiro(c(0, d$media), eixo = "y", nome = "Patrimônio médio por declaração, R$ de 2024") +
         tema_irpf(direcao = "y")
-    })
+    }, alt = function() paste(
+      "Linha do patrimônio médio por declaração ao longo dos percentis de renda RB4,",
+      input$geo, input$year, ". Valores em R$ de 2024."
+    ))
 
     # Detalhe do topo em eixo ordinal: é onde o patrimônio médio dispara, e em
     # escala de percentil os 20 grupos ficariam comprimidos em 1% da largura.
@@ -134,7 +144,10 @@ mod_assets_server <- function(id, bundle) {
         ggplot2::labs(x = "Percentil de renda (limite superior de cada grupo)") +
         tema_irpf(direcao = "y") +
         ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, hjust = 1, size = 8))
-    })
+    }, alt = function() paste(
+      "Linha do patrimônio médio nos vinte grupos disjuntos do topo da renda RB4,",
+      input$geo, input$year, ". Cada grupo ocupa a mesma largura; valores em R$ de 2024."
+    ))
 
     output$direct_plot <- shiny::renderPlot({
       shiny::validate(shiny::need(nrow(bundle$wealth_metrics) > 0L, "Série patrimonial direta não disponível."))
@@ -152,7 +165,7 @@ mod_assets_server <- function(id, bundle) {
         ggplot2::labs(x = NULL, caption = "Eixo de 0,70 a 1,00: a série varia menos de 0,03 em dezesseis anos.") +
         tema_irpf(direcao = "y") +
         ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, hjust = 1))
-    })
+    }, alt = "Série nacional de 2006 a 2021 do Gini patrimonial agrupado, ordenado diretamente por bens e direitos. Eixo vertical de 0,70 a 1,00.")
 
     output$rodape <- shiny::renderUI({
       slice <- schema_slice(bundle, "wealth_by_bin")

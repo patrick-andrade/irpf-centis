@@ -54,6 +54,15 @@ bin_attributes <- function(bin_code) {
   dplyr::mutate(result, is_leaf = !.data$is_aggregate)
 }
 
+parse_bin_code <- function(x) {
+  number <- as_numeric_safe(x)
+  valid <- is.finite(number) & number == trunc(number) &
+    number >= 1 & number <= 120
+  result <- rep(NA_integer_, length(number))
+  result[valid] <- as.integer(number[valid])
+  result
+}
+
 # Nos arquivos monolíticos de 2017–2021 o cabeçalho traz um rótulo a mais que
 # as colunas de dados: "Rendimentos recebidos de Pessoa Física/Exterior -
 # Aluguéis" aparece repetido em duas colunas vizinhas, e a última coluna
@@ -106,15 +115,15 @@ read_receita_sheet <- function(path, sheet, year, source_id) {
   if (nrow(centile_cells) == 0L) return(NULL)
   header_row <- min(centile_cells[, "row"])
   centile_col <- centile_cells[which.min(centile_cells[, "row"]), "col"]
-  primary_codes <- suppressWarnings(as.integer(as_numeric_safe(raw[[centile_col]])))
+  primary_codes <- parse_bin_code(raw[[centile_col]])
   analytical_codes <- primary_codes
   hierarchy_width <- 1L
 
   # Nos arquivos monolíticos antigos, os códigos 101–110 e 111–120
   # aparecem como 1–10 em duas colunas hierárquicas adjacentes.
   if (ncol(raw) >= centile_col + 2L) {
-    secondary <- suppressWarnings(as.integer(as_numeric_safe(raw[[centile_col + 1L]])))
-    tertiary <- suppressWarnings(as.integer(as_numeric_safe(raw[[centile_col + 2L]])))
+    secondary <- parse_bin_code(raw[[centile_col + 1L]])
+    tertiary <- parse_bin_code(raw[[centile_col + 2L]])
     secondary_rows <- is.na(primary_codes) & secondary %in% 1:10
     tertiary_rows <- is.na(primary_codes) & is.na(secondary) & tertiary %in% 1:10
     if (sum(secondary_rows, na.rm = TRUE) == 10L && sum(tertiary_rows, na.rm = TRUE) == 10L) {
@@ -126,6 +135,20 @@ read_receita_sheet <- function(path, sheet, year, source_id) {
 
   data_rows <- which(seq_len(nrow(raw)) > header_row & analytical_codes %in% 1:120)
   if (length(data_rows) == 0L) return(NULL)
+  code_values <- as_numeric_safe(raw[[centile_col]])
+  code_span <- seq.int(header_row + 1L, max(data_rows))
+  invalid_codes <- code_span[which(
+    !is.na(code_values[code_span]) &
+      (!is.finite(code_values[code_span]) |
+         code_values[code_span] < 1 | code_values[code_span] > 120 |
+         code_values[code_span] != trunc(code_values[code_span]))
+  )]
+  if (length(invalid_codes) > 0L) {
+    rlang::abort(paste(
+      "Código de centil inválido em", fs::path_file(path), sheet,
+      "linha", invalid_codes[[1]]
+    ))
+  }
   data_start <- min(data_rows)
   data_rows <- data_rows[analytical_codes[data_rows] %in% 1:120]
 

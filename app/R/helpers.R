@@ -22,6 +22,15 @@ bundle_has_data <- function(bundle) {
   nrow(bundle$metrics) > 0L
 }
 
+component_totals <- function(data) {
+  data |>
+    dplyr::group_by(.data$component_id, .data$field_label) |>
+    dplyr::summarise(
+      value = if (all(is.na(.data$value_real))) NA_real_ else sum(.data$value_real, na.rm = TRUE),
+      .groups = "drop"
+    )
+}
+
 data_missing_ui <- function() {
   bslib::card(
     class = "missing-data-card",
@@ -43,10 +52,8 @@ geografia_nome <- function(bundle, geo_code) {
   if (nrow(row) == 0L) geo_code else row$geo_name[[1]]
 }
 
-# Wolfson e Palma não são limitados por construção e explodem quando a mediana
-# do grupo tende a zero — chegam a 4,5 e a 25 em algumas UFs, o que é artefato
-# de fórmula e não desigualdade. Ficam disponíveis, mas rotulados, para que o
-# leitor não os compare entre UFs como se fossem medidas estáveis.
+# Wolfson pode ficar instável quando a mediana é pequena; Palma, quando a
+# participação da base é pequena. A interpretação entre UFs pede cautela.
 metric_choices <- c(
   "Gini agrupado" = "gini_grouped",
   "Theil T agrupado" = "theil_t_grouped",
