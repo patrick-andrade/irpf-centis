@@ -21,6 +21,12 @@ jobs:
         with:
           r-version: '4.6.0'
           use-public-rspm: true
+      - name: Preparar pacotes de base do renv
+        # O restore simultâneo do lockfile no runner deixou curl e writexl em
+        # uma cadeia de dependências que impediu a execução dos testes.
+        run: |
+          Rscript -e 'renv::restore(packages = "curl", prompt = FALSE)'
+          Rscript -e 'renv::restore(packages = "writexl", prompt = FALSE)'
       - uses: r-lib/actions/setup-renv@v2
       - name: Testes e diagnóstico de lint
         run: Rscript scripts/run.R check
