@@ -22,5 +22,5 @@ jobs:
           r-version: '4.6.0'
           use-public-rspm: true
       - uses: r-lib/actions/setup-renv@v2
-      - name: Testes e lint
+      - name: Testes e diagnóstico de lint
         run: Rscript scripts/run.R check

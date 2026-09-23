@@ -49,7 +49,16 @@ test_that("métricas patrimoniais ficam em domínios plausíveis com o grupo zer
   expect_equal(nrow(metrics), 1L)
   expect_gte(metrics$gini_grouped, 0)
   expect_lte(metrics$gini_grouped, 1)
-  expect_gte(metrics$top_1_share, 0)
+  crossing <- parsed |>
+    dplyr::filter(
+      .data$is_leaf,
+      .data$population_share_lower < 0.99,
+      .data$population_share_upper > 0.99
+    )
+  expect_equal(nrow(crossing), 1L)
+  expect_true(is.na(metrics$top_1_share))
+  expect_true(is.na(metrics$bottom_40_share))
+  expect_true(is.na(metrics$palma))
   expect_true(is.na(metrics$income_mean_real))
 })
 

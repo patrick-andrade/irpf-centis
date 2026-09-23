@@ -10,7 +10,9 @@ grouped_wolfson <- function(data) {
   gini <- grouped_gini(data)
   l_half <- lorenz_at_half(data)
   if (!is.finite(mu) || !is.finite(median) || median <= 0 || !is.finite(gini) || !is.finite(l_half)) return(NA_real_)
-  2 * (mu / median) * (0.5 - l_half) - gini
+  # Wolfson (1994): 2 (mu / median) [2 (0.5 - L(0.5)) - G].
+  # O fator mu / median multiplica também o termo do Gini.
+  2 * (mu / median) * (2 * (0.5 - l_half) - gini)
 }
 
 grouped_esteban_ray <- function(data, alpha = 1.3) {

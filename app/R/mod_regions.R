@@ -54,10 +54,8 @@ mod_regions_server <- function(id, bundle) {
       poly$UF <- keys$UF[match(poly$codarea, keys$codarea)]
       indicators <- selected()
       poly$Indicador <- indicators$Indicador[match(poly$UF, indicators$UF)]
-      # Escala em classes, não contínua: com um outlier estadual — Wolfson chega
-      # a 4,5 em algumas UFs — a escala contínua colapsaria o contraste das
-      # outras 26 para acomodar uma só, e a legenda contínua não declara limite
-      # de classe nenhum.
+      # Escala em classes: valores estaduais extremos podem dominar uma escala
+      # contínua e esconder o contraste entre as demais UFs.
       rotular <- if (grepl("share$", input$metric)) rotulo_percentual(0.1) else rotulo_indice(0.01)
       ggplot2::ggplot(poly, ggplot2::aes(.data$long, .data$lat, group = .data$piece, fill = .data$Indicador)) +
         ggplot2::geom_polygon(colour = "white", linewidth = 0.2) +
@@ -72,7 +70,11 @@ mod_regions_server <- function(id, bundle) {
             size = 8.5, colour = cores_irpf$texto_suave, hjust = 0
           )
         )
-    })
+    }, alt = function() paste(
+      "Mapa das unidades da Federação por",
+      names(metric_choices)[match(input$metric, metric_choices)], "em", input$year,
+      ". Os mesmos valores aparecem na tabela abaixo do mapa."
+    ))
     output$plot <- shiny::renderPlot({
       d <- selected()
       shiny::validate(shiny::need(nrow(d) > 0L, "Sem dados estaduais."))
@@ -89,7 +91,11 @@ mod_regions_server <- function(id, bundle) {
         ggplot2::labs(y = NULL, caption = "Centis calculados separadamente dentro de cada UF.") +
         tema_irpf(direcao = "x") +
         ggplot2::theme(axis.text.y = ggplot2::element_text(size = 8.5))
-    })
+    }, alt = function() paste(
+      "Barras horizontais ordenam as unidades da Federação por",
+      names(metric_choices)[match(input$metric, metric_choices)], "em", input$year,
+      ". Os valores exatos aparecem na tabela abaixo."
+    ))
     output$table <- shiny::renderTable(
       {
         d <- selected()

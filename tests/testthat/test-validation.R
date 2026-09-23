@@ -36,12 +36,31 @@ top_counts_fixture <- function(contributors = c(1000, 100, 10, 1)) {
 faixa_de <- function(checks) checks[checks$check == "effective_rate_range", ]
 
 test_that("alíquota efetiva fora de [0, 1] reprova o portão", {
-  ok <- faixa_de(validate_effective_rate_range(tax_fixture(c(0, 0.05, 0.1, Inf))))
+  ok <- faixa_de(validate_effective_rate_range(tax_fixture(c(0, 0.05, 0.1, NA_real_))))
   expect_equal(ok$status, "pass")
 
-  bad <- faixa_de(validate_effective_rate_range(tax_fixture(c(0.05, 1.23, 2706.9))))
+  bad <- faixa_de(validate_effective_rate_range(tax_fixture(c(0.05, 1.23, Inf))))
   expect_equal(bad$status, "fail")
   expect_match(bad$detail, "2 grupo")
+  expect_equal(faixa_de(validate_effective_rate_range(tax_fixture(numeric())))$status, "fail")
+})
+
+test_that("120 linhas sem os códigos exatos de 1 a 120 reprovam", {
+  bins <- tidyr::expand_grid(
+    year = 2024L, geo_code = "BR", ranking_id = "RB4", bin_code = 1:120
+  )
+  expect_equal(validate_bin_counts(bins)$status, "pass")
+  bins$bin_code[[120]] <- 121L
+  expect_equal(validate_bin_counts(bins)$status, "fail")
+})
+
+test_that("cobertura detecta ano inteiro ausente", {
+  bins <- tibble::tibble(
+    year = 2024L, geo_code = "BR", ranking_id = "RB4"
+  )
+  coverage <- validate_series_coverage(bins)
+  expect_equal(coverage$status, "warn")
+  expect_match(coverage$detail, "2017-BR-RB4")
 })
 
 test_that("Gini e Atkinson fora de [0, 1] reprovam; Wolfson alto apenas avisa", {
@@ -72,6 +91,29 @@ test_that("salto anual de Gini vira aviso, não falha", {
   expect_equal(spike$status, "warn")
   expect_match(spike$detail, "RB4/2018")
   expect_match(spike$detail, "RB4/2019")
+})
+
+test_that("Gini só compara anos consecutivos", {
+  metrics <- metrics_fixture()[c(1, 3), ]
+  metrics$gini_grouped <- c(0.5, 0.8)
+  expect_equal(validate_year_over_year(metrics)$status, "pass")
+})
+
+test_that("contagem hierárquica ausente reprova em vez de produzir status NA", {
+  bins <- fixture_bin_values() |>
+    dplyr::transmute(
+      year = 2024L, geo_code = "BR", ranking_id = "RB4",
+      bin_code = .data$code, contributors = .data$contributors,
+      rank_sum = .data$rank_sum
+    )
+  bins$contributors[bins$bin_code == 100L] <- NA_real_
+  hierarchy <- reconcile_hierarchy(bins)
+  expect_true(is.na(hierarchy$contributor_ok))
+  checks <- run_quality_checks(dplyr::mutate(
+    bins, geo_level = "national", is_leaf = !.data$bin_code %in% c(100L, 110L)
+  ))
+  expect_equal(checks$status[checks$check == "hierarchical_contributors"], "fail")
+  expect_error(assert_quality(checks), "hierarchical_contributors")
 })
 
 test_that("assert_quality barra falha e deixa passar aviso", {

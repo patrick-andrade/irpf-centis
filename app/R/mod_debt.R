@@ -121,7 +121,10 @@ mod_debt_server <- function(id, bundle) {
         d, "media",
         escala_dinheiro(c(0, d$media), eixo = "y", nome = "Dívida média por declaração, R$ de 2024")
       )
-    })
+    }, alt = function() paste(
+      "Linha da dívida média por declaração ao longo dos percentis de renda RB4,",
+      input$geo, input$year, ". Valores em R$ de 2024."
+    ))
 
     output$mean_debt_top <- shiny::renderPlot({
       d <- base_topo() |> dplyr::filter(is.finite(.data$media))
@@ -130,7 +133,10 @@ mod_debt_server <- function(id, bundle) {
         d, "media",
         escala_dinheiro(c(0, d$media), eixo = "y", nome = "Dívida média por declaração, R$ de 2024")
       )
-    })
+    }, alt = function() paste(
+      "Linha da dívida média nos vinte grupos disjuntos do topo da renda RB4,",
+      input$geo, input$year, ". Valores em R$ de 2024."
+    ))
 
     output$ratio <- shiny::renderPlot({
       # A lacuna do primeiro centil é informação: renda declarada nula não é
@@ -144,7 +150,10 @@ mod_debt_server <- function(id, bundle) {
           c(0, d$debt_income_ratio), span_min = 0.1, nome = "Dívidas declaradas por real de renda anual"
         )
       )
-    })
+    }, alt = function() paste(
+      "Linha da razão entre dívida declarada e renda anual por percentil de renda RB4,",
+      input$geo, input$year, "."
+    ))
 
     output$ratio_top <- shiny::renderPlot({
       d <- base_topo()
@@ -155,7 +164,10 @@ mod_debt_server <- function(id, bundle) {
           c(0, d$debt_income_ratio), span_min = 0.1, nome = "Dívidas declaradas por real de renda anual"
         )
       )
-    })
+    }, alt = function() paste(
+      "Linha da razão entre dívida declarada e renda anual nos vinte grupos do topo da renda RB4,",
+      input$geo, input$year, ". Cada grupo ocupa a mesma largura."
+    ))
 
     output$rodape <- shiny::renderUI({
       d <- selecionado()

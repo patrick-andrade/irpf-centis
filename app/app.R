@@ -6,6 +6,12 @@ bundle <- load_app_bundle("data/app-bundle.rds")
 ui <- bslib::page_navbar(
   title = "IRPF por centis",
   fillable = FALSE,
+  theme = bslib::bs_theme(
+    version = 5,
+    bg = "#F7F9FC",
+    fg = "#101D40",
+    primary = "#156DF9"
+  ),
   header = shiny::tagList(
     shiny::tags$head(shiny::tags$link(rel = "stylesheet", type = "text/css", href = "styles.css")),
     shiny::tags$div(

@@ -6,6 +6,17 @@ O formato segue *Keep a Changelog* e as versões públicas usarão versionamento
 
 ## [Não publicado]
 
+### Corrigido
+
+- Fórmula de Foster–Wolfson: o fator média/mediana agora multiplica toda a expressão. Em Brasil–RB4, 2024, o valor passa de 0,92206242 para 0,47504184; a [comparação integral](docs/revisao-2026/resultados.md) registra os campos afetados. O DOI da 0.3.0 arquiva o cálculo anterior.
+- Participações de topo e base da série patrimonial direta ficam ausentes quando o corte atravessa um grupo divulgado, sem presumir uma distribuição dentro dele. O Gini patrimonial permanece igual.
+- Downloads de fontes conhecidas agora comparam SHA-256 antes de substituir arquivo ou manifesto. Gates detectam ano inteiro ausente, códigos de grupo incorretos e valores não finitos.
+- Bundle do painel preserva ausência quando todos os componentes de um grupo estiverem ausentes, em vez de convertê-la em zero.
+
+### Alterado
+
+- Revisão de fontes, método, apresentação e documentação de reprodução. O guia de contribuição foi simplificado para o escopo de uma análise de economia aplicada.
+
 ## [0.3.0] — 2026-08-21
 
 Revisão de visualização e comunicação, com duas correções de dados encontradas

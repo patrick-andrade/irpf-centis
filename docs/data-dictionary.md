@@ -26,7 +26,7 @@ Uma linha por ano e geografia. Deve identificar claramente numerador, denominado
 
 ## `wealth_ranked_national`
 
-Série suplementar nacional em que a ordenação é realizada diretamente pelo patrimônio declarado. Seu esquema específico é mantido separado para evitar confusão com bens observados dentro dos centis de renda.
+Série suplementar nacional em que a ordenação é realizada diretamente pelo patrimônio declarado. Seu esquema específico é mantido separado para evitar confusão com bens observados dentro dos centis de renda. As participações de topo e base em `wealth_metrics` só são definidas quando o corte populacional coincide com uma fronteira de grupo divulgado; quando o grupo de patrimônio zero desloca essa fronteira, recebem `NA`, assim como Palma quando depende de uma participação ausente. O Gini patrimonial continua disponível.
 
 
 ## `wealth_by_bin`

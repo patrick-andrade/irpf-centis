@@ -30,6 +30,10 @@ write_processed_outputs <- function(distribution_bins, income_components, metric
   unname(paths)
 }
 
+sum_known_values <- function(x) {
+  if (all(is.na(x))) NA_real_ else sum(x, na.rm = TRUE)
+}
+
 write_app_bundle <- function(income_components, metrics, effective_tax, wealth_bins, top_counts, theil_decomposition, wealth_ranked_national, wealth_metrics, state_polygons) {
   path <- project_path("app/data/app-bundle.rds")
   fs::dir_create(fs::path_dir(path), recurse = TRUE)
@@ -49,8 +53,8 @@ write_app_bundle <- function(income_components, metrics, effective_tax, wealth_b
         .data$component_id, .data$component_group, .data$field_label, .data$unit
       ) |>
       dplyr::summarise(
-        value_nominal = sum(.data$value_nominal, na.rm = TRUE),
-        value_real = sum(.data$value_real, na.rm = TRUE),
+        value_nominal = sum_known_values(.data$value_nominal),
+        value_real = sum_known_values(.data$value_real),
         .groups = "drop"
       ),
     metrics = metrics,
@@ -119,8 +123,7 @@ app_viz_em_sincronia <- function(origem = "R/viz.R", destino = "app/R/viz.R") {
 }
 
 check_release_checklist <- function(path = "internal/release-checklist.md") {
-  # O checklist não é versionado; a publicação só pode ser montada na máquina de
-  # quem mantém o projeto.
+  # O checklist é versionado no repositório privado, fora do Git público.
   full <- project_path(path)
   if (!fs::file_exists(full)) {
     rlang::abort(paste0(

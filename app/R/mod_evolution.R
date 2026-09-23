@@ -64,7 +64,11 @@ mod_evolution_server <- function(id, bundle) {
         escala_y +
         ggplot2::labs(x = NULL) +
         tema_irpf(base_size = 13, direcao = "y")
-    })
+    }, alt = function() paste(
+      "Série por ano-calendário de", names(metric_choices)[match(input$metric, metric_choices)],
+      "para", input$geo, "no conceito", input$ranking,
+      ". O eixo vertical informa a unidade do indicador; 2018 exige a ressalva descrita abaixo."
+    ))
 
     output$rodape <- shiny::renderUI(bloco_rodape(
       notas = c(

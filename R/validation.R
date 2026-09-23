@@ -27,17 +27,26 @@ validate_unique_keys <- function(distribution_bins) {
 
 validate_bin_counts <- function(distribution_bins) {
   counts <- distribution_bins |>
-    dplyr::count(.data$year, .data$geo_code, .data$ranking_id, name = "raw_bins") |>
-    dplyr::mutate(ok = .data$raw_bins == 120L)
+    dplyr::group_by(.data$year, .data$geo_code, .data$ranking_id) |>
+    dplyr::summarise(
+      ok = identical(sort(as.integer(.data$bin_code)), 1:120),
+      .groups = "drop"
+    )
   tibble::tibble(
     check = "raw_bin_count",
     status = ifelse(nrow(counts) > 0L && all(counts$ok), "pass", "fail"),
-    detail = ifelse(nrow(counts) == 0L, "Sem dados", paste(sum(!counts$ok), "distribuições fora de 120 grupos"))
+    detail = ifelse(
+      nrow(counts) == 0L, "Sem dados",
+      paste(sum(!counts$ok), "distribuições sem os códigos 1 a 120 exatamente uma vez")
+    )
   )
 }
 
 validate_series_coverage <- function(distribution_bins) {
-  years <- sort(unique(distribution_bins$year))
+  # Incluir anos configurados evita que a ausência de um ano inteiro passe
+  # despercebida por não haver nenhuma linha desse ano nos dados processados.
+  configured_years <- as.integer(unlist(read_sources_config()$receita_expanded$years))
+  years <- sort(unique(c(configured_years, distribution_bins$year)))
   geographies <- read_schema("geographies")$geo_code
   rankings <- read_schema("rankings")
   expected <- purrr::map_dfr(years, function(year) {
@@ -73,16 +82,18 @@ validate_series_coverage <- function(distribution_bins) {
 validate_effective_rate_range <- function(effective_tax) {
   rates <- effective_tax$effective_rate
   finite <- rates[is.finite(rates)]
-  out_of_range <- sum(finite < 0 | finite > 1)
+  out_of_range <- sum(finite < 0 | finite > 1) +
+    sum(is.infinite(rates) | is.nan(rates))
   faixa <- tibble::tibble(
     check = "effective_rate_range",
-    status = ifelse(out_of_range == 0L, "pass", "fail"),
+    status = ifelse(length(rates) > 0L && out_of_range == 0L, "pass", "fail"),
     detail = ifelse(
-      out_of_range == 0L,
-      "Alíquotas efetivas dentro de [0, 1]",
-      paste0(
-        out_of_range, " grupo(s) com alíquota efetiva fora de [0, 1]; máximo ",
-        scales::percent(max(finite), accuracy = 0.1)
+      length(rates) == 0L,
+      "Nenhuma alíquota efetiva calculada",
+      ifelse(
+        out_of_range == 0L,
+        "Alíquotas efetivas dentro de [0, 1]",
+        paste0(out_of_range, " grupo(s) com alíquota efetiva fora de [0, 1] ou não finita")
       )
     )
   )
@@ -108,8 +119,8 @@ validate_index_ranges <- function(metrics) {
     values <- metrics[[column]]
     sum(is.finite(values) & (values < 0 | values > 1))
   })
-  # Wolfson e Palma não são limitados por construção, mas explodem quando a
-  # mediana do grupo tende a zero — é artefato de fórmula, não desigualdade.
+  # Wolfson e Palma não são limitados por construção. Wolfson pode ficar
+  # instável com mediana baixa; Palma, com participação da base muito baixa.
   unstable <- sum(is.finite(metrics$wolfson_grouped) & metrics$wolfson_grouped > 1) +
     sum(is.finite(metrics$palma) & metrics$palma > 50)
   dplyr::bind_rows(
@@ -127,7 +138,7 @@ validate_index_ranges <- function(metrics) {
       status = ifelse(unstable == 0L, "pass", "warn"),
       detail = paste(
         unstable,
-        "distribuição(ões) com Wolfson > 1 ou Palma > 50; artefato de mediana próxima de zero"
+        "distribuição(ões) com Wolfson > 1 (mediana baixa) ou Palma > 50 (base com participação baixa)"
       )
     )
   )
@@ -138,9 +149,15 @@ validate_year_over_year <- function(metrics, threshold = 0.05) {
     dplyr::filter(.data$geo_level == "national") |>
     dplyr::arrange(.data$ranking_id, .data$year) |>
     dplyr::group_by(.data$ranking_id) |>
-    dplyr::mutate(jump = abs(.data$gini_grouped - dplyr::lag(.data$gini_grouped))) |>
+    dplyr::mutate(
+      previous_year = dplyr::lag(.data$year),
+      jump = abs(.data$gini_grouped - dplyr::lag(.data$gini_grouped))
+    ) |>
     dplyr::ungroup() |>
-    dplyr::filter(is.finite(.data$jump), .data$jump > threshold)
+    dplyr::filter(
+      .data$year == .data$previous_year + 1L,
+      is.finite(.data$jump), .data$jump > threshold
+    )
   tibble::tibble(
     check = "gini_year_over_year",
     status = ifelse(nrow(national) == 0L, "pass", "warn"),
@@ -207,14 +224,14 @@ run_quality_checks <- function(distribution_bins) {
     validate_series_coverage(distribution_bins),
     tibble::tibble(
       check = "hierarchical_contributors",
-      status = ifelse(all(hierarchy$contributor_ok), "pass", "fail"),
-      detail = paste(sum(!hierarchy$contributor_ok), "distribuições com divergência de contagem")
+      status = ifelse(all(hierarchy$contributor_ok %in% TRUE), "pass", "fail"),
+      detail = paste(sum(!(hierarchy$contributor_ok %in% TRUE)), "distribuições com divergência de contagem")
     ),
     tibble::tibble(
       check = "hierarchical_amounts",
-      status = ifelse(all(hierarchy$amount_ok), "pass", "warn"),
+      status = ifelse(all(hierarchy$amount_ok %in% TRUE), "pass", "warn"),
       detail = paste(
-        sum(!hierarchy$amount_ok),
+        sum(!(hierarchy$amount_ok %in% TRUE)),
         "distribuições com divergência monetária preservada da fonte; ver hierarchy-reconciliation.csv"
       )
     ),

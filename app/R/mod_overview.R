@@ -1,6 +1,15 @@
 mod_overview_ui <- function(id) {
   ns <- shiny::NS(id)
   shiny::tagList(
+    shiny::tags$header(
+      class = "app-intro",
+      shiny::tags$p(class = "app-intro-kicker", "Visão geral · Brasil"),
+      shiny::tags$h1("Os números centrais do IRPF por centis"),
+      shiny::tags$p(
+        "Declarações válidas, desigualdade agrupada e participação do topo ",
+        "no conceito principal de renda (RB4)."
+      )
+    ),
     shiny::uiOutput(ns("content")),
     shiny::uiOutput(ns("rodape")),
     shiny::uiOutput(ns("conceitos"))

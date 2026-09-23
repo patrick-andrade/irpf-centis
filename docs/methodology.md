@@ -12,7 +12,7 @@ RB4 ordena as declarações pela soma dos rendimentos tributáveis, isentos e su
 
 ## Conceitos de renda disponíveis
 
-Cada conceito é uma ordenação diferente das mesmas declarações, publicada pela Receita Federal em uma tabela própria. O contrato executável está em `config/schema/rankings.csv` e alimenta tanto os relatórios quanto o painel.
+Cada conceito produz uma ordenação própria, publicada pela Receita Federal em uma tabela separada. As contagens nacionais dos grupos disjuntos em 2024 coincidem entre os conceitos, mas as tabelas agregadas não permitem confirmar que as declarações individuais sejam exatamente as mesmas. O [metadado oficial de 2024](https://www.gov.br/receitafederal/pt-br/centrais-de-conteudo/publicacoes/estudos/distribuicao-da-renda/distribuicao-de-renda-por-centis-estudo-ampliado-2017-a-2023/2024/metadados-centis-ac2024.pdf) informa uma exclusão específica na Tabela X: declarações com RB9 acima de R$ 100 milhões. O contrato executável está em `config/schema/rankings.csv` e alimenta tanto os relatórios quanto o painel.
 
 | Tabela | Código | Conceito | Composição | Anos |
 |---|---|---|---|---|
@@ -37,6 +37,10 @@ Os grupos 100 e 110 são agregados que se sobrepõem aos detalhamentos subsequen
 ## Índices agrupados
 
 Gini, Theil T, Atkinson (ε = 0,5 e o caso-limite ε = 1 pela média geométrica), Wolfson e Esteban–Ray são calculados a partir das médias e quantidades dos grupos. Como não há informação dentro de cada grupo, esses valores são aproximações e, em medidas de desigualdade, normalmente omitem a desigualdade intragrupo. Para o Gini, além do limite inferior (trapézio de Lorenz sobre as médias), publica-se um limite superior no espírito de Gastwirth (1972), que soma a máxima desigualdade intragrupo compatível com as médias e os limites monetários divulgados; o intervalo `[gini_lower_bound, gini_upper_bound]` acompanha todas as distribuições.
+
+O índice de Wolfson usa `2 × (média/mediana) × [2 × (0,5 − L(0,5)) − Gini]`, conforme a [definição usada pela Statistics Canada](https://www23.statcan.gc.ca/imdb-bmdi/document/3889_DLI_D1_T22_V8-eng.pdf), com mediana aproximada pelo limite superior do grupo que contém o 50º percentil. O índice depende fortemente dessa mediana agrupada quando ela é pequena. A correção da posição do fator `média/mediana` nesta revisão altera a série de Wolfson.
+
+Para Esteban–Ray, o cálculo usa `ΣᵢΣⱼ pᵢ^(1+α) pⱼ |mᵢ−mⱼ| / μ`, com pesos `pᵢ` das declarações, média `mᵢ` de cada grupo e renda média geral `μ`. A divisão pela média torna esta variante invariável à escala monetária, ou seja, equivale a escolher `K = 1/μ` na [família proposta por Esteban e Ray](https://pages.nyu.edu/debraj/Courses/Readings/Esteban%20Ray94.pdf). Ela não recupera diferenças dentro dos grupos.
 
 ## Alíquota efetiva
 

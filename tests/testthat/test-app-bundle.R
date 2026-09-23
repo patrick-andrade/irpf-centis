@@ -10,3 +10,9 @@ test_that("painel aceita bundle vazio antes do primeiro build", {
   expect_equal(nrow(bundle$metrics), 0L)
   expect_equal(nrow(bundle$state_polygons), 0L)
 })
+
+test_that("agregação do bundle preserva ausência integral sem perder valores conhecidos", {
+  expect_true(is.na(sum_known_values(c(NA_real_, NA_real_))))
+  expect_equal(sum_known_values(c(2, NA_real_, 3)), 5)
+  expect_equal(sum_known_values(c(0, NA_real_)), 0)
+})

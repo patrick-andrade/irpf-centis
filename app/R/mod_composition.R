@@ -56,7 +56,12 @@ mod_composition_server <- function(id, bundle) {
         escala_dinheiro(c(0, d$value), eixo = "x", nome = "Valor declarado em R$ de 2024") +
         ggplot2::labs(y = NULL) +
         tema_irpf(direcao = "x")
-    })
+    }, alt = function() paste(
+      "Barras horizontais dos componentes declarados em R$ de 2024 para",
+      input$geo, "em", input$year, ". O grupo de campos é",
+      c(taxable = "tributáveis", exclusive = "exclusivos", exempt = "isentos",
+        deduction = "deduções", tax = "imposto")[[input$group]], "."
+    ))
     aliquotas <- shiny::reactive({
       shiny::req(input$year, input$geo)
       bundle$effective_tax |>
@@ -84,7 +89,10 @@ mod_composition_server <- function(id, bundle) {
         escala_aliquota(d$effective_rate, nome = "Alíquota efetiva média") +
         linha_zero("h") +
         tema_irpf(direcao = "y")
-    })
+    }, alt = function() paste(
+      "Linha da alíquota efetiva média por posição na distribuição da renda RB4,",
+      input$geo, input$year, ". O eixo horizontal vai do percentil 1 ao 99."
+    ))
 
     # Detalhe do topo em eixo ordinal: é onde a alíquota cai, e em escala de
     # percentil os 20 grupos ficariam comprimidos em 1% da largura.
@@ -108,7 +116,10 @@ mod_composition_server <- function(id, bundle) {
         ggplot2::labs(x = "Percentil de renda (limite superior de cada grupo)") +
         tema_irpf(direcao = "y") +
         ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, hjust = 1, size = 8))
-    })
+    }, alt = function() paste(
+      "Linha da alíquota efetiva média nos vinte grupos disjuntos do topo da renda RB4,",
+      input$geo, input$year, ". Cada grupo ocupa a mesma largura."
+    ))
 
     output$rodape <- shiny::renderUI(bloco_rodape(
       notas = c(

@@ -91,6 +91,10 @@ grouped_atkinson <- function(data, epsilon = 0.5, value_col = "rank_mean", weigh
 
 income_share_top <- function(data, proportion) {
   threshold <- 1 - proportion
+  # Sem interpolação intragrupo, o corte precisa coincidir com uma fronteira.
+  if (!any(abs(data$share_lower - threshold) <= share_tolerance, na.rm = TRUE)) {
+    return(NA_real_)
+  }
   numerator <- data |>
     dplyr::filter(.data$share_lower >= threshold - share_tolerance) |>
     dplyr::summarise(value = sum(.data$rank_sum, na.rm = TRUE)) |>
@@ -100,6 +104,9 @@ income_share_top <- function(data, proportion) {
 }
 
 income_share_bottom <- function(data, proportion) {
+  if (!any(abs(data$share_upper - proportion) <= share_tolerance, na.rm = TRUE)) {
+    return(NA_real_)
+  }
   numerator <- data |>
     dplyr::filter(.data$share_upper <= proportion + share_tolerance) |>
     dplyr::summarise(value = sum(.data$rank_sum, na.rm = TRUE)) |>
