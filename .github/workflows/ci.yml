@@ -22,11 +22,11 @@ jobs:
           r-version: '4.6.0'
           use-public-rspm: true
       - name: Preparar pacotes de base do renv
-        # restore(packages=...) expande dependências do lockfile; instalar estes
-        # dois pacotes diretamente evita o ciclo de instalação visto no runner.
+        # A instalação via renv expande uma cadeia de dependências que bloqueia
+        # curl no runner. Instalar os binários no library do projeto primeiro.
         run: |
-          Rscript -e 'renv::install("curl@7.1.0", prompt = FALSE, lock = FALSE)'
-          Rscript -e 'renv::install("writexl@2.0.0", prompt = FALSE, lock = FALSE)'
+          Rscript -e 'utils::install.packages(c("curl", "writexl"), lib = renv::paths$library(), repos = Sys.getenv("RSPM"), dependencies = FALSE)'
+          Rscript -e 'stopifnot(as.character(packageVersion("curl")) == "7.1.0", as.character(packageVersion("writexl")) == "2.0.0")'
       - uses: r-lib/actions/setup-renv@v2
       - name: Testes e diagnóstico de lint
         run: Rscript scripts/run.R check
