@@ -1,20 +1,24 @@
+/* Fontes em woff2 com subconjunto latino (mais grego e operadores, para ε e
+   −): ~150 KB contra 1,65 MB dos TTF, que o shinylive embutia em base64 no
+   app.json e o navegador baixava antes de abrir o painel. Ver
+   styles/fonts/README.md. */
 @font-face {
   font-family: "Noto Sans";
-  src: url("fonts/NotoSans-Regular.ttf") format("truetype");
+  src: url("fonts/NotoSans-Regular.woff2") format("woff2");
   font-style: normal;
   font-weight: 400;
   font-display: swap;
 }
 @font-face {
   font-family: "Noto Sans";
-  src: url("fonts/NotoSans-Bold.ttf") format("truetype");
+  src: url("fonts/NotoSans-Bold.woff2") format("woff2");
   font-style: normal;
   font-weight: 700;
   font-display: swap;
 }
 @font-face {
   font-family: "Noto Sans Display";
-  src: url("fonts/NotoSansDisplay-Bold.ttf") format("truetype");
+  src: url("fonts/NotoSansDisplay-Bold.woff2") format("woff2");
   font-style: normal;
   font-weight: 700;
   font-display: swap;
