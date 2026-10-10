@@ -52,6 +52,13 @@ geografia_nome <- function(bundle, geo_code) {
   if (nrow(row) == 0L) geo_code else row$geo_name[[1]]
 }
 
+# "Brasil, São Paulo e Pernambuco": nomes por extenso, com "e" antes do último.
+juntar_nomes <- function(bundle, codigos) {
+  nomes <- vapply(codigos, function(codigo) geografia_nome(bundle, codigo), character(1), USE.NAMES = FALSE)
+  if (length(nomes) <= 1L) return(paste(nomes, collapse = ""))
+  paste(paste(utils::head(nomes, -1L), collapse = ", "), "e", utils::tail(nomes, 1L))
+}
+
 # Chave de ordenação sem acentos. Na colação C, que é a do R no navegador,
 # "Paraíba" vem depois de "Paraná" e de "Pernambuco"; `iconv(..., "ASCII//TRANSLIT")`
 # não é confiável no WebAssembly, `chartr()` é.

@@ -77,6 +77,7 @@ mod_regions_server <- function(id, bundle, estado = NULL, ativo = NULL, inicial 
     })
 
     output$map <- shiny::renderPlot({
+      exigir_largura(session, "map")
       shiny::validate(shiny::need(nrow(bundle$state_polygons) > 0L, "Malha estadual não disponível."))
       keys <- bundle$geographies |>
         dplyr::filter(.data$geo_level == "state") |>
@@ -123,6 +124,7 @@ mod_regions_server <- function(id, bundle, estado = NULL, ativo = NULL, inicial 
     ))
 
     output$plot <- shiny::renderPlot({
+      exigir_largura(session, "plot")
       d <- selected()
       shiny::validate(shiny::need(nrow(d) > 0L, "Sem dados estaduais."))
       escala_x <- if (grepl("share$", input$metric)) {
@@ -177,7 +179,7 @@ mod_regions_server <- function(id, bundle, estado = NULL, ativo = NULL, inicial 
       }
       nota_2018 <- if (length(saltos) > 0L) {
         paste0(
-          "Em 2018, ", paste(vapply(saltos, function(codigo) geografia_nome(bundle, codigo), character(1)), collapse = ", "),
+          "Em 2018, ", juntar_nomes(bundle, saltos),
           " destoa", if (length(saltos) > 1L) "m" else "", " dos anos vizinhos por causa de um único ",
           "grupo do topo no arquivo oficial; o mapa desse ano é dominado por esse efeito."
         )

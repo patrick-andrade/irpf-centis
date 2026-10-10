@@ -114,6 +114,7 @@ mod_evolution_server <- function(id, bundle, estado = NULL, ativo = NULL, inicia
     })
 
     output$plot <- shiny::renderPlot({
+      exigir_largura(session, "plot")
       d <- selected()
       shiny::validate(shiny::need(nrow(d) > 0L, "Indicador não definido para a seleção."))
       varias <- nlevels(droplevels(d$geografia)) > 1L
@@ -244,20 +245,19 @@ mod_evolution_server <- function(id, bundle, estado = NULL, ativo = NULL, inicia
 
     output$rodape <- shiny::renderUI({
       shiny::req(input$geo, input$ranking, input$metric)
-      nomes <- function(codigos) {
-        paste(vapply(codigos, function(codigo) geografia_nome(bundle, codigo), character(1)), collapse = ", ")
-      }
+      # As geografias abrem a frase, sem preposição: "no Brasil", "em São
+      # Paulo" e "no Acre" exigiriam concordância por unidade.
       com_salto <- intersect(input$geo, saltos_brasil())
       nota_2018 <- if (length(com_salto) > 0L) {
         paste0(
-          "Em ", nomes(com_salto), ", 2018 se afasta dos anos vizinhos porque um único ",
+          juntar_nomes(bundle, com_salto), ": 2018 se afasta dos anos vizinhos porque um único ",
           "grupo do topo destoa no arquivo oficial; o valor é preservado como publicado. ",
           if (sem_topo_disponivel()) "Marque a série sem o top 0,01% para ver o ano sem ele." else ""
         )
       } else if (length(saltos_brasil()) > 0L) {
         paste0(
           "Nas geografias escolhidas, 2018 acompanha os anos vizinhos neste indicador. ",
-          "O ano não é comparável em ", nomes(saltos_brasil()), "."
+          "O ano não é comparável nestas: ", juntar_nomes(bundle, saltos_brasil()), "."
         )
       } else {
         "O ano-calendário 2018 fica sombreado: na fonte oficial, um grupo do topo destoa dos anos vizinhos."

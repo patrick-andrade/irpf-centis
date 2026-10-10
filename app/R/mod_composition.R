@@ -41,6 +41,7 @@ mod_composition_server <- function(id, bundle, estado = NULL, ativo = NULL, inic
     sincronizar_estado(session, input, estado, "ano", "year", ativo)
     sincronizar_estado(session, input, estado, "geo", "geo", ativo)
     output$plot <- shiny::renderPlot({
+      exigir_largura(session, "plot")
       shiny::req(input$year, input$geo, input$group)
       d <- bundle$income_components |>
         dplyr::filter(
@@ -81,6 +82,7 @@ mod_composition_server <- function(id, bundle, estado = NULL, ativo = NULL, inic
     })
 
     output$tax_curve <- shiny::renderPlot({
+      exigir_largura(session, "tax_curve")
       shiny::validate(shiny::need(nrow(bundle$effective_tax) > 0L, "Alíquotas efetivas não disponíveis."))
       d <- aliquotas() |> dplyr::filter(.data$bin_code <= 99L)
       shiny::validate(shiny::need(nrow(d) > 0L, "Sem alíquotas para a seleção."))
@@ -105,6 +107,7 @@ mod_composition_server <- function(id, bundle, estado = NULL, ativo = NULL, inic
     # Detalhe do topo em eixo ordinal: é onde a alíquota cai, e em escala de
     # percentil os 20 grupos ficariam comprimidos em 1% da largura.
     output$tax_curve_top <- shiny::renderPlot({
+      exigir_largura(session, "tax_curve_top")
       shiny::validate(shiny::need(nrow(bundle$effective_tax) > 0L, "Alíquotas efetivas não disponíveis."))
       d <- aliquotas() |>
         dplyr::filter(.data$bin_code %in% codigos_topo) |>

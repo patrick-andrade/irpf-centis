@@ -81,7 +81,8 @@ sincronizar_estado <- function(session, input, estado, campo, input_id = campo,
     atual <- input[[input_id]]
     if (primeiro) {
       if (length(atual) > 0L && identical(atual[[1]], novo)) return()
-      novo <- unique(c(novo, setdiff(atual, novo)))
+      # A geografia nova substitui a primeira; as de comparação ficam.
+      novo <- unique(c(novo, atual[-1]))
     } else if (identical(atual, novo)) {
       return()
     }
@@ -124,6 +125,14 @@ grafico_interativo <- function(ns, id, height) {
       shiny::uiOutput(ns(paste0(id, "_leitura")), inline = TRUE)
     )
   )
+}
+
+# Quando o link abre o painel direto numa aba, o gráfico pode ser calculado
+# antes de a aba ter largura, e o renderPlot pisca "invalid 'width' or
+# 'height'" até o recálculo. Esperar a largura evita o erro na tela.
+exigir_largura <- function(session, id) {
+  largura <- session$clientData[[paste0("output_", session$ns(id), "_width")]]
+  shiny::req(!is.null(largura), largura > 0)
 }
 
 evento_ponteiro <- function(input, id) {

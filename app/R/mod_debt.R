@@ -118,6 +118,7 @@ mod_debt_server <- function(id, bundle, estado = NULL, ativo = NULL, inicial = l
     })
 
     output$mean_debt <- shiny::renderPlot({
+      exigir_largura(session, "mean_debt")
       d <- base_principal()
       shiny::validate(shiny::need(nrow(d) > 0L, "Sem dívidas por grupo para a seleção."))
       grafico_principal(
@@ -130,6 +131,7 @@ mod_debt_server <- function(id, bundle, estado = NULL, ativo = NULL, inicial = l
     ))
 
     output$mean_debt_top <- shiny::renderPlot({
+      exigir_largura(session, "mean_debt_top")
       d <- base_topo() |> dplyr::filter(is.finite(.data$media))
       shiny::validate(shiny::need(nrow(d) > 0L, "Sem dívidas no topo para a seleção."))
       grafico_topo(
@@ -142,6 +144,7 @@ mod_debt_server <- function(id, bundle, estado = NULL, ativo = NULL, inicial = l
     ))
 
     output$ratio <- shiny::renderPlot({
+      exigir_largura(session, "ratio")
       # A lacuna do primeiro centil é informação: renda declarada nula não é
       # dívida zero. O grupo entra na base e sai da linha como buraco, em vez de
       # ser filtrado e desaparecer do eixo.
@@ -159,6 +162,7 @@ mod_debt_server <- function(id, bundle, estado = NULL, ativo = NULL, inicial = l
     ))
 
     output$ratio_top <- shiny::renderPlot({
+      exigir_largura(session, "ratio_top")
       d <- base_topo()
       shiny::validate(shiny::need(any(is.finite(d$debt_income_ratio)), "Sem razão dívida/renda no topo."))
       grafico_topo(

@@ -100,6 +100,7 @@ mod_top_server <- function(id, bundle, estado = NULL, ativo = NULL, inicial = li
     ))
 
     output$serie <- shiny::renderPlot({
+      exigir_largura(session, "serie")
       d <- serie()
       shiny::validate(shiny::need(nrow(d) > 0L, "Sem série para a seleção."))
       # A linha vertical liga o gráfico às caixas acima: é o ano escolhido.

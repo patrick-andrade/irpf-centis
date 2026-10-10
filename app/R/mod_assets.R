@@ -76,6 +76,7 @@ mod_assets_server <- function(id, bundle, estado = NULL, ativo = NULL, inicial =
       sincronizar_estado(session, input, estado, "geo", "geo", ativo)
     }
     output$plot <- shiny::renderPlot({
+      exigir_largura(session, "plot")
       shiny::validate(shiny::need(nrow(bundle$income_components) > 0L, "Componentes patrimoniais não disponíveis."))
       shiny::req(input$year, input$geo)
       d <- bundle$income_components |>
@@ -116,6 +117,7 @@ mod_assets_server <- function(id, bundle, estado = NULL, ativo = NULL, inicial =
     })
 
     output$concentration <- shiny::renderPlot({
+      exigir_largura(session, "concentration")
       shiny::validate(shiny::need(!is.null(schema_slice(bundle, "wealth_by_bin")), "Patrimônio por grupo não disponível."))
       d <- patrimonio() |> dplyr::filter(.data$bin_code <= 99L)
       shiny::validate(shiny::need(nrow(d) > 0L, "Sem patrimônio por grupo para a seleção."))
@@ -139,6 +141,7 @@ mod_assets_server <- function(id, bundle, estado = NULL, ativo = NULL, inicial =
     # Detalhe do topo em eixo ordinal: é onde o patrimônio médio dispara, e em
     # escala de percentil os 20 grupos ficariam comprimidos em 1% da largura.
     output$concentration_top <- shiny::renderPlot({
+      exigir_largura(session, "concentration_top")
       shiny::validate(shiny::need(!is.null(schema_slice(bundle, "wealth_by_bin")), "Patrimônio por grupo não disponível."))
       d <- patrimonio() |>
         dplyr::filter(.data$bin_code %in% codigos_topo) |>
@@ -157,6 +160,7 @@ mod_assets_server <- function(id, bundle, estado = NULL, ativo = NULL, inicial =
     ))
 
     output$direct_plot <- shiny::renderPlot({
+      exigir_largura(session, "direct_plot")
       shiny::validate(shiny::need(nrow(bundle$wealth_metrics) > 0L, "Série patrimonial direta não disponível."))
       d <- bundle$wealth_metrics
       d <- d[is.finite(d$gini_grouped), , drop = FALSE]

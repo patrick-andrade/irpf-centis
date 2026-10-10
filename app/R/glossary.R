@@ -103,8 +103,10 @@ ajuda_indicador <- function(bundle, indicator_id) {
   ajuda(paste(partes[!is.na(partes)], collapse = " "))
 }
 
+# Um span só: o título da caixa de valor é um contêiner flex em coluna, e
+# título e ícone soltos ficariam em linhas separadas.
 titulo_com_ajuda <- function(titulo, bundle, indicator_id) {
-  shiny::tagList(titulo, " ", ajuda_indicador(bundle, indicator_id))
+  shiny::tags$span(titulo, " ", ajuda_indicador(bundle, indicator_id))
 }
 
 # Definição de uma linha sob o seletor, que muda junto com a escolha — como no
