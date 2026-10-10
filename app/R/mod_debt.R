@@ -10,18 +10,13 @@ mod_debt_ui <- function(id) {
       bslib::card(
         bslib::card_header("Dívida média declarada por posição na distribuição de renda"),
         shiny::plotOutput(ns("mean_debt"), height = "320px"),
-        shiny::p(
-          class = "small text-muted",
-          paste(
-            "O último 1% da distribuição reúne 20 grupos divulgados, que na escala",
-            "acima ocupariam 1% da largura. Abaixo, cada um recebe a mesma largura."
-          )
-        ),
+        nota_topo_ordinal(),
         shiny::plotOutput(ns("mean_debt_top"), height = "320px")
       ),
       bslib::card(
         bslib::card_header("Razão dívida/renda por posição na distribuição de renda"),
         shiny::plotOutput(ns("ratio"), height = "320px"),
+        nota_topo_ordinal(),
         shiny::plotOutput(ns("ratio_top"), height = "320px")
       ),
       shiny::uiOutput(ns("rodape")),
@@ -65,7 +60,7 @@ mod_debt_server <- function(id, bundle) {
     output$missing <- shiny::renderUI(if (is.null(slice)) data_missing_ui())
     if (is.null(slice)) return(invisible(NULL))
     shiny::updateSelectInput(session, "year", choices = sort(unique(slice$year)), selected = max(slice$year))
-    shiny::updateSelectInput(session, "geo", choices = sort(unique(slice$geo_code)), selected = "BR")
+    shiny::updateSelectInput(session, "geo", choices = escolhas_geografia(bundle, slice$geo_code), selected = "BR")
 
     selecionado <- shiny::reactive({
       shiny::req(input$year, input$geo)
@@ -123,7 +118,7 @@ mod_debt_server <- function(id, bundle) {
       )
     }, alt = function() paste(
       "Linha da dívida média por declaração ao longo dos percentis de renda RB4,",
-      input$geo, input$year, ". Valores em R$ de 2024."
+      geografia_nome(bundle, input$geo), input$year, ". Valores em R$ de 2024."
     ))
 
     output$mean_debt_top <- shiny::renderPlot({
@@ -135,7 +130,7 @@ mod_debt_server <- function(id, bundle) {
       )
     }, alt = function() paste(
       "Linha da dívida média nos vinte grupos disjuntos do topo da renda RB4,",
-      input$geo, input$year, ". Valores em R$ de 2024."
+      geografia_nome(bundle, input$geo), input$year, ". Valores em R$ de 2024."
     ))
 
     output$ratio <- shiny::renderPlot({
@@ -152,7 +147,7 @@ mod_debt_server <- function(id, bundle) {
       )
     }, alt = function() paste(
       "Linha da razão entre dívida declarada e renda anual por percentil de renda RB4,",
-      input$geo, input$year, "."
+      geografia_nome(bundle, input$geo), input$year, "."
     ))
 
     output$ratio_top <- shiny::renderPlot({
@@ -166,7 +161,7 @@ mod_debt_server <- function(id, bundle) {
       )
     }, alt = function() paste(
       "Linha da razão entre dívida declarada e renda anual nos vinte grupos do topo da renda RB4,",
-      input$geo, input$year, ". Cada grupo ocupa a mesma largura."
+      geografia_nome(bundle, input$geo), input$year, ". Cada grupo ocupa a mesma largura."
     ))
 
     output$rodape <- shiny::renderUI({

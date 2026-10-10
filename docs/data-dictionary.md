@@ -1,4 +1,6 @@
-# Dicionário de dados
+---
+title: "Dicionário de dados"
+---
 
 Os contratos executáveis são definidos em `config/schema/` e validados pelo pipeline.
 

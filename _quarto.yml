@@ -9,6 +9,8 @@ project:
     - docs/methodology.md
     - docs/limitations.md
     - docs/reproducibility.md
+    - docs/data-dictionary.md
+    - docs/provenance.md
   resources:
     - styles/fonts/*
 
@@ -26,10 +28,22 @@ website:
         text: "Relatório"
       - href: reports/executive-summary.qmd
         text: "Sumário executivo"
-      - href: reports/technical-appendix.qmd
-        text: "Apêndice técnico"
-      - href: docs/methodology.md
-        text: "Metodologia"
+      # Seis páginas de método num só menu: na barra, cada uma ocupava uma
+      # entrada e a navegação quebrava em duas linhas em telas médias.
+      - text: "Método"
+        menu:
+          - href: docs/methodology.md
+            text: "Metodologia"
+          - href: docs/limitations.md
+            text: "Limitações"
+          - href: reports/technical-appendix.qmd
+            text: "Apêndice técnico"
+          - href: docs/reproducibility.md
+            text: "Reprodução"
+          - href: docs/data-dictionary.md
+            text: "Dicionário de dados"
+          - href: docs/provenance.md
+            text: "Proveniência"
       - href: app/
         text: "Painel interativo"
     right:

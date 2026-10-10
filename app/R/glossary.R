@@ -137,6 +137,18 @@ bloco_rodape <- function(notas = NULL, observacoes = NULL, fonte = NULL) {
 
 fonte_receita <- "Receita Federal do Brasil, tabulações por centis de declarações válidas do IRPF."
 
+# Legenda entre o gráfico da distribuição inteira e o do topo, nas abas que
+# desenham os dois.
+nota_topo_ordinal <- function() {
+  shiny::p(
+    class = "small text-muted",
+    paste(
+      "O último 1% da distribuição reúne 20 grupos divulgados, que na escala",
+      "acima ocupariam 1% da largura. Abaixo, cada um recebe a mesma largura."
+    )
+  )
+}
+
 # Uma declaração não é uma pessoa. Esta frase acompanha qualquer contagem
 # exibida pelo painel.
 nota_unidade <- paste(

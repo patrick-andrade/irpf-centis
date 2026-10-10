@@ -52,6 +52,29 @@ geografia_nome <- function(bundle, geo_code) {
   if (nrow(row) == 0L) geo_code else row$geo_name[[1]]
 }
 
+# Chave de ordenação sem acentos. Na colação C, que é a do R no navegador,
+# "Paraíba" vem depois de "Paraná" e de "Pernambuco"; `iconv(..., "ASCII//TRANSLIT")`
+# não é confiável no WebAssembly, `chartr()` é.
+sem_acento <- function(x) {
+  tolower(chartr(
+    "áàâãäéèêëíìîïóòôõöúùûüçÁÀÂÃÄÉÈÊËÍÌÎÏÓÒÔÕÖÚÙÛÜÇ",
+    "aaaaaeeeeiiiiooooouuuucAAAAAEEEEIIIIOOOOOUUUUC",
+    x
+  ))
+}
+
+# Escolhas do seletor de geografia, iguais em todas as abas: Brasil primeiro,
+# UFs pelo nome, Exterior por último. O `sort()` dos códigos punha "BR" entre BA
+# e CE e deixava "EX" sem explicação.
+escolhas_geografia <- function(bundle, codigos) {
+  codigos <- unique(stats::na.omit(as.character(codigos)))
+  if (length(codigos) == 0L) return(character())
+  nomes <- vapply(codigos, function(codigo) geografia_nome(bundle, codigo), character(1))
+  nivel <- ifelse(codigos == "BR", 0L, ifelse(codigos == "EX", 2L, 1L))
+  ordem <- order(nivel, sem_acento(nomes))
+  stats::setNames(codigos[ordem], unname(nomes[ordem]))
+}
+
 # Wolfson pode ficar instável quando a mediana é pequena; Palma, quando a
 # participação da base é pequena. A interpretação entre UFs pede cautela.
 metric_choices <- c(

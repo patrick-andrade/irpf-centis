@@ -14,17 +14,16 @@ mod_assets_ui <- function(id) {
       bslib::card(
         bslib::card_header("Patrimônio médio por posição na distribuição de renda"),
         shiny::plotOutput(ns("concentration"), height = "320px"),
-        shiny::p(
-          class = "small text-muted",
-          paste(
-            "O último 1% da distribuição reúne 20 grupos divulgados, que na escala",
-            "acima ocupariam 1% da largura. Abaixo, cada um recebe a mesma largura."
-          )
-        ),
+        nota_topo_ordinal(),
         shiny::plotOutput(ns("concentration_top"), height = "320px")
       ),
       bslib::card(
-        bslib::card_header("Desigualdade patrimonial — ordenação direta nacional"),
+        # Os filtros acima não alcançam esta série: ela vem de outro estudo da
+        # Receita, só nacional e só até 2021. O selo diz isso antes do gráfico.
+        bslib::card_header(
+          "Desigualdade patrimonial — ordenação direta nacional",
+          shiny::span(class = "selo-serie-fixa", "Brasil · 2006–2021 · não segue os filtros")
+        ),
         shiny::plotOutput(ns("direct_plot"), height = "360px")
       ),
       shiny::uiOutput(ns("rodape")),
@@ -66,7 +65,7 @@ mod_assets_server <- function(id, bundle) {
     if (!has_inputs) return(invisible(NULL))
     if (nrow(bundle$income_components) > 0L) {
       shiny::updateSelectInput(session, "year", choices = sort(unique(bundle$income_components$year)), selected = max(bundle$income_components$year))
-      shiny::updateSelectInput(session, "geo", choices = sort(unique(bundle$income_components$geo_code)), selected = "BR")
+      shiny::updateSelectInput(session, "geo", choices = escolhas_geografia(bundle, bundle$income_components$geo_code), selected = "BR")
     }
     output$plot <- shiny::renderPlot({
       shiny::validate(shiny::need(nrow(bundle$income_components) > 0L, "Componentes patrimoniais não disponíveis."))
@@ -93,7 +92,7 @@ mod_assets_server <- function(id, bundle) {
         tema_irpf(direcao = "x")
     }, alt = function() paste(
       "Barras horizontais com a composição de bens e direitos declarados, em R$ de 2024,",
-      input$geo, input$year, "."
+      geografia_nome(bundle, input$geo), input$year, "."
     ))
 
     patrimonio <- shiny::reactive({
@@ -126,7 +125,7 @@ mod_assets_server <- function(id, bundle) {
         tema_irpf(direcao = "y")
     }, alt = function() paste(
       "Linha do patrimônio médio por declaração ao longo dos percentis de renda RB4,",
-      input$geo, input$year, ". Valores em R$ de 2024."
+      geografia_nome(bundle, input$geo), input$year, ". Valores em R$ de 2024."
     ))
 
     # Detalhe do topo em eixo ordinal: é onde o patrimônio médio dispara, e em
@@ -146,7 +145,7 @@ mod_assets_server <- function(id, bundle) {
         ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, hjust = 1, size = 8))
     }, alt = function() paste(
       "Linha do patrimônio médio nos vinte grupos disjuntos do topo da renda RB4,",
-      input$geo, input$year, ". Cada grupo ocupa a mesma largura; valores em R$ de 2024."
+      geografia_nome(bundle, input$geo), input$year, ". Cada grupo ocupa a mesma largura; valores em R$ de 2024."
     ))
 
     output$direct_plot <- shiny::renderPlot({

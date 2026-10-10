@@ -43,7 +43,8 @@ mod_overview_server <- function(id, bundle) {
       pp <- function(x) scales::number(100 * x, accuracy = 0.1, decimal.mark = ",")
 
       bslib::layout_columns(
-        col_widths = c(3, 3, 3, 3),
+        # Quatro por linha só em tela larga; no tablet, duas.
+        col_widths = bslib::breakpoints(sm = 6, lg = 3),
         bslib::value_box(
           title = paste("Declarantes —", latest),
           value = rotulo_contagem()(row$contributors),

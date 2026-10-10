@@ -22,10 +22,7 @@ mod_evolution_server <- function(id, bundle) {
   shiny::moduleServer(id, function(input, output, session) {
     output$missing <- shiny::renderUI(if (!bundle_has_data(bundle)) data_missing_ui())
     if (!bundle_has_data(bundle)) return(invisible(NULL))
-    geo_choices <- bundle$geographies |>
-      dplyr::filter(.data$geo_code %in% unique(bundle$metrics$geo_code)) |>
-      dplyr::transmute(label = paste0(.data$geo_name, " (", .data$geo_code, ")"), value = .data$geo_code)
-    shiny::updateSelectInput(session, "geo", choices = stats::setNames(geo_choices$value, geo_choices$label), selected = "BR")
+    shiny::updateSelectInput(session, "geo", choices = escolhas_geografia(bundle, bundle$metrics$geo_code), selected = "BR")
     rankings <- unique(bundle$metrics$ranking_id)
     shiny::updateSelectInput(session, "ranking", choices = stats::setNames(rankings, vapply(rankings, \(x) ranking_label(bundle, x), character(1))), selected = "RB4")
 
@@ -35,7 +32,7 @@ mod_evolution_server <- function(id, bundle) {
         dplyr::filter(.data$geo_code == input$geo, .data$ranking_id == input$ranking) |>
         dplyr::arrange(.data$year)
     })
-    output$title <- shiny::renderText(paste(names(metric_choices)[match(input$metric, metric_choices)], "—", input$geo))
+    output$title <- shiny::renderText(paste(names(metric_choices)[match(input$metric, metric_choices)], "—", geografia_nome(bundle, input$geo)))
     output$plot <- shiny::renderPlot({
       d <- selected()
       shiny::validate(shiny::need(nrow(d) > 0L, "Sem dados para a seleção."))
@@ -66,7 +63,7 @@ mod_evolution_server <- function(id, bundle) {
         tema_irpf(base_size = 13, direcao = "y")
     }, alt = function() paste(
       "Série por ano-calendário de", names(metric_choices)[match(input$metric, metric_choices)],
-      "para", input$geo, "no conceito", input$ranking,
+      "para", geografia_nome(bundle, input$geo), "no conceito", ranking_label(bundle, input$ranking),
       ". O eixo vertical informa a unidade do indicador; 2018 exige a ressalva descrita abaixo."
     ))
 

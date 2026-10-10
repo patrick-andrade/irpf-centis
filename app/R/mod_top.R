@@ -38,7 +38,7 @@ mod_top_server <- function(id, bundle) {
       return(invisible(NULL))
     }
     shiny::updateSelectInput(session, "year", choices = sort(unique(bundle$metrics$year)), selected = max(bundle$metrics$year))
-    shiny::updateSelectInput(session, "geo", choices = sort(unique(bundle$metrics$geo_code)), selected = "BR")
+    shiny::updateSelectInput(session, "geo", choices = escolhas_geografia(bundle, bundle$metrics$geo_code), selected = "BR")
     row <- shiny::reactive({
       bundle$metrics |>
         dplyr::filter(.data$year == as.integer(input$year), .data$geo_code == input$geo, .data$ranking_id == "RB4")
@@ -47,7 +47,8 @@ mod_top_server <- function(id, bundle) {
       d <- row()
       shiny::validate(shiny::need(nrow(d) == 1L, "Sem dados para a seleção."))
       bslib::layout_columns(
-        col_widths = c(3, 3, 3, 3),
+        # Quatro por linha só em tela larga; no tablet, duas.
+        col_widths = bslib::breakpoints(sm = 6, lg = 3),
         bslib::value_box("Top 10%", scales::percent(d$top_10_share, 0.1, decimal.mark = ",")),
         bslib::value_box("Top 1%", scales::percent(d$top_1_share, 0.1, decimal.mark = ",")),
         bslib::value_box("Top 0,1%", scales::percent(d$top_0_1_share, 0.1, decimal.mark = ",")),

@@ -97,7 +97,26 @@ h1, h2, h3, h4, .navbar-brand {
   padding: .9rem 1.1rem;
 }
 .bslib-value-box { border-top: 4px solid var(--irpf-blue); }
-.bslib-value-box .value-box-value { font-variant-numeric: tabular-nums; }
+.selo-serie-fixa {
+  background: #eef3fa;
+  border: 1px solid var(--irpf-rule);
+  border-radius: 999px;
+  color: var(--irpf-muted);
+  display: inline-block;
+  font-family: "Noto Sans", sans-serif;
+  font-size: .78rem;
+  font-weight: 600;
+  margin-left: .5rem;
+  padding: .1rem .6rem;
+  vertical-align: middle;
+}
+/* O valor não quebra entre o número e o "%": "52,2 %" em duas linhas lia como
+   dois números. A fonte encolhe com a largura em vez de quebrar a linha. */
+.bslib-value-box .value-box-value {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  font-size: clamp(1.45rem, 2.4vw, 2.1rem);
+}
 .bslib-value-box .value-box-title { font-weight: 700; }
 .bslib-value-box .text-muted { color: var(--irpf-muted) !important; }
 
@@ -277,5 +296,4 @@ a:focus-visible, button:focus-visible, .nav-link:focus-visible, select:focus-vis
   .app-intro { margin-bottom: 1rem; }
   .card-body { min-width: 0; padding: 1rem .75rem; }
   .shiny-plot-output { overflow-x: auto; }
-  .bslib-value-box .value-box-value { overflow-wrap: anywhere; }
 }

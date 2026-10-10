@@ -16,13 +16,7 @@ mod_composition_ui <- function(id) {
         bslib::card_header("Alíquota efetiva média por posição na distribuição"),
         shiny::p(class = "small text-muted", "Imposto devido dividido pela renda RB4 de cada grupo; média com dados agrupados, sem variação interna aos grupos."),
         shiny::plotOutput(ns("tax_curve"), height = "320px"),
-        shiny::p(
-          class = "small text-muted",
-          paste(
-            "O último 1% da distribuição reúne 20 grupos divulgados, que na escala",
-            "acima ocupariam 1% da largura. Abaixo, cada um recebe a mesma largura."
-          )
-        ),
+        nota_topo_ordinal(),
         shiny::plotOutput(ns("tax_curve_top"), height = "320px")
       ),
       shiny::uiOutput(ns("rodape")),
@@ -36,7 +30,7 @@ mod_composition_server <- function(id, bundle) {
     output$missing <- shiny::renderUI(if (nrow(bundle$income_components) == 0L) data_missing_ui())
     if (nrow(bundle$income_components) == 0L) return(invisible(NULL))
     shiny::updateSelectInput(session, "year", choices = sort(unique(bundle$income_components$year)), selected = max(bundle$income_components$year))
-    shiny::updateSelectInput(session, "geo", choices = sort(unique(bundle$income_components$geo_code)), selected = "BR")
+    shiny::updateSelectInput(session, "geo", choices = escolhas_geografia(bundle, bundle$income_components$geo_code), selected = "BR")
     output$plot <- shiny::renderPlot({
       shiny::req(input$year, input$geo, input$group)
       d <- bundle$income_components |>
@@ -63,7 +57,7 @@ mod_composition_server <- function(id, bundle) {
         tema_irpf(direcao = "x")
     }, alt = function() paste(
       "Barras horizontais dos componentes declarados em R$ de 2024 para",
-      input$geo, "em", input$year, ". O grupo de campos é",
+      geografia_nome(bundle, input$geo), "em", input$year, ". O grupo de campos é",
       c(taxable = "tributáveis", exclusive = "exclusivos", exempt = "isentos",
         deduction = "deduções", tax = "imposto")[[input$group]], "."
     ))
@@ -96,7 +90,7 @@ mod_composition_server <- function(id, bundle) {
         tema_irpf(direcao = "y")
     }, alt = function() paste(
       "Linha da alíquota efetiva média por posição na distribuição da renda RB4,",
-      input$geo, input$year, ". O eixo horizontal vai do percentil 1 ao 99."
+      geografia_nome(bundle, input$geo), input$year, ". O eixo horizontal vai do percentil 1 ao 99."
     ))
 
     # Detalhe do topo em eixo ordinal: é onde a alíquota cai, e em escala de
@@ -123,7 +117,7 @@ mod_composition_server <- function(id, bundle) {
         ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, hjust = 1, size = 8))
     }, alt = function() paste(
       "Linha da alíquota efetiva média nos vinte grupos disjuntos do topo da renda RB4,",
-      input$geo, input$year, ". Cada grupo ocupa a mesma largura."
+      geografia_nome(bundle, input$geo), input$year, ". Cada grupo ocupa a mesma largura."
     ))
 
     output$rodape <- shiny::renderUI(bloco_rodape(

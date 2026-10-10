@@ -1,4 +1,6 @@
-# Proveniência
+---
+title: "Proveniência"
+---
 
 - Arquivos oficiais são armazenados sem alteração em `data/raw/<família>/<ano>/`.
 - `sources-manifest.csv` registra URL direta, URL de origem, data de recuperação, tamanho e SHA-256.
