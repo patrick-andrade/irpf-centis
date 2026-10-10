@@ -79,10 +79,47 @@ secao_glossario <- function(titulo, itens) {
   )
 }
 
+# Ícone "?" com a definição curta, ao lado do título de uma caixa de valor.
+# É a ajuda no ponto de leitura — o padrão do WID e do Our World in Data —, e o
+# texto é o mesmo do quadro de conceitos, vindo de indicators.csv. O span é
+# focável para que a ajuda também abra pelo teclado.
+ajuda <- function(texto) {
+  if (is.null(texto) || is.na(texto) || !nzchar(texto)) return(NULL)
+  bslib::tooltip(
+    shiny::tags$span(
+      class = "icone-ajuda", tabindex = "0", role = "button",
+      `aria-label` = paste("O que é:", texto),
+      bsicons::bs_icon("question-circle")
+    ),
+    texto,
+    placement = "auto"
+  )
+}
+
+ajuda_indicador <- function(bundle, indicator_id) {
+  item <- texto_indicador(bundle, indicator_id)
+  if (is.null(item)) return(NULL)
+  partes <- c(item$resumo, item$detalhe)
+  ajuda(paste(partes[!is.na(partes)], collapse = " "))
+}
+
+titulo_com_ajuda <- function(titulo, bundle, indicator_id) {
+  shiny::tagList(titulo, " ", ajuda_indicador(bundle, indicator_id))
+}
+
+# Definição de uma linha sob o seletor, que muda junto com a escolha — como no
+# Realtime Inequality. Evita que o leitor troque de indicador sem saber o que
+# passou a ler.
+definicao_curta <- function(texto) {
+  if (is.null(texto) || is.na(texto) || !nzchar(texto)) return(NULL)
+  shiny::p(class = "definicao-curta", texto)
+}
+
 #' Quadro "Conceitos e indicadores" da base de cada aba.
 #'
 #' Fica depois dos gráficos, de propósito: explicar antes empurraria a
-#' visualização para fora da primeira tela.
+#' visualização para fora da primeira tela. Vem recolhido: o rodapé já diz o
+#' essencial, e o quadro inteiro aberto em todas as abas empurrava a página.
 bloco_conceitos <- function(bundle, rankings = NULL, indicadores = NULL, extras = NULL,
                             adicional = NULL) {
   secoes <- list(
@@ -99,10 +136,14 @@ bloco_conceitos <- function(bundle, rankings = NULL, indicadores = NULL, extras 
   )
   secoes <- Filter(Negate(is.null), secoes)
   if (length(secoes) == 0L) return(NULL)
-  bslib::card(
+  bslib::accordion(
     class = "bloco-conceitos",
-    bslib::card_header("Conceitos e indicadores"),
-    secoes
+    open = FALSE,
+    bslib::accordion_panel(
+      "Conceitos e indicadores",
+      icon = bsicons::bs_icon("book"),
+      secoes
+    )
   )
 }
 

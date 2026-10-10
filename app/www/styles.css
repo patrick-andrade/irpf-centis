@@ -295,6 +295,72 @@ a:focus-visible, button:focus-visible, .nav-link:focus-visible, select:focus-vis
   gap: 0.5rem;
 }
 
+/* Marca do painel: volta ao site do estudo. */
+.marca-painel { color: inherit; text-decoration: none; }
+.marca-painel:hover { color: #0757cf; text-decoration: underline; }
+.botao-copiar-link { margin: .25rem 0; white-space: nowrap; }
+
+/* Cabeçalho de cartão com título e botão de download na mesma linha. */
+.cabecalho-com-acao {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: .5rem;
+  justify-content: space-between;
+}
+.botao-baixar {
+  background: #fff;
+  border: 1px solid #a9b8ce;
+  color: #0757cf;
+  font-family: "Noto Sans", sans-serif;
+  font-size: .8rem;
+  font-weight: 600;
+}
+.botao-baixar:hover { background: #eef3fa; color: #003f9e; }
+
+/* Leitura do valor sob o cursor, logo abaixo do gráfico. Altura mínima fixa
+   para o texto não empurrar a página a cada movimento. */
+.leitura-ponto {
+  color: var(--irpf-navy);
+  font-size: .9rem;
+  font-variant-numeric: tabular-nums;
+  min-height: 1.6rem;
+  padding: .2rem .25rem .4rem;
+}
+.leitura-dica { color: var(--irpf-muted); font-style: italic; }
+
+/* Definição de uma linha sob o seletor de indicador ou de conceito. */
+.definicao-curta {
+  color: var(--irpf-muted);
+  font-size: .82rem;
+  line-height: 1.4;
+  margin: -.4rem 0 .9rem;
+}
+
+/* Ícone de ajuda ao lado dos títulos das caixas de valor. */
+.icone-ajuda {
+  color: var(--irpf-blue);
+  cursor: help;
+  font-size: .85em;
+  margin-left: .15rem;
+  vertical-align: .05em;
+}
+
+/* Cartões de pergunta da Visão geral. */
+.titulo-secao {
+  font-size: 1.3rem;
+  font-weight: 800;
+  margin: 1.4rem 0 .8rem;
+}
+.cartao-pergunta { border-left: 4px solid var(--irpf-blue); height: 100%; }
+.cartao-pergunta h3 { font-size: 1.05rem; font-weight: 700; margin-bottom: .5rem; }
+.cartao-pergunta p { color: var(--irpf-muted); margin-bottom: .6rem; }
+.link-pergunta { font-weight: 600; }
+
+/* Quadro de conceitos recolhido no fim de cada aba. */
+.bloco-conceitos .accordion-button { font-weight: 700; color: var(--irpf-navy); }
+.bloco-conceitos .accordion-button:not(.collapsed) { background: #eef3fa; }
+
 @media (max-width: 767px) {
   .tab-content { padding: 1rem .8rem; }
   .app-intro { margin-bottom: 1rem; }

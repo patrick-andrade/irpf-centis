@@ -440,6 +440,49 @@ marcar_ano_ressalva <- function(anos = NULL, ano = 2018L, texto = "não compará
   )
 }
 
+# ---------------------------------------------------------------------------
+# Gráficos usados pelo relatório e pelo painel
+# ---------------------------------------------------------------------------
+
+grupos_topo <- c("Top 10%" = "top_10_share", "Top 1%" = "top_1_share", "Top 0,1%" = "top_0_1_share")
+
+# Participação dos grupos do topo por ano, em formato longo. Base R, e não o
+# pivot_longer() do tidyr: este arquivo também roda no navegador.
+dados_top_shares <- function(metrics, geo_code = "BR", ranking = "RB4", grupos = grupos_topo) {
+  d <- metrics[metrics$geo_code == geo_code & metrics$ranking_id == ranking, , drop = FALSE]
+  if (nrow(d) == 0L) {
+    return(data.frame(year = integer(), group = factor(levels = names(grupos)), share = double()))
+  }
+  longo <- do.call(rbind, lapply(names(grupos), function(rotulo) {
+    data.frame(year = d$year, group = rotulo, share = d[[grupos[[rotulo]]]])
+  }))
+  longo <- longo[is.finite(longo$share), , drop = FALSE]
+  longo$group <- factor(longo$group, levels = names(grupos))
+  longo[order(longo$group, longo$year), , drop = FALSE]
+}
+
+# Os três grupos são aninhados (Top 10% ⊃ Top 1% ⊃ Top 0,1%): rampa sequencial
+# codifica essa ordem. Rótulo no fim da linha dispensa a legenda, que vinha em
+# ordem alfabética contra a ordem vertical das linhas.
+grafico_top_shares <- function(dados, base_size = 12) {
+  niveis <- levels(dados$group)
+  ggplot2::ggplot(dados, ggplot2::aes(.data$year, .data$share, colour = .data$group)) +
+    marcar_ano_ressalva(dados$year) +
+    ggplot2::geom_line(linewidth = 0.9) +
+    ggplot2::geom_point(size = 1.9) +
+    rotular_series_no_fim(dados, "year", "share", "group") +
+    escala_ano(dados$year) +
+    escala_participacao(dados$share, nome = "Participação na renda declarada") +
+    escala_cor_ordinal(niveis) +
+    ggplot2::coord_cartesian(clip = "off") +
+    ggplot2::labs(x = NULL) +
+    tema_irpf(base_size = base_size, direcao = "y") +
+    ggplot2::theme(
+      legend.position = "none",
+      plot.margin = ggplot2::margin(10, 62, 8, 8)
+    )
+}
+
 # Ordena os níveis de um fator pelo valor final da série, para que a ordem da
 # legenda coincida com a ordem vertical das linhas.
 ordenar_por_valor_final <- function(dados, x, y, grupo) {

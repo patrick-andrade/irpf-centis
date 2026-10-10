@@ -8,16 +8,20 @@ mod_debt_ui <- function(id) {
         shiny::selectInput(ns("geo"), "Geografia", choices = NULL)
       ),
       bslib::card(
-        bslib::card_header("Dívida média declarada por posição na distribuição de renda"),
-        shiny::plotOutput(ns("mean_debt"), height = "320px"),
+        bslib::card_header(
+          class = "cabecalho-com-acao",
+          "Dívida média declarada por posição na distribuição de renda",
+          shiny::downloadButton(ns("baixar"), "Baixar dados (CSV)", class = "btn-sm botao-baixar")
+        ),
+        grafico_interativo(ns, "mean_debt", "320px"),
         nota_topo_ordinal(),
-        shiny::plotOutput(ns("mean_debt_top"), height = "320px")
+        grafico_interativo(ns, "mean_debt_top", "320px")
       ),
       bslib::card(
         bslib::card_header("Razão dívida/renda por posição na distribuição de renda"),
-        shiny::plotOutput(ns("ratio"), height = "320px"),
+        grafico_interativo(ns, "ratio", "320px"),
         nota_topo_ordinal(),
-        shiny::plotOutput(ns("ratio_top"), height = "320px")
+        grafico_interativo(ns, "ratio_top", "320px")
       ),
       shiny::uiOutput(ns("rodape")),
       shiny::uiOutput(ns("conceitos"))
@@ -54,13 +58,17 @@ debt_conceitos_extras <- function() {
   )
 }
 
-mod_debt_server <- function(id, bundle) {
+mod_debt_server <- function(id, bundle, estado = NULL, ativo = NULL, inicial = list()) {
   shiny::moduleServer(id, function(input, output, session) {
     slice <- schema_slice(bundle, "wealth_by_bin")
     output$missing <- shiny::renderUI(if (is.null(slice)) data_missing_ui())
     if (is.null(slice)) return(invisible(NULL))
-    shiny::updateSelectInput(session, "year", choices = sort(unique(slice$year)), selected = max(slice$year))
-    shiny::updateSelectInput(session, "geo", choices = escolhas_geografia(bundle, slice$geo_code), selected = "BR")
+    anos <- as.character(sort(unique(slice$year)))
+    escolhas <- escolhas_geografia(bundle, slice$geo_code)
+    shiny::updateSelectInput(session, "year", choices = anos, selected = valor_inicial(estado, "ano", anos, max(anos)))
+    shiny::updateSelectInput(session, "geo", choices = escolhas, selected = valor_inicial(estado, "geo", escolhas, "BR"))
+    sincronizar_estado(session, input, estado, "ano", "year", ativo)
+    sincronizar_estado(session, input, estado, "geo", "geo", ativo)
 
     selecionado <- shiny::reactive({
       shiny::req(input$year, input$geo)
@@ -164,6 +172,57 @@ mod_debt_server <- function(id, bundle) {
       geografia_nome(bundle, input$geo), input$year, ". Cada grupo ocupa a mesma largura."
     ))
 
+    leitura_curva <- function(d, evento, coluna, formatar, descricao) {
+      linhas <- linhas_no_ponteiro(d, evento, "share_upper")
+      if (nrow(linhas) == 0L || !is.finite(linhas[[coluna]][[1]])) return(leitura_ui(NULL))
+      leitura_ui(paste0(
+        "Até o percentil ", formatar_percentil(linhas$share_upper[[1]], 1), ": ",
+        descricao, " ", formatar(linhas[[coluna]][[1]])
+      ))
+    }
+    leitura_topo <- function(d, evento, coluna, formatar, descricao) {
+      linhas <- linhas_no_ponteiro(d, evento, "posicao")
+      if (nrow(linhas) == 0L || !is.finite(linhas[[coluna]][[1]])) return(leitura_ui(NULL))
+      leitura_ui(paste0(
+        "Grupo até o percentil ", linhas$posicao[[1]], ": ", descricao, " ",
+        formatar(linhas[[coluna]][[1]])
+      ))
+    }
+    razao <- function(x) scales::number(x, accuracy = 0.01, decimal.mark = ",")
+
+    output$mean_debt_leitura <- shiny::renderUI(leitura_curva(
+      base_principal(), evento_ponteiro(input, "mean_debt"), "media",
+      rotulo_dinheiro_ptbr(), "dívida média por declaração de"
+    ))
+    output$mean_debt_top_leitura <- shiny::renderUI(leitura_topo(
+      base_topo(), evento_ponteiro(input, "mean_debt_top"), "media",
+      rotulo_dinheiro_ptbr(), "dívida média por declaração de"
+    ))
+    output$ratio_leitura <- shiny::renderUI(leitura_curva(
+      base_principal(), evento_ponteiro(input, "ratio"), "debt_income_ratio",
+      razao, "dívidas por real de renda anual:"
+    ))
+    output$ratio_top_leitura <- shiny::renderUI(leitura_topo(
+      base_topo(), evento_ponteiro(input, "ratio_top"), "debt_income_ratio",
+      razao, "dívidas por real de renda anual:"
+    ))
+
+    output$baixar <- shiny::downloadHandler(
+      filename = function() paste0("irpf-centis-dividas-", input$geo, "-", input$year, ".csv"),
+      content = function(file) {
+        d <- selecionado()
+        escrever_csv_ptbr(
+          data.frame(
+            Ano = d$year, Geografia = geografia_nome(bundle, input$geo), Grupo = d$bin_code,
+            Percentil_limite_superior = 100 * d$share_upper, Declaracoes = d$contributors,
+            Dividas_RS_2024 = d$debts_real, Divida_media_RS_2024 = d$media,
+            Participacao_nas_dividas = d$debt_share, Razao_divida_renda = d$debt_income_ratio
+          ),
+          file
+        )
+      }
+    )
+
     output$rodape <- shiny::renderUI({
       d <- selecionado()
       topo <- d[is.finite(d$share_lower) & d$share_lower >= 0.99 - 1e-9, , drop = FALSE]
@@ -205,5 +264,7 @@ mod_debt_server <- function(id, bundle) {
         extras = debt_conceitos_extras()
       )
     )
+
+    shiny::reactive(list())
   })
 }

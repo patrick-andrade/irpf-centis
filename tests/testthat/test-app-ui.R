@@ -70,3 +70,18 @@ test_that("os gráficos declaram altura explícita", {
     )
   }
 })
+
+test_that("abas têm nomes estáveis para o link e o painel volta ao site", {
+  ui <- app_ui_object()
+  expect_equal(attr(ui, "lang"), "pt-BR")
+  html <- as.character(htmltools::renderTags(ui)$html)
+  for (aba in c("visao-geral", "evolucao", "topos", "rendimentos", "bens", "dividas", "estados", "metodologia")) {
+    expect_true(
+      grepl(paste0('data-value="', aba, '"'), html, fixed = TRUE),
+      label = paste0("aba com valor '", aba, "'")
+    )
+  }
+  # Dentro do iframe do shinylive, sem target="_top" o site abriria no painel.
+  expect_match(html, 'class="marca-painel" href="https://patrick-andrade.github.io/irpf-centis" target="_top"', fixed = TRUE)
+  expect_match(html, "irpfCopiarLink(this)", fixed = TRUE)
+})

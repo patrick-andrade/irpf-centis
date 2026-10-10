@@ -12,10 +12,14 @@ mod_assets_ui <- function(id) {
         shiny::plotOutput(ns("plot"), height = "400px")
       ),
       bslib::card(
-        bslib::card_header("Patrimônio médio por posição na distribuição de renda"),
-        shiny::plotOutput(ns("concentration"), height = "320px"),
+        bslib::card_header(
+          class = "cabecalho-com-acao",
+          "Patrimônio médio por posição na distribuição de renda",
+          shiny::downloadButton(ns("baixar"), "Baixar dados (CSV)", class = "btn-sm botao-baixar")
+        ),
+        grafico_interativo(ns, "concentration", "320px"),
         nota_topo_ordinal(),
-        shiny::plotOutput(ns("concentration_top"), height = "320px")
+        grafico_interativo(ns, "concentration_top", "320px")
       ),
       bslib::card(
         # Os filtros acima não alcançam esta série: ela vem de outro estudo da
@@ -58,14 +62,18 @@ assets_conceitos_extras <- function() {
   )
 }
 
-mod_assets_server <- function(id, bundle) {
+mod_assets_server <- function(id, bundle, estado = NULL, ativo = NULL, inicial = list()) {
   shiny::moduleServer(id, function(input, output, session) {
     has_inputs <- nrow(bundle$income_components) > 0L || nrow(bundle$wealth_metrics) > 0L
     output$missing <- shiny::renderUI(if (!has_inputs) data_missing_ui())
     if (!has_inputs) return(invisible(NULL))
     if (nrow(bundle$income_components) > 0L) {
-      shiny::updateSelectInput(session, "year", choices = sort(unique(bundle$income_components$year)), selected = max(bundle$income_components$year))
-      shiny::updateSelectInput(session, "geo", choices = escolhas_geografia(bundle, bundle$income_components$geo_code), selected = "BR")
+      anos <- as.character(sort(unique(bundle$income_components$year)))
+      escolhas <- escolhas_geografia(bundle, bundle$income_components$geo_code)
+      shiny::updateSelectInput(session, "year", choices = anos, selected = valor_inicial(estado, "ano", anos, max(anos)))
+      shiny::updateSelectInput(session, "geo", choices = escolhas, selected = valor_inicial(estado, "geo", escolhas, "BR"))
+      sincronizar_estado(session, input, estado, "ano", "year", ativo)
+      sincronizar_estado(session, input, estado, "geo", "geo", ativo)
     }
     output$plot <- shiny::renderPlot({
       shiny::validate(shiny::need(nrow(bundle$income_components) > 0L, "Componentes patrimoniais não disponíveis."))
@@ -166,6 +174,44 @@ mod_assets_server <- function(id, bundle) {
         ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, hjust = 1))
     }, alt = "Série nacional de 2006 a 2021 do Gini patrimonial agrupado, ordenado diretamente por bens e direitos. Eixo vertical de 0,70 a 1,00.")
 
+    output$concentration_leitura <- shiny::renderUI({
+      d <- patrimonio() |> dplyr::filter(.data$bin_code <= 99L)
+      linhas <- linhas_no_ponteiro(d, evento_ponteiro(input, "concentration"), "share_upper")
+      if (nrow(linhas) == 0L) return(leitura_ui(NULL))
+      leitura_ui(paste0(
+        "Até o percentil ", formatar_percentil(linhas$share_upper[[1]], 1),
+        ": patrimônio médio de ", rotulo_dinheiro_ptbr()(linhas$media[[1]]), " por declaração"
+      ))
+    })
+
+    output$concentration_top_leitura <- shiny::renderUI({
+      d <- patrimonio() |>
+        dplyr::filter(.data$bin_code %in% codigos_topo) |>
+        dplyr::mutate(posicao = eixo_ordinal_topo(.data$share_upper))
+      linhas <- linhas_no_ponteiro(d, evento_ponteiro(input, "concentration_top"), "posicao")
+      if (nrow(linhas) == 0L) return(leitura_ui(NULL))
+      leitura_ui(paste0(
+        "Grupo até o percentil ", linhas$posicao[[1]], ": patrimônio médio de ",
+        rotulo_dinheiro_ptbr()(linhas$media[[1]]), " por declaração"
+      ))
+    })
+
+    output$baixar <- shiny::downloadHandler(
+      filename = function() paste0("irpf-centis-bens-", input$geo, "-", input$year, ".csv"),
+      content = function(file) {
+        d <- patrimonio()
+        escrever_csv_ptbr(
+          data.frame(
+            Ano = d$year, Geografia = geografia_nome(bundle, input$geo), Grupo = d$bin_code,
+            Percentil_limite_superior = 100 * d$share_upper, Declaracoes = d$contributors,
+            Bens_e_direitos_RS_2024 = d$assets_sum_real, Patrimonio_medio_RS_2024 = d$media,
+            Participacao_nos_bens = d$assets_share
+          ),
+          file
+        )
+      }
+    )
+
     output$rodape <- shiny::renderUI({
       slice <- schema_slice(bundle, "wealth_by_bin")
       observacao <- NULL
@@ -208,5 +254,7 @@ mod_assets_server <- function(id, bundle) {
         extras = assets_conceitos_extras()
       )
     )
+
+    shiny::reactive(list())
   })
 }
