@@ -1,7 +1,11 @@
 name: Publicar site
 
+# Publica só depois de o CI passar no main: antes, os dois rodavam em paralelo
+# e um push com teste quebrado chegava ao ar do mesmo jeito.
 on:
-  push:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
     branches: [main]
   workflow_dispatch:
 
@@ -16,14 +20,18 @@ concurrency:
 
 env:
   # O job de deploy não deve ativar o renv: o render usa o _freeze/ committed
-  # e o export shinylive resolve pacotes no repositório wasm, não localmente.
+  # e o export shinylive empacota os pacotes instalados abaixo.
   RENV_CONFIG_AUTOLOADER_ENABLED: "false"
 
 jobs:
   build:
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          # Publica exatamente o commit que o CI aprovou.
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
       - uses: quarto-dev/quarto-actions/setup@v2
       - name: Renderizar site (replay do _freeze)
         run: quarto render
@@ -35,17 +43,19 @@ jobs:
           fi
       - uses: r-lib/actions/setup-r@v2
         with:
+          r-version: '4.6.0'
           use-public-rspm: true
-      - name: Dependencias de sistema do shinylive
-        # curl, openssl, archive e xml2 sao compilados quando o P3M nao tem
-        # binario para a imagem do runner; sem estas libs a instalacao falha.
+      - name: Instalar shinylive e os pacotes do painel
+        # O shinylive só empacota no site os pacotes instalados aqui; o que
+        # faltar o navegador baixa em tempo de execução, sem versão fixa. pak
+        # usa binários do P3M. `--no-init-file` ignora o .Rprofile do projeto,
+        # que força o CRAN em código-fonte e ativaria o renv.
         run: |
-          sudo apt-get update
-          sudo apt-get install -y libcurl4-openssl-dev libssl-dev libarchive-dev libxml2-dev libuv1-dev
+          Rscript --no-init-file -e 'install.packages("pak", repos = sprintf("https://r-lib.github.io/p/pak/stable/%s/%s/%s", .Platform$pkgType, R.Version()$os, R.Version()$arch))'
+          Rscript --no-init-file -e 'pak::pak(c("shinylive@0.5.0", "shiny", "bslib", "bsicons", "ggplot2", "dplyr", "scales", "tibble", "viridisLite"))'
       - name: Exportar painel shinylive
         run: |
-          Rscript -e 'install.packages("shinylive")'
-          Rscript -e 'shinylive::export("app", "output/site/app")'
+          Rscript --no-init-file scripts/export-app.R
           touch output/site/.nojekyll
       - uses: actions/upload-pages-artifact@v4
         with:

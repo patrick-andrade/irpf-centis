@@ -122,6 +122,107 @@ app_viz_em_sincronia <- function(origem = "R/viz.R", destino = "app/R/viz.R") {
   identical(utils::tail(atual, length(esperado)), esperado)
 }
 
+# Página que abre o painel exportado pelo shinylive. O modelo padrão é genérico
+# e em inglês — <html lang="en">, título "Shiny app" — e deixa o leitor de 30 a
+# 40 segundos diante de um ícone girando enquanto o R é baixado. Os trechos
+# abaixo entram pelo `template_params` de shinylive::export(); o idioma não tem
+# parâmetro e é trocado por ajustar_index_painel().
+#
+# Só base R aqui e nas duas funções seguintes: o job de publicação chama
+# scripts/export-app.R sem instalar as dependências do pipeline.
+parametros_index_painel <- function(site_url = "https://patrick-andrade.github.io/irpf-centis") {
+  descricao <- paste(
+    "Painel interativo da distribuição de renda, imposto e patrimônio entre",
+    "declarações do IRPF, por centil, ano e unidade da Federação."
+  )
+  list(
+    title = "Painel interativo — IRPF por centis",
+    include_in_head = paste(
+      sprintf('<meta name="description" content="%s">', descricao),
+      '<meta property="og:title" content="Painel interativo — IRPF por centis">',
+      sprintf('<meta property="og:description" content="%s">', descricao),
+      sprintf('<meta property="og:url" content="%s/app/">', site_url),
+      "<style>",
+      ".carregando-painel { position: fixed; left: 50%; top: calc(50% + 70px);",
+      "  transform: translateX(-50%); width: min(34rem, calc(100vw - 2rem));",
+      "  z-index: 10; text-align: center; color: #101d40; line-height: 1.5;",
+      "  font-family: 'Segoe UI', Arial, sans-serif; font-size: .95rem; }",
+      ".carregando-painel strong { display: block; font-size: 1.05rem; margin-bottom: .3rem; }",
+      ".carregando-painel p { color: #586179; margin: 0 0 .5rem; }",
+      ".carregando-painel a { color: #0757cf; }",
+      "</style>",
+      sep = "\n"
+    ),
+    include_before_body = paste0(
+      '<div id="carregando-painel" class="carregando-painel" role="status" aria-live="polite">',
+      "<strong>Carregando o painel…</strong>",
+      "<p>O R roda aqui no seu navegador, sem servidor. Na primeira visita o ",
+      "navegador baixa o ambiente de análise, o que leva de 30 a 40 segundos; ",
+      "nas seguintes, é mais rápido.</p>",
+      sprintf('<p><a href="%s/reports/executive-summary.html">', site_url),
+      "Enquanto isso, leia o sumário executivo</a></p>",
+      "</div>"
+    ),
+    # O aviso sai quando o iframe do app termina de carregar a interface, e não
+    # no primeiro iframe criado: o shinylive cria o iframe vazio antes de o R
+    # estar pronto. O prazo final evita que o aviso cubra uma mensagem de erro.
+    include_after_body = paste(
+      "<script>",
+      "(function () {",
+      "  var aviso = document.getElementById('carregando-painel');",
+      "  var raiz = document.getElementById('root');",
+      "  if (!aviso || !raiz) return;",
+      "  function remover() { if (aviso.parentNode) aviso.parentNode.removeChild(aviso); }",
+      "  new MutationObserver(function () {",
+      "    var iframe = raiz.querySelector('iframe');",
+      "    if (!iframe || iframe.dataset.vigiado) return;",
+      "    iframe.dataset.vigiado = '1';",
+      "    iframe.addEventListener('load', function () {",
+      "      if (iframe.getAttribute('src')) remover();",
+      "    });",
+      "  }).observe(raiz, { childList: true, subtree: true });",
+      "  setTimeout(remover, 120000);",
+      "})();",
+      "</script>",
+      sep = "\n"
+    )
+  )
+}
+
+ajustar_index_painel <- function(caminho) {
+  html <- readLines(caminho, encoding = "UTF-8", warn = FALSE)
+  alvo <- grep('<html lang="en">', html, fixed = TRUE)
+  if (length(alvo) != 1L) {
+    stop(
+      "O modelo do shinylive mudou: <html lang=\"en\"> não encontrado em ",
+      caminho, ". Revise ajustar_index_painel().",
+      call. = FALSE
+    )
+  }
+  html[alvo] <- sub('<html lang="en">', '<html lang="pt-BR">', html[alvo], fixed = TRUE)
+  writeLines(enc2utf8(html), caminho, useBytes = TRUE)
+  invisible(caminho)
+}
+
+# O shinylive só empacota no site os pacotes instalados na máquina que exporta;
+# os que faltam ele baixa do repositório wasm em tempo de execução, sem versão
+# fixa. Foi o que aconteceu no deploy até 2026-09: só tibble e dependências
+# iam no site. Falhar aqui é melhor que publicar um painel que depende disso.
+conferir_pacotes_painel <- function(destino,
+                                    pacotes = c("ggplot2", "dplyr", "scales", "bsicons", "viridisLite")) {
+  pasta <- file.path(destino, "shinylive", "webr", "packages")
+  faltando <- pacotes[!dir.exists(file.path(pasta, pacotes))]
+  if (length(faltando) > 0L) {
+    stop(
+      "Pacotes do painel ausentes do export em ", pasta, ": ",
+      paste(faltando, collapse = ", "),
+      ". Instale-os antes de rodar shinylive::export().",
+      call. = FALSE
+    )
+  }
+  invisible(TRUE)
+}
+
 check_release_checklist <- function(path = "internal/release-checklist.md") {
   # O checklist é versionado no repositório privado, fora do Git público.
   full <- project_path(path)
