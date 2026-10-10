@@ -91,6 +91,9 @@ sincronizar_estado <- function(session, input, estado, campo, input_id = campo,
   shiny::observeEvent(input[[input_id]], {
     if (!is.null(ativo) && !isTRUE(ativo())) return()
     valor <- input[[input_id]]
+    # A seleção múltipla da Evolução pode ser esvaziada pelo botão de remover;
+    # sem geografia não há o que propagar.
+    if (length(valor) == 0L) return()
     if (primeiro) valor <- valor[[1]]
     if (!identical(estado[[campo]], valor)) estado[[campo]] <- valor
   }, ignoreInit = TRUE)

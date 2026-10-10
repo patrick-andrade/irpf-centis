@@ -105,6 +105,7 @@ mod_evolution_server <- function(id, bundle, estado = NULL, ativo = NULL, inicia
     })
 
     output$title <- shiny::renderText({
+      if (length(input$geo) == 0L) return(paste(rotulo_metrica(), "— escolha ao menos uma geografia"))
       nomes <- vapply(input$geo, function(codigo) geografia_nome(bundle, codigo), character(1))
       paste(rotulo_metrica(), "—", paste(nomes, collapse = ", "))
     })

@@ -49,4 +49,36 @@ test_that("o job de publicação usa o script de export e fixa o shinylive", {
   # Publicação depende do CI aprovado.
   expect_match(fluxo, "workflow_run", fixed = TRUE)
   expect_match(fluxo, "conclusion == 'success'", fixed = TRUE)
+  # E só do commit que ainda é a ponta do main: um CI antigo que termina por
+  # último não leva o site de volta.
+  expect_match(fluxo, "commits/main", fixed = TRUE)
+  expect_match(fluxo, "needs.verificar.outputs.publicar == 'true'", fixed = TRUE)
+})
+
+test_that("export recusa binários WebAssembly de versão diferente da testada", {
+  destino <- tempfile()
+  pasta <- file.path(destino, "shinylive", "webr", "packages")
+  dir.create(pasta, recursive = TRUE)
+  lockfile <- tempfile(fileext = ".lock")
+  writeLines(
+    '{"Packages": {"ggplot2": {"Version": "4.0.3"}, "dplyr": {"Version": "1.2.1"}}}',
+    lockfile
+  )
+  metadados <- function(ggplot2) {
+    list(
+      ggplot2 = list(version = ggplot2),
+      dplyr = list(version = "1.2.1"),
+      grid = list(version = "4.6.0")
+    )
+  }
+
+  # Diferença só de patch passa e fica registrada no site.
+  saveRDS(metadados("4.0.4"), file.path(pasta, "metadata.rds"))
+  versoes <- conferir_versoes_painel(destino, lockfile)
+  expect_true(file.exists(file.path(destino, "versoes-pacotes.csv")))
+  expect_equal(versoes$testada[versoes$pacote == "ggplot2"], "4.0.3")
+  expect_true(is.na(versoes$testada[versoes$pacote == "grid"]))
+
+  saveRDS(metadados("4.1.0"), file.path(pasta, "metadata.rds"))
+  expect_error(conferir_versoes_painel(destino, lockfile), "ggplot2 4.1.0 \\(renv.lock: 4.0.3\\)")
 })

@@ -231,6 +231,41 @@ conferir_pacotes_painel <- function(destino,
   invisible(TRUE)
 }
 
+# O shinylive não exporta os pacotes instalados: baixa os binários WebAssembly
+# na versão que o repositório do webR servir no dia e só avisa quando ela
+# diverge da instalada. Fixar as versões no runner, portanto, não fixa o que vai
+# ao site. Esta conferência compara o que foi exportado com o renv.lock, que é o
+# que o CI testou, e recusa divergência de versão maior ou menor; a tabela das
+# versões publicadas fica no próprio site. jsonlite vem com o shiny.
+conferir_versoes_painel <- function(destino, lockfile = "renv.lock") {
+  pasta <- file.path(destino, "shinylive", "webr", "packages")
+  metadados <- readRDS(file.path(pasta, "metadata.rds"))
+  testadas <- jsonlite::read_json(lockfile)$Packages
+  versoes <- do.call(rbind, lapply(names(metadados), function(pacote) {
+    data.frame(
+      pacote = pacote,
+      exportada = as.character(metadados[[pacote]]$version %||% NA_character_),
+      testada = as.character(testadas[[pacote]]$Version %||% NA_character_)
+    )
+  }))
+  # Pacotes da base do R (grid, stats, utils) não constam do lockfile.
+  comparaveis <- versoes[!is.na(versoes$exportada) & !is.na(versoes$testada), , drop = FALSE]
+  maior_menor <- function(v) {
+    vapply(v, function(x) paste(unlist(package_version(x))[1:2], collapse = "."), character(1))
+  }
+  divergentes <- comparaveis[maior_menor(comparaveis$exportada) != maior_menor(comparaveis$testada), , drop = FALSE]
+  utils::write.csv(versoes, file.path(destino, "versoes-pacotes.csv"), row.names = FALSE)
+  if (nrow(divergentes) > 0L) {
+    stop(
+      "Versões WebAssembly diferentes das testadas no CI: ",
+      paste0(divergentes$pacote, " ", divergentes$exportada, " (renv.lock: ", divergentes$testada, ")", collapse = "; "),
+      ". Atualize o renv.lock e rode os testes antes de publicar.",
+      call. = FALSE
+    )
+  }
+  invisible(versoes)
+}
+
 check_release_checklist <- function(path = "internal/release-checklist.md") {
   # O checklist é versionado no repositório privado, fora do Git público.
   full <- project_path(path)

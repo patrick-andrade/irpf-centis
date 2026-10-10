@@ -59,6 +59,24 @@ test_that("só a aba visível escreve no estado comum", {
   )
 })
 
+test_that("esvaziar as geografias da Evolução não derruba o estado comum", {
+  estado <- shiny::reactiveValues(ano = NULL, geo = "BR")
+  shiny::testServer(
+    app_env$mod_evolution_server,
+    args = list(bundle = filled_bundle, estado = estado, ativo = function() TRUE),
+    {
+      # O primeiro valor é a seleção de abertura, que não é escrita no estado.
+      session$setInputs(geo = "BR", ranking = "RB4", metric = "gini_grouped")
+      session$setInputs(geo = c("SP", "RJ"))
+      expect_equal(estado$geo, "SP")
+      # O botão de remover deixa a seleção vazia; antes, valor[[1]] quebrava.
+      expect_no_error(session$setInputs(geo = character(0)))
+      expect_equal(estado$geo, "SP")
+      expect_match(output$title, "escolha ao menos uma geografia")
+    }
+  )
+})
+
 test_that("leitura do ponteiro acha o ano mais próximo e o grupo do eixo ordinal", {
   dados <- data.frame(year = 2017:2019, valor = c(0.5, 0.6, 0.55))
   linha <- app_env$linhas_no_ponteiro(dados, list(x = 2018.3, domain = list()), "year")
