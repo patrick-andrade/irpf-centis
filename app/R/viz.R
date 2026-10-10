@@ -422,24 +422,23 @@ rotular_series_no_fim <- function(dados, x, y, grupo, tamanho = 3.2, nudge = 0.1
   )
 }
 
-faixa_referencia <- function(minimo, maximo, cor = cores_irpf$grade, alpha = 0.45) {
-  ggplot2::annotate(
-    "rect", xmin = -Inf, xmax = Inf, ymin = minimo, ymax = maximo,
-    fill = cor, alpha = alpha
-  )
-}
-
-# Marca um ponto que carrega ressalva metodológica, em vez de deixá-lo passar
-# como observação comum.
-anotar_ressalva <- function(x, y, texto, tamanho = 3, cor = cores_irpf$texto_suave) {
+# Marca o ano que carrega ressalva metodológica — 2018, em que um único grupo do
+# topo destoa na fonte oficial (docs/limitations.md) — em vez de deixá-lo passar
+# como observação comum. A faixa vertical serve a séries múltiplas, onde marcar
+# um ponto só não basta; entra antes das linhas para ficar atrás delas, e o
+# rótulo vai na base do painel, longe dos picos que o próprio ano produz.
+# `anos` permite omitir a marca quando a série não cobre o ano.
+marcar_ano_ressalva <- function(anos = NULL, ano = 2018L, texto = "não comparável",
+                                tamanho = 2.9) {
+  if (!is.null(anos) && !ano %in% anos) return(NULL)
   list(
     ggplot2::annotate(
-      "point", x = x, y = y, shape = 21, size = 3.4, stroke = 1,
-      colour = cores_irpf$tinta, fill = cores_irpf$fundo
+      "rect", xmin = ano - 0.5, xmax = ano + 0.5, ymin = -Inf, ymax = Inf,
+      fill = cores_irpf$grade, alpha = 0.55
     ),
     ggplot2::annotate(
-      "text", x = x, y = y, label = texto, size = tamanho, colour = cor,
-      hjust = -0.12, vjust = -1.2
+      "text", x = ano, y = -Inf, label = texto, vjust = -0.7,
+      size = tamanho, colour = cores_irpf$texto_suave
     )
   )
 }

@@ -26,8 +26,9 @@ if (has_data && nrow(data$wealth_metrics) > 1L) {
   findings <- c(
     findings,
     sprintf(
-      "Na ordenação direta por bens e direitos, o Gini patrimonial agrupado passou de %.3f em %d para %.3f em %d.",
-      wealth_first$gini_grouped, wealth_first$year, wealth_last$gini_grouped, wealth_last$year
+      "Na ordenação direta por bens e direitos, o Gini patrimonial agrupado passou de %s em %d para %s em %d.",
+      fmt_index(wealth_first$gini_grouped), wealth_first$year,
+      fmt_index(wealth_last$gini_grouped), wealth_last$year
     )
   )
 }
@@ -65,7 +66,7 @@ Os resultados descrevem declarações e valores informados à Receita. Mudanças
 
 ```{r}
 #| fig-cap: "Participação dos grupos superiores na RB4 declarada, Brasil, anos-calendário 2017–2024 (%)"
-#| fig-alt: "Três séries de participação na renda declarada entre 2017 e 2024, todas partindo do zero no eixo vertical e rotuladas no fim da linha. O top 10% vai de 48,3% a 52,2%, o top 1% de 19,8% a 25,1% e o top 0,1% de 9,3% a 13,0%, com pico em 2018 nas três."
+#| fig-alt: "Três séries de participação na renda declarada entre 2017 e 2024, todas partindo do zero no eixo vertical e rotuladas no fim da linha. O top 10% vai de 48,3% a 52,2%, o top 1% de 19,8% a 25,1% e o top 0,1% de 9,3% a 13,0%, com pico em 2018 nas três. Uma faixa sombreada marca 2018, ano não comparável aos demais."
 if (has_data) {
   plot_top_shares(
     data$metrics,
@@ -85,7 +86,7 @@ O detalhamento do topo usa 118 grupos disjuntos. Os agregados 100 e 110 são pre
 
 ```{r}
 #| fig-cap: "Gini agrupado da RB4 entre declarantes, Brasil, anos-calendário 2017–2024 (índice de 0 a 1)"
-#| fig-alt: "Série do Gini da renda declarada entre 2017 e 2024, em eixo de 0,52 a 0,70 com o primeiro e o último valor rotulados. Parte de 0,577 em 2017, salta para 0,666 em 2018, retorna a 0,584 em 2019 e sobe gradualmente até 0,604 em 2024."
+#| fig-alt: "Série do Gini da renda declarada entre 2017 e 2024, em eixo de 0,52 a 0,70 com o primeiro e o último valor rotulados. Parte de 0,577 em 2017, salta para 0,666 em 2018, retorna a 0,584 em 2019 e sobe gradualmente até 0,604 em 2024. Uma faixa sombreada marca 2018, ano não comparável aos demais."
 if (has_data) {
   plot_metric_evolution(
     data$metrics, "gini_grouped", "Gini agrupado",
@@ -121,7 +122,8 @@ if (has_data) {
       taxable = "Tributáveis", exclusive = "Tributação exclusiva", exempt = "Isentos"
     )) |>
     dplyr::rename(`Grupo de rendimento` = "component_group") |>
-    dplyr::mutate(`Valor (R$ de 2024)` = fmt_brl(.data$Valor), .keep = "unused") |>
+    # Treze dígitos não se leem: a escala curta em português ("3,1 tri") sim.
+    dplyr::mutate(`Valor (R$ de 2024)` = rotulo_dinheiro_ptbr(prefixo = "")(.data$Valor), .keep = "unused") |>
     dplyr::select("Grupo de rendimento", "Valor (R$ de 2024)")
   print(knitr::kable(
     composition, format = "pipe",

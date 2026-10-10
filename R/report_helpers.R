@@ -58,7 +58,8 @@ serie_nacional <- function(metrics, metric, geo_code, ranking) {
 
 plot_metric_evolution <- function(metrics, metric, label, geo_code = "BR", ranking = "RB4",
                                   titulo = NULL, subtitulo = NULL, span_min = 0.15,
-                                  ancora = NULL, faixa_gini = FALSE) {
+                                  ancora = NULL, faixa_gini = FALSE,
+                                  ressalva_2018 = ranking != "WEALTH_DIRECT") {
   data <- serie_nacional(metrics, metric, geo_code, ranking)
   if (nrow(data) == 0L) return(ggplot2::ggplot() + tema_irpf())
 
@@ -73,7 +74,10 @@ plot_metric_evolution <- function(metrics, metric, label, geo_code = "BR", ranki
     )
   }
 
+  # A série patrimonial de ordenação direta vem de outro estudo da Receita e não
+  # carrega a ressalva do grupo 120 da renda.
   ggplot2::ggplot(data, ggplot2::aes(x = .data$year, y = .data[[metric]])) +
+    (if (ressalva_2018) marcar_ano_ressalva(data$year)) +
     camada_faixa +
     ggplot2::geom_line(linewidth = 0.9, colour = cor_destaque(1)) +
     ggplot2::geom_point(size = 2.2, colour = cor_destaque(1)) +
@@ -107,6 +111,7 @@ plot_top_shares <- function(metrics, geo_code = "BR", ranking = "RB4",
   # Rótulo no fim da linha dispensa a legenda, que vinha em ordem alfabética
   # contra a ordem vertical das linhas.
   ggplot2::ggplot(data, ggplot2::aes(.data$year, .data$share, colour = .data$group)) +
+    marcar_ano_ressalva(data$year) +
     ggplot2::geom_line(linewidth = 0.9) +
     ggplot2::geom_point(size = 1.9) +
     rotular_series_no_fim(data, "year", "share", "group") +
@@ -148,6 +153,7 @@ plot_ranking_comparison <- function(metrics, metric, label, geo_code = "BR",
   }
 
   ggplot2::ggplot(data, ggplot2::aes(.data$year, .data[[metric]], colour = .data$ranking_id)) +
+    marcar_ano_ressalva(data$year) +
     ggplot2::geom_line(linewidth = 0.9) +
     ggplot2::geom_point(size = 1.9) +
     rotular_series_no_fim(data, "year", metric, "ranking_id") +
@@ -264,6 +270,7 @@ plot_effective_rate_evolution <- function(effective_tax_summary, geo_code = "BR"
 
   niveis <- unname(group_labels)
   ggplot2::ggplot(data, ggplot2::aes(.data$year, .data$effective_rate, colour = .data$group_label)) +
+    marcar_ano_ressalva(data$year) +
     ggplot2::geom_line(linewidth = 0.9) +
     ggplot2::geom_point(size = 1.9) +
     rotular_series_no_fim(data, "year", "effective_rate", "group_label") +
@@ -323,6 +330,7 @@ plot_sensibilidade_topo <- function(distribution_bins, metrics, metric = "gini_g
   }
 
   ggplot2::ggplot(data, ggplot2::aes(.data$year, .data$valor, colour = .data$serie)) +
+    marcar_ano_ressalva(data$year) +
     ggplot2::geom_line(linewidth = 0.9) +
     ggplot2::geom_point(size = 1.9) +
     rotular_series_no_fim(data, "year", "valor", "serie") +
@@ -371,12 +379,20 @@ executive_findings <- function(metrics) {
   if (nrow(national) < 2L) return(character())
   first <- national[1, ]
   last <- national[nrow(national), ]
-  direction <- function(a, b) ifelse(b > a, "aumentou", "diminuiu")
+  # `sprintf("%.3f")` escreve "0.577" mesmo em texto em português; os números
+  # passam pelos mesmos formatadores das tabelas. A comparação é feita sobre o
+  # valor exibido: se os dois arredondam igual, a frase não pode dizer que mudou.
+  trajetoria <- function(a, b, formatar) {
+    de <- formatar(a)
+    para <- formatar(b)
+    if (identical(de, para)) return(paste("manteve-se em", de))
+    paste(if (b > a) "aumentou" else "diminuiu", "de", de, "para", para)
+  }
   c(
-    sprintf("A participação do top 1%% %s de %.1f%% para %.1f%% entre %d e %d.", direction(first$top_1_share, last$top_1_share), 100 * first$top_1_share, 100 * last$top_1_share, first$year, last$year),
-    sprintf("O Gini agrupado da RB4 %s de %.3f para %.3f no período.", direction(first$gini_grouped, last$gini_grouped), first$gini_grouped, last$gini_grouped),
-    sprintf("A medida de polarização de Wolfson %s de %.3f para %.3f.", direction(first$wolfson_grouped, last$wolfson_grouped), first$wolfson_grouped, last$wolfson_grouped),
-    sprintf("Em %d, o top 0,1%% concentrou %.1f%% da RB4 declarada.", last$year, 100 * last$top_0_1_share),
+    sprintf("A participação do top 1%% %s entre %d e %d.", trajetoria(first$top_1_share, last$top_1_share, fmt_share), first$year, last$year),
+    sprintf("O Gini agrupado da RB4 %s no período.", trajetoria(first$gini_grouped, last$gini_grouped, fmt_index)),
+    sprintf("A medida de polarização de Wolfson %s.", trajetoria(first$wolfson_grouped, last$wolfson_grouped, fmt_index)),
+    sprintf("Em %d, o top 0,1%% concentrou %s da RB4 declarada.", last$year, fmt_share(last$top_0_1_share)),
     "As diferenças estaduais são relativas às distribuições internas de cada UF; os limites monetários de um mesmo centil variam entre estados."
   )
 }
