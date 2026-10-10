@@ -13,9 +13,30 @@ O formato segue *Keep a Changelog* e as versões públicas usarão versionamento
 - Downloads de fontes conhecidas agora comparam SHA-256 antes de substituir arquivo ou manifesto. Gates detectam ano inteiro ausente, códigos de grupo incorretos e valores não finitos.
 - Bundle do painel preserva ausência quando todos os componentes de um grupo estiverem ausentes, em vez de convertê-la em zero.
 
+- Sumário executivo escrevia os achados com ponto decimal ("19.8%", "0.577") e dizia "diminuiu" quando os dois valores eram iguais; passa a usar os formatadores pt-BR das tabelas. Tabelas de rendimento mostram "3,1 tri" em vez de treze dígitos.
+- O relatório dizia que 2018 aparecia destacado em todas as séries nacionais, mas nenhum gráfico o marcava. As séries de renda passam a sombrear o ano; a série patrimonial de ordenação direta, de outro estudo, não.
+- O deploy não empacotava ggplot2, dplyr, scales, bsicons e viridisLite: o job só instalava o shinylive, e o navegador baixava esses pacotes em tempo de execução, sem versão fixa. Agora são instalados antes do export, que falha se algum faltar.
+
+### Adicionado
+
+- **Painel com link da visão.** Ano e geografia são comuns às abas e a visão vai para a URL (aba, ano, geografia e filtros da aba), com botão "Copiar link desta visão".
+- **Evolução** compara até três geografias e mostra a série sem o top 0,01% (`metrics_sem_topo`, calculada no pipeline pela mesma função do relatório). A nota diz em quais geografias 2018 destoa.
+- **Valores sob o cursor** (ou toque) em todas as séries e curvas, sem pacote novo; no Gini, a leitura traz o limite superior de Gastwirth.
+- **Topos da renda** ganha a série histórica dos grupos e a variação anual nas caixas.
+- **Visão geral** abre com cinco perguntas respondidas com números do bundle, cada uma levando à aba que a aprofunda.
+- "Gráfico | Tabela" em Evolução e Topos; "Baixar dados (CSV)" da seleção atual em pt-BR (";", vírgula decimal, BOM para o Excel).
+- Estados: ordenação por valor, nome ou região e siglas no mapa (`state_labels`).
+- Ajuda "?" nos títulos das caixas de valor e definição de uma linha sob o indicador e o conceito escolhidos, com o texto de `indicators.csv`.
+- Página de abertura do painel em português, com título, descrição e aviso de carregamento que explica a espera da primeira visita.
+- Menu "Método" no site, que passa a publicar o dicionário de dados e a proveniência.
+
 ### Alterado
 
 - Revisão de fontes, método, apresentação e documentação de reprodução. O guia de contribuição foi simplificado para o escopo de uma análise de economia aplicada.
+- **Primeira carga do painel mais leve:** fontes em woff2 com subconjunto latino (149 KB contra 1,65 MB de TTF embutidos em base64 no `app.json`); `readr` e sete dependências saem do painel; o bundle deixa de levar a decomposição de Theil e a série patrimonial bruta, que nenhuma aba lia.
+- A publicação passa a depender do CI aprovado no `main` e publica o commit testado.
+- Seletor de geografia igual em todas as abas: Brasil, UFs pelo nome, Exterior.
+- O quadro "Conceitos e indicadores" vem recolhido no fim de cada aba.
 
 ## [0.3.0] — 2026-08-21
 
