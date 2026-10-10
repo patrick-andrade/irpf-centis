@@ -87,6 +87,20 @@ metric_choices <- c(
   "Palma (instável em algumas UFs)" = "palma"
 )
 
+# CSV da seleção atual, para abrir no Excel em português: ";" como separador,
+# vírgula decimal e BOM UTF-8 — sem o BOM, o Excel lê "São Paulo" como
+# "SÃ£o Paulo". Só base R: no navegador cada pacote pesa na primeira visita.
+escrever_csv_ptbr <- function(dados, arquivo) {
+  linhas <- utils::capture.output(
+    utils::write.csv2(as.data.frame(dados), row.names = FALSE, na = "")
+  )
+  texto <- paste0(paste(enc2utf8(linhas), collapse = "\r\n"), "\r\n")
+  con <- file(arquivo, open = "wb")
+  on.exit(close(con), add = TRUE)
+  writeBin(c(as.raw(c(0xEF, 0xBB, 0xBF)), charToRaw(texto)), con)
+  invisible(arquivo)
+}
+
 format_metric <- function(value, metric) {
   if (grepl("share$", metric)) {
     scales::percent(value, accuracy = 0.1, big.mark = ".", decimal.mark = ",")
