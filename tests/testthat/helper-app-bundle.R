@@ -149,13 +149,22 @@ synthetic_app_bundle <- function() {
     effective_tax = effective_tax,
     wealth_by_bin = wealth_by_bin,
     top_group_counts = top_group_counts,
-    theil_decomposition = tibble::tibble(),
-    wealth_ranked_national = tibble::tibble(),
     wealth_metrics = tibble::tibble(
       year = 2006:2008, geo_code = "BR", ranking_id = "WEALTH_DIRECT",
       gini_grouped = c(0.8, 0.81, 0.82)
     ),
+    # Sem o grupo 120 a desigualdade cai: o fixture reproduz a direção.
+    metrics_sem_topo = metrics |>
+      dplyr::transmute(
+        .data$year, .data$geo_code, .data$ranking_id,
+        gini_grouped = .data$gini_grouped - 0.03, gini_lower_bound = .data$gini_grouped - 0.03,
+        gini_upper_bound = .data$gini_grouped - 0.029, theil_t_grouped = .data$theil_t_grouped - 0.05,
+        atkinson_grouped = .data$atkinson_grouped - 0.02, top_10_share = .data$top_10_share - 0.02,
+        top_1_share = .data$top_1_share - 0.03, top_0_1_share = .data$top_0_1_share - 0.03,
+        wolfson_grouped = .data$wolfson_grouped, palma = .data$palma
+      ),
     state_polygons = dplyr::bind_rows(square("35", 0), square("33", 2)),
+    state_labels = tibble::tibble(codarea = c("35", "33"), long = c(0.5, 2.5), lat = c(0.5, 0.5)),
     geographies = tibble::tibble(
       geo_level = c("national", "state", "state"),
       geo_code = c("BR", "SP", "RJ"),

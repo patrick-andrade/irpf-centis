@@ -94,40 +94,14 @@ plot_metric_evolution <- function(metrics, metric, label, geo_code = "BR", ranki
 
 plot_top_shares <- function(metrics, geo_code = "BR", ranking = "RB4",
                             titulo = NULL, subtitulo = NULL) {
-  niveis <- c("Top 10%", "Top 1%", "Top 0,1%")
-  data <- metrics |>
-    dplyr::filter(.data$geo_code == .env$geo_code, .data$ranking_id == .env$ranking) |>
-    dplyr::select(
-      "year", `Top 10%` = "top_10_share", `Top 1%` = "top_1_share",
-      `Top 0,1%` = "top_0_1_share"
-    ) |>
-    tidyr::pivot_longer(-"year", names_to = "group", values_to = "share") |>
-    dplyr::filter(is.finite(.data$share)) |>
-    dplyr::mutate(group = factor(.data$group, levels = niveis))
+  # Dados e desenho vêm de R/viz.R, que o painel também usa.
+  data <- dados_top_shares(metrics, geo_code, ranking)
   if (nrow(data) == 0L) return(ggplot2::ggplot() + tema_irpf())
-
-  # Os três grupos são aninhados (Top 10% ⊃ Top 1% ⊃ Top 0,1%): rampa
-  # sequencial codifica essa ordem, que a paleta qualitativa anterior perdia.
-  # Rótulo no fim da linha dispensa a legenda, que vinha em ordem alfabética
-  # contra a ordem vertical das linhas.
-  ggplot2::ggplot(data, ggplot2::aes(.data$year, .data$share, colour = .data$group)) +
-    marcar_ano_ressalva(data$year) +
-    ggplot2::geom_line(linewidth = 0.9) +
-    ggplot2::geom_point(size = 1.9) +
-    rotular_series_no_fim(data, "year", "share", "group") +
-    escala_ano(data$year) +
-    escala_participacao(data$share, nome = "Participação na renda declarada") +
-    escala_cor_ordinal(niveis) +
-    ggplot2::coord_cartesian(clip = "off") +
+  grafico_top_shares(data) +
     ggplot2::labs(
       x = NULL, title = quebrar_texto(titulo, 68),
       subtitle = quebrar_texto(subtitulo, 88),
       caption = "Grupos disjuntos no cálculo; estimativa com dados agrupados do IRPF."
-    ) +
-    tema_irpf(direcao = "y") +
-    ggplot2::theme(
-      legend.position = "none",
-      plot.margin = ggplot2::margin(10, 62, 8, 8)
     )
 }
 
@@ -298,24 +272,14 @@ plot_effective_rate_evolution <- function(effective_tax_summary, geo_code = "BR"
 # conferido contra o arquivo de origem (ver docs/limitations.md). Mostrar a
 # série com e sem esse grupo comunica a dependência em vez de escondê-la, e
 # torna visível o quanto o topo governa os indicadores em todos os anos.
-metricas_sem_grupo_120 <- function(distribution_bins, geo_code = "BR",
-                                   ranking = "RB4", epsilon = 0.5) {
-  leaf_distribution(distribution_bins) |>
-    dplyr::filter(
-      .data$geo_code == .env$geo_code, .data$ranking_id == .env$ranking,
-      .data$bin_code != 120L
-    ) |>
-    dplyr::group_by(.data$year) |>
-    dplyr::group_modify(~ calculate_distribution_metrics(.x, epsilon)) |>
-    dplyr::ungroup()
-}
-
+# A variante é calculada por metricas_sem_grupo_120(), em R/inequality.R, a
+# mesma que alimenta o painel.
 plot_sensibilidade_topo <- function(distribution_bins, metrics, metric = "gini_grouped",
                                     label = "Gini agrupado", geo_code = "BR",
                                     ranking = "RB4", titulo = NULL, subtitulo = NULL) {
   completo <- serie_nacional(metrics, metric, geo_code, ranking) |>
     dplyr::transmute(year = .data$year, valor = .data[[metric]], serie = "Todos os grupos")
-  sem_120 <- metricas_sem_grupo_120(distribution_bins, geo_code, ranking) |>
+  sem_120 <- metricas_sem_grupo_120(distribution_bins, geo_code = geo_code, ranking = ranking) |>
     dplyr::transmute(year = .data$year, valor = .data[[metric]], serie = "Sem o top 0,01%")
   data <- dplyr::bind_rows(completo, sem_120) |>
     dplyr::filter(is.finite(.data$valor))

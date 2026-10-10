@@ -56,6 +56,7 @@ list(
   tar_target(ipca_deflators, read_ipca_deflators()),
   tar_target(state_geometry, read_ibge_state_geometry()),
   tar_target(state_polygons, flatten_state_geometry(state_geometry)),
+  tar_target(state_labels, state_label_points(state_geometry)),
   tar_target(
     coverage_context,
     build_coverage_context(distribution_bins_nominal, ipca_deflators)
@@ -77,6 +78,10 @@ list(
   tar_target(wealth_bins, wealth_by_bin(distribution_bins, income_components)),
   tar_target(top_counts, top_group_counts(distribution_bins, income_components)),
   tar_target(theil_decomposition, theil_decomposition_uf(distribution_bins_nominal, "RB4")),
+  tar_target(
+    metrics_sem_topo,
+    metricas_sem_grupo_120(distribution_bins, project_config$analysis$atkinson_epsilon)
+  ),
   # Segundo portão: o primeiro valida a estrutura da fonte, este valida se os
   # indicadores derivados são possíveis (alíquota em [0,1], Gini em [0,1]).
   tar_target(
@@ -109,8 +114,7 @@ list(
       derived_quality_gate
       write_app_bundle(
         income_components, distribution_metrics, effective_tax, wealth_bins,
-        top_counts, theil_decomposition, wealth_ranked_national, wealth_metrics,
-        state_polygons
+        top_counts, wealth_metrics, state_polygons, metrics_sem_topo, state_labels
       )
     },
     format = "file"

@@ -34,7 +34,7 @@ sum_known_values <- function(x) {
   if (all(is.na(x))) NA_real_ else sum(x, na.rm = TRUE)
 }
 
-write_app_bundle <- function(income_components, metrics, effective_tax, wealth_bins, top_counts, theil_decomposition, wealth_ranked_national, wealth_metrics, state_polygons) {
+write_app_bundle <- function(income_components, metrics, effective_tax, wealth_bins, top_counts, wealth_metrics, state_polygons, metrics_sem_topo, state_labels) {
   path <- project_path("app/data/app-bundle.rds")
   fs::dir_create(fs::path_dir(path), recurse = TRUE)
   bundle <- list(
@@ -58,13 +58,11 @@ write_app_bundle <- function(income_components, metrics, effective_tax, wealth_b
         .groups = "drop"
       ),
     metrics = metrics,
+    # Só o que a curva de alíquota desenha; imposto e renda por grupo seguem
+    # em `data/processed/effective-tax.parquet`.
     effective_tax = effective_tax |>
       dplyr::filter(.data$ranking_id == "RB4") |>
-      dplyr::select(
-        "year", "geo_level", "geo_code", "ranking_id", "bin_code",
-        "share_lower", "share_upper", "contributors", "tax_due",
-        "rank_sum", "effective_rate"
-      ),
+      dplyr::select("year", "geo_code", "bin_code", "share_upper", "effective_rate"),
     # O painel roda no navegador e paga cada coluna em tempo de primeira carga.
     # Entram só as colunas que alguma aba desenha, mais `rank_sum_real`, que
     # deixa o leitor conferir a razão dívida/renda no CSV baixado. As quatro
@@ -82,10 +80,20 @@ write_app_bundle <- function(income_components, metrics, effective_tax, wealth_b
         .data$debts_real, .data$debt_share, .data$debt_income_ratio
       ),
     top_group_counts = top_counts,
-    theil_decomposition = theil_decomposition,
-    wealth_ranked_national = wealth_ranked_national,
+    # A decomposição de Theil e a série patrimonial bruta não eram lidas por
+    # nenhuma aba e somavam ~450 KB à primeira carga; a série patrimonial entra
+    # já resumida em `wealth_metrics`.
     wealth_metrics = wealth_metrics,
+    # Variante sem o grupo 120 (top 0,01%), só com os indicadores que a aba
+    # Evolução oferece: é a série que a ressalva de 2018 manda comparar.
+    metrics_sem_topo = metrics_sem_topo |>
+      dplyr::select(
+        "year", "geo_code", "ranking_id", "gini_grouped", "gini_lower_bound",
+        "gini_upper_bound", "theil_t_grouped", "atkinson_grouped", "top_10_share",
+        "top_1_share", "top_0_1_share", "wolfson_grouped", "palma"
+      ),
     state_polygons = state_polygons,
+    state_labels = state_labels,
     geographies = read_schema("geographies"),
     rankings = read_schema("rankings"),
     indicators = read_schema("indicators"),
