@@ -55,3 +55,41 @@ test_that("tabela estadual usa renda média real com rótulo de 2024", {
   expect_setequal(table$`Unidade da Federação`, c("São Paulo", "Rio de Janeiro"))
   expect_false("UF" %in% names(table))
 })
+
+test_that("achados do sumário usam vírgula decimal e não inventam variação", {
+  metrics <- report_metrics_fixture()
+  achados <- executive_findings(metrics)
+  # "19.8%" e "0.577" eram impressos por sprintf em texto em português.
+  expect_false(any(grepl("[0-9][.][0-9]", achados)))
+  expect_true(any(grepl("0,550", achados, fixed = TRUE)))
+  # O fixture não muda entre os dois anos: a frase não pode dizer "diminuiu".
+  expect_true(any(grepl("manteve-se em 20,0%", achados, fixed = TRUE)))
+  expect_false(any(grepl("diminuiu", achados)))
+
+  subiu <- metrics
+  subiu$top_1_share[subiu$year == 2024] <- 0.25
+  expect_true(any(grepl("aumentou de 20,0% para 25,0%", executive_findings(subiu), fixed = TRUE)))
+})
+
+test_that("séries de renda marcam 2018 e a série patrimonial não", {
+  metrics <- tibble::tibble(
+    year = 2017:2019, geo_code = "BR", ranking_id = "RB4",
+    gini_grouped = c(0.577, 0.666, 0.584),
+    top_10_share = 0.5, top_1_share = c(0.2, 0.37, 0.21), top_0_1_share = 0.1
+  )
+  tem_faixa <- function(grafico) {
+    any(vapply(grafico$layers, function(camada) inherits(camada$geom, "GeomRect"), logical(1)))
+  }
+  expect_true(tem_faixa(plot_metric_evolution(metrics, "gini_grouped", "Gini")))
+  expect_true(tem_faixa(plot_top_shares(metrics)))
+  expect_true(tem_faixa(plot_ranking_comparison(metrics, "gini_grouped", "Gini", rankings = "RB4")))
+
+  patrimonio <- dplyr::mutate(metrics, ranking_id = "WEALTH_DIRECT")
+  expect_false(tem_faixa(plot_metric_evolution(
+    patrimonio, "gini_grouped", "Gini patrimonial", ranking = "WEALTH_DIRECT"
+  )))
+
+  # Série que não cobre 2018 não ganha a marca.
+  expect_false(tem_faixa(plot_metric_evolution(dplyr::filter(metrics, year != 2018L), "gini_grouped", "Gini")))
+  expect_s3_class(ggplot2::ggplot_build(plot_top_shares(metrics)), "ggplot_built")
+})

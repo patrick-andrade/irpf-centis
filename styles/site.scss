@@ -12,21 +12,24 @@ $navbar-fg: #101d40;
 /*-- scss:rules --*/
 @font-face {
   font-family: "Noto Sans";
-  src: url("styles/fonts/NotoSans-Regular.ttf") format("truetype");
+  src: url("styles/fonts/NotoSans-Regular.woff2") format("woff2"),
+    url("styles/fonts/NotoSans-Regular.ttf") format("truetype");
   font-style: normal;
   font-weight: 400;
   font-display: swap;
 }
 @font-face {
   font-family: "Noto Sans";
-  src: url("styles/fonts/NotoSans-Bold.ttf") format("truetype");
+  src: url("styles/fonts/NotoSans-Bold.woff2") format("woff2"),
+    url("styles/fonts/NotoSans-Bold.ttf") format("truetype");
   font-style: normal;
   font-weight: 700;
   font-display: swap;
 }
 @font-face {
   font-family: "Noto Sans Display";
-  src: url("styles/fonts/NotoSansDisplay-Bold.ttf") format("truetype");
+  src: url("styles/fonts/NotoSansDisplay-Bold.woff2") format("woff2"),
+    url("styles/fonts/NotoSansDisplay-Bold.ttf") format("truetype");
   font-style: normal;
   font-weight: 700;
   font-display: swap;

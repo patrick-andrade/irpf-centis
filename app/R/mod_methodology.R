@@ -207,7 +207,13 @@ mod_methodology_server <- function(id, bundle) {
     baixar <- function(nome, dados) {
       shiny::downloadHandler(
         filename = function() paste0("irpf-centis-", nome, "-", Sys.Date(), ".csv"),
-        content = function(file) readr::write_csv(dados, file, na = "")
+        # utils, e não readr: no navegador cada pacote é baixado na primeira
+        # visita, e o readr arrastava vroom, tzdb, hms, bit, bit64, clipr e
+        # crayon só para esta linha. Estes arquivos seguem legíveis por máquina
+        # (vírgula, ponto decimal, UTF-8); os da tela atual saem em pt-BR.
+        content = function(file) {
+          utils::write.csv(dados, file, row.names = FALSE, na = "", fileEncoding = "UTF-8")
+        }
       )
     }
     output$download_metrics <- baixar("indicadores", bundle$metrics)

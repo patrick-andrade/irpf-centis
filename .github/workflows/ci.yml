@@ -24,10 +24,14 @@ jobs:
       - name: Preparar pacotes de base do renv
         # A instalação via renv expande uma cadeia de dependências que bloqueia
         # curl no runner. Instalar as versões exatas do lockfile primeiro.
+        # secretbase entrou na lista em 2026-10, quando a 1.3.0 foi para o
+        # arquivo do CRAN: o restore passou a acusar ciclo entre ela, targets e
+        # tarchetypes e não instalava nenhuma das três.
         run: |
           Rscript -e 'utils::install.packages("https://cran.r-project.org/src/contrib/Archive/curl/curl_7.1.0.tar.gz", lib = renv::paths$library(), repos = NULL, type = "source", dependencies = FALSE)'
           Rscript -e 'utils::install.packages("https://cran.r-project.org/src/contrib/Archive/writexl/writexl_2.0.0.tar.gz", lib = renv::paths$library(), repos = NULL, type = "source", dependencies = FALSE)'
-          Rscript -e 'stopifnot(as.character(packageVersion("curl")) == "7.1.0", as.character(packageVersion("writexl")) == "2.0.0")'
+          Rscript -e 'utils::install.packages("https://cran.r-project.org/src/contrib/Archive/secretbase/secretbase_1.3.0.tar.gz", lib = renv::paths$library(), repos = NULL, type = "source", dependencies = FALSE)'
+          Rscript -e 'stopifnot(as.character(packageVersion("curl")) == "7.1.0", as.character(packageVersion("writexl")) == "2.0.0", as.character(packageVersion("secretbase")) == "1.3.0")'
       - uses: r-lib/actions/setup-renv@v2
       - name: Testes e diagnóstico de lint
         run: Rscript scripts/run.R check

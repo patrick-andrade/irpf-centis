@@ -7,10 +7,10 @@ load_app_bundle <- function(path) {
     effective_tax = tibble::tibble(),
     wealth_by_bin = tibble::tibble(),
     top_group_counts = tibble::tibble(),
-    theil_decomposition = tibble::tibble(),
-    wealth_ranked_national = tibble::tibble(),
     wealth_metrics = tibble::tibble(),
+    metrics_sem_topo = tibble::tibble(),
     state_polygons = tibble::tibble(),
+    state_labels = tibble::tibble(),
     geographies = tibble::tibble(),
     rankings = tibble::tibble(),
     indicators = tibble::tibble(),
@@ -52,6 +52,36 @@ geografia_nome <- function(bundle, geo_code) {
   if (nrow(row) == 0L) geo_code else row$geo_name[[1]]
 }
 
+# "Brasil, São Paulo e Pernambuco": nomes por extenso, com "e" antes do último.
+juntar_nomes <- function(bundle, codigos) {
+  nomes <- vapply(codigos, function(codigo) geografia_nome(bundle, codigo), character(1), USE.NAMES = FALSE)
+  if (length(nomes) <= 1L) return(paste(nomes, collapse = ""))
+  paste(paste(utils::head(nomes, -1L), collapse = ", "), "e", utils::tail(nomes, 1L))
+}
+
+# Chave de ordenação sem acentos. Na colação C, que é a do R no navegador,
+# "Paraíba" vem depois de "Paraná" e de "Pernambuco"; `iconv(..., "ASCII//TRANSLIT")`
+# não é confiável no WebAssembly, `chartr()` é.
+sem_acento <- function(x) {
+  tolower(chartr(
+    "áàâãäéèêëíìîïóòôõöúùûüçÁÀÂÃÄÉÈÊËÍÌÎÏÓÒÔÕÖÚÙÛÜÇ",
+    "aaaaaeeeeiiiiooooouuuucAAAAAEEEEIIIIOOOOOUUUUC",
+    x
+  ))
+}
+
+# Escolhas do seletor de geografia, iguais em todas as abas: Brasil primeiro,
+# UFs pelo nome, Exterior por último. O `sort()` dos códigos punha "BR" entre BA
+# e CE e deixava "EX" sem explicação.
+escolhas_geografia <- function(bundle, codigos) {
+  codigos <- unique(stats::na.omit(as.character(codigos)))
+  if (length(codigos) == 0L) return(character())
+  nomes <- vapply(codigos, function(codigo) geografia_nome(bundle, codigo), character(1))
+  nivel <- ifelse(codigos == "BR", 0L, ifelse(codigos == "EX", 2L, 1L))
+  ordem <- order(nivel, sem_acento(nomes))
+  stats::setNames(codigos[ordem], unname(nomes[ordem]))
+}
+
 # Wolfson pode ficar instável quando a mediana é pequena; Palma, quando a
 # participação da base é pequena. A interpretação entre UFs pede cautela.
 metric_choices <- c(
@@ -63,6 +93,20 @@ metric_choices <- c(
   "Wolfson (instável em algumas UFs)" = "wolfson_grouped",
   "Palma (instável em algumas UFs)" = "palma"
 )
+
+# CSV da seleção atual, para abrir no Excel em português: ";" como separador,
+# vírgula decimal e BOM UTF-8 — sem o BOM, o Excel lê "São Paulo" como
+# "SÃ£o Paulo". Só base R: no navegador cada pacote pesa na primeira visita.
+escrever_csv_ptbr <- function(dados, arquivo) {
+  linhas <- utils::capture.output(
+    utils::write.csv2(as.data.frame(dados), row.names = FALSE, na = "")
+  )
+  texto <- paste0(paste(enc2utf8(linhas), collapse = "\r\n"), "\r\n")
+  con <- file(arquivo, open = "wb")
+  on.exit(close(con), add = TRUE)
+  writeBin(c(as.raw(c(0xEF, 0xBB, 0xBF)), charToRaw(texto)), con)
+  invisible(arquivo)
+}
 
 format_metric <- function(value, metric) {
   if (grepl("share$", metric)) {

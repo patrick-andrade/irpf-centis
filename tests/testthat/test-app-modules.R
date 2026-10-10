@@ -67,7 +67,8 @@ test_that("evolução responde à seleção de geografia e indicador", {
   shiny::testServer(app_env$mod_evolution_server, args = list(bundle = filled_bundle), {
     session$setInputs(geo = "SP", ranking = "RB4", metric = "top_1_share")
     expect_no_error(output$plot)
-    expect_match(output$title, "SP")
+    # O título traz o nome por extenso, como o seletor; o código não é leitura de público geral.
+    expect_match(output$title, "São Paulo")
     conceitos <- as.character(output$conceitos$html)
     expect_match(conceitos, "Participação do top 1%")
     # A tabela de conceitos deixa comparar as ordenações sem percorrer o seletor.
@@ -104,4 +105,17 @@ test_that("metodologia expõe conceitos, indicadores e referências", {
     expect_match(as.character(output$referencias$html), "doi.org")
     expect_match(as.character(output$downloads$html), "github.com/patrick-andrade/irpf-centis")
   })
+})
+
+test_that("seletor de geografia: Brasil primeiro, UFs pelo nome, Exterior por último", {
+  bundle <- filled_bundle
+  bundle$geographies <- tibble::tibble(
+    geo_code = c("BR", "PR", "PB", "PA", "EX", "AC"),
+    geo_name = c("Brasil", "Paraná", "Paraíba", "Pará", "Exterior", "Acre"),
+    geo_level = c("national", "state", "state", "state", "external", "state")
+  )
+  escolhas <- app_env$escolhas_geografia(bundle, c("PR", "EX", "PB", "BR", "PA", "AC", "PR"))
+  expect_equal(unname(escolhas), c("BR", "AC", "PA", "PB", "PR", "EX"))
+  # Na colação C, "Paraíba" viria depois de "Paraná"; a chave ignora o acento.
+  expect_equal(names(escolhas), c("Brasil", "Acre", "Pará", "Paraíba", "Paraná", "Exterior"))
 })

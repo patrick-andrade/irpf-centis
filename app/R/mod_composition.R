@@ -6,24 +6,22 @@ mod_composition_ui <- function(id) {
       sidebar = bslib::sidebar(
         shiny::selectInput(ns("year"), "Ano", choices = NULL),
         shiny::selectInput(ns("geo"), "Geografia", choices = NULL),
-        shiny::selectInput(ns("group"), "Grupo de campos", choices = c("Tributáveis" = "taxable", "Exclusivos" = "exclusive", "Isentos" = "exempt", "Deduções" = "deduction", "Imposto" = "tax"))
+        shiny::selectInput(ns("group"), "Grupo de campos", choices = grupos_de_campos)
       ),
       bslib::card(
         bslib::card_header("Composição declarada"),
         shiny::plotOutput(ns("plot"), height = "440px")
       ),
       bslib::card(
-        bslib::card_header("Alíquota efetiva média por posição na distribuição"),
-        shiny::p(class = "small text-muted", "Imposto devido dividido pela renda RB4 de cada grupo; média com dados agrupados, sem variação interna aos grupos."),
-        shiny::plotOutput(ns("tax_curve"), height = "320px"),
-        shiny::p(
-          class = "small text-muted",
-          paste(
-            "O último 1% da distribuição reúne 20 grupos divulgados, que na escala",
-            "acima ocupariam 1% da largura. Abaixo, cada um recebe a mesma largura."
-          )
+        bslib::card_header(
+          class = "cabecalho-com-acao",
+          "Alíquota efetiva média por posição na distribuição",
+          shiny::downloadButton(ns("baixar"), "Baixar dados (CSV)", class = "btn-sm botao-baixar")
         ),
-        shiny::plotOutput(ns("tax_curve_top"), height = "320px")
+        shiny::p(class = "small text-muted", "Imposto devido dividido pela renda RB4 de cada grupo; média com dados agrupados, sem variação interna aos grupos."),
+        grafico_interativo(ns, "tax_curve", "320px"),
+        nota_topo_ordinal(),
+        grafico_interativo(ns, "tax_curve_top", "320px")
       ),
       shiny::uiOutput(ns("rodape")),
       shiny::uiOutput(ns("conceitos"))
@@ -31,13 +29,19 @@ mod_composition_ui <- function(id) {
   )
 }
 
-mod_composition_server <- function(id, bundle) {
+mod_composition_server <- function(id, bundle, estado = NULL, ativo = NULL, inicial = list()) {
   shiny::moduleServer(id, function(input, output, session) {
     output$missing <- shiny::renderUI(if (nrow(bundle$income_components) == 0L) data_missing_ui())
     if (nrow(bundle$income_components) == 0L) return(invisible(NULL))
-    shiny::updateSelectInput(session, "year", choices = sort(unique(bundle$income_components$year)), selected = max(bundle$income_components$year))
-    shiny::updateSelectInput(session, "geo", choices = sort(unique(bundle$income_components$geo_code)), selected = "BR")
+    anos <- as.character(sort(unique(bundle$income_components$year)))
+    escolhas <- escolhas_geografia(bundle, bundle$income_components$geo_code)
+    shiny::updateSelectInput(session, "year", choices = anos, selected = valor_inicial(estado, "ano", anos, max(anos)))
+    shiny::updateSelectInput(session, "geo", choices = escolhas, selected = valor_inicial(estado, "geo", escolhas, "BR"))
+    if (!is.null(inicial$grupo)) shiny::updateSelectInput(session, "group", selected = inicial$grupo)
+    sincronizar_estado(session, input, estado, "ano", "year", ativo)
+    sincronizar_estado(session, input, estado, "geo", "geo", ativo)
     output$plot <- shiny::renderPlot({
+      exigir_largura(session, "plot")
       shiny::req(input$year, input$geo, input$group)
       d <- bundle$income_components |>
         dplyr::filter(
@@ -63,7 +67,7 @@ mod_composition_server <- function(id, bundle) {
         tema_irpf(direcao = "x")
     }, alt = function() paste(
       "Barras horizontais dos componentes declarados em R$ de 2024 para",
-      input$geo, "em", input$year, ". O grupo de campos é",
+      geografia_nome(bundle, input$geo), "em", input$year, ". O grupo de campos é",
       c(taxable = "tributáveis", exclusive = "exclusivos", exempt = "isentos",
         deduction = "deduções", tax = "imposto")[[input$group]], "."
     ))
@@ -78,6 +82,7 @@ mod_composition_server <- function(id, bundle) {
     })
 
     output$tax_curve <- shiny::renderPlot({
+      exigir_largura(session, "tax_curve")
       shiny::validate(shiny::need(nrow(bundle$effective_tax) > 0L, "Alíquotas efetivas não disponíveis."))
       d <- aliquotas() |> dplyr::filter(.data$bin_code <= 99L)
       shiny::validate(shiny::need(nrow(d) > 0L, "Sem alíquotas para a seleção."))
@@ -96,12 +101,13 @@ mod_composition_server <- function(id, bundle) {
         tema_irpf(direcao = "y")
     }, alt = function() paste(
       "Linha da alíquota efetiva média por posição na distribuição da renda RB4,",
-      input$geo, input$year, ". O eixo horizontal vai do percentil 1 ao 99."
+      geografia_nome(bundle, input$geo), input$year, ". O eixo horizontal vai do percentil 1 ao 99."
     ))
 
     # Detalhe do topo em eixo ordinal: é onde a alíquota cai, e em escala de
     # percentil os 20 grupos ficariam comprimidos em 1% da largura.
     output$tax_curve_top <- shiny::renderPlot({
+      exigir_largura(session, "tax_curve_top")
       shiny::validate(shiny::need(nrow(bundle$effective_tax) > 0L, "Alíquotas efetivas não disponíveis."))
       d <- aliquotas() |>
         dplyr::filter(.data$bin_code %in% codigos_topo) |>
@@ -123,8 +129,45 @@ mod_composition_server <- function(id, bundle) {
         ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, hjust = 1, size = 8))
     }, alt = function() paste(
       "Linha da alíquota efetiva média nos vinte grupos disjuntos do topo da renda RB4,",
-      input$geo, input$year, ". Cada grupo ocupa a mesma largura."
+      geografia_nome(bundle, input$geo), input$year, ". Cada grupo ocupa a mesma largura."
     ))
+
+    output$tax_curve_leitura <- shiny::renderUI({
+      d <- aliquotas() |> dplyr::filter(.data$bin_code <= 99L)
+      linhas <- linhas_no_ponteiro(d, evento_ponteiro(input, "tax_curve"), "share_upper")
+      if (nrow(linhas) == 0L) return(leitura_ui(NULL))
+      leitura_ui(paste0(
+        "Até o percentil ", formatar_percentil(linhas$share_upper[[1]], 1), ": alíquota efetiva média de ",
+        rotulo_percentual(0.1)(linhas$effective_rate[[1]])
+      ))
+    })
+
+    output$tax_curve_top_leitura <- shiny::renderUI({
+      d <- aliquotas() |>
+        dplyr::filter(.data$bin_code %in% codigos_topo) |>
+        dplyr::mutate(posicao = eixo_ordinal_topo(.data$share_upper))
+      linhas <- linhas_no_ponteiro(d, evento_ponteiro(input, "tax_curve_top"), "posicao")
+      if (nrow(linhas) == 0L) return(leitura_ui(NULL))
+      leitura_ui(paste0(
+        "Grupo até o percentil ", linhas$posicao[[1]], ": alíquota efetiva média de ",
+        rotulo_percentual(0.1)(linhas$effective_rate[[1]])
+      ))
+    })
+
+    output$baixar <- shiny::downloadHandler(
+      filename = function() paste0("irpf-centis-aliquota-efetiva-", input$geo, "-", input$year, ".csv"),
+      content = function(file) {
+        d <- aliquotas()
+        escrever_csv_ptbr(
+          data.frame(
+            Ano = d$year, Geografia = geografia_nome(bundle, input$geo),
+            Grupo = d$bin_code, Percentil_limite_superior = 100 * d$share_upper,
+            Aliquota_efetiva_media = d$effective_rate
+          ),
+          file
+        )
+      }
+    )
 
     output$rodape <- shiny::renderUI(bloco_rodape(
       notas = c(
@@ -155,5 +198,7 @@ mod_composition_server <- function(id, bundle) {
         ))
       )
     )
+
+    shiny::reactive(list(grupo = input$group))
   })
 }

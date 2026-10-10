@@ -99,3 +99,23 @@ test_that("limites de Gastwirth cercam o Gini agrupado", {
   expect_gte(metrics$gini_upper_bound, metrics$gini_lower_bound)
   expect_lte(metrics$gini_upper_bound, 1)
 })
+
+test_that("variante sem o grupo 120 tira o topo extremo e anula o top 0,01%", {
+  bins <- dplyr::bind_rows(
+    synthetic_distribution(geo_code = "BR"),
+    synthetic_distribution(geo_code = "SP")
+  )
+  # Um grupo 120 fora da curva, como o de 2018 na fonte oficial.
+  bins$rank_sum[bins$bin_code == 120L] <- 5000
+  completo <- calculate_all_metrics(bins)
+  sem <- metricas_sem_grupo_120(bins)
+  expect_setequal(sem$geo_code, c("BR", "SP"))
+  expect_true(all(is.na(sem$top_0_01_share)))
+  br_completo <- completo[completo$geo_code == "BR", ]
+  br_sem <- sem[sem$geo_code == "BR", ]
+  expect_lt(br_sem$gini_grouped, br_completo$gini_grouped)
+  expect_lt(br_sem$top_1_share, br_completo$top_1_share)
+
+  so_sp <- metricas_sem_grupo_120(bins, geo_code = "SP", ranking = "RB4")
+  expect_equal(unique(so_sp$geo_code), "SP")
+})

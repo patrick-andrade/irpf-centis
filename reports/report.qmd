@@ -18,6 +18,7 @@ source("../R/utils.R", encoding = "UTF-8")
 source("../R/viz.R", encoding = "UTF-8")
 source("../R/harmonization.R", encoding = "UTF-8")
 source("../R/inequality.R", encoding = "UTF-8")
+source("../R/polarization.R", encoding = "UTF-8")
 source("../R/taxation.R", encoding = "UTF-8")
 source("../R/report_helpers.R", encoding = "UTF-8")
 data <- load_report_data()
@@ -51,7 +52,7 @@ séries calculadas sem esse grupo.
 
 ```{r}
 #| fig-cap: "Gini agrupado da RB4 entre declarantes do IRPF, Brasil, anos-calendário 2017–2024 (índice de 0 a 1)"
-#| fig-alt: "Série do Gini da renda declarada entre 2017 e 2024, em eixo de 0,52 a 0,70 com o primeiro e o último valor rotulados. A série parte de 0,577 em 2017, salta para 0,666 em 2018, retorna a 0,584 em 2019 e sobe gradualmente até 0,604 em 2024."
+#| fig-alt: "Série do Gini da renda declarada entre 2017 e 2024, em eixo de 0,52 a 0,70 com o primeiro e o último valor rotulados. A série parte de 0,577 em 2017, salta para 0,666 em 2018, retorna a 0,584 em 2019 e sobe gradualmente até 0,604 em 2024. Uma faixa sombreada marca 2018, ano não comparável aos demais."
 if (has_data) {
   plot_metric_evolution(
     data$metrics, "gini_grouped", "Gini agrupado", faixa_gini = TRUE,
@@ -68,7 +69,7 @@ portanto, muito menor que a variação entre anos.
 
 ```{r}
 #| fig-cap: "Participação dos grupos superiores na RB4 declarada, Brasil, anos-calendário 2017–2024 (%)"
-#| fig-alt: "Três séries de participação na renda declarada entre 2017 e 2024, todas partindo do zero no eixo vertical e rotuladas no fim da linha. O top 10% vai de 48,3% a 52,2%, o top 1% de 19,8% a 25,1% e o top 0,1% de 9,3% a 13,0%, com pico em 2018 nas três."
+#| fig-alt: "Três séries de participação na renda declarada entre 2017 e 2024, todas partindo do zero no eixo vertical e rotuladas no fim da linha. O top 10% vai de 48,3% a 52,2%, o top 1% de 19,8% a 25,1% e o top 0,1% de 9,3% a 13,0%, com pico em 2018 nas três. Uma faixa sombreada marca 2018, ano não comparável aos demais."
 if (has_data) {
   plot_top_shares(
     data$metrics,
@@ -100,7 +101,7 @@ if (has_data) {
     dplyr::mutate(share = .data$value / sum(.data$value))
   selected <- selected |>
     dplyr::mutate(
-      value = fmt_brl(.data$value),
+      value = rotulo_dinheiro_ptbr(prefixo = "")(.data$value),
       share = fmt_share(.data$share)
     ) |>
     dplyr::select(
@@ -156,7 +157,7 @@ IRPF nos estratos superiores.
 
 ```{r}
 #| fig-cap: "Evolução da alíquota efetiva média por grupos da distribuição"
-#| fig-alt: "Quatro séries de alíquota efetiva média entre 2017 e 2024, com eixo vertical começando no zero e rótulos no fim de cada linha. A alíquota de todos os declarantes fica entre 5,6% e 6,0%, exceto em 2018. A do top 1% cai de 4,4% em 2017 para 3,0% em 2024, e a do top 0,1% permanece abaixo dela em todo o período."
+#| fig-alt: "Quatro séries de alíquota efetiva média entre 2017 e 2024, com eixo vertical começando no zero e rótulos no fim de cada linha. A alíquota de todos os declarantes fica entre 5,6% e 6,0%, exceto em 2018. A do top 1% cai de 4,4% em 2017 para 3,0% em 2024, e a do top 0,1% permanece abaixo dela em todo o período. Uma faixa sombreada marca 2018, ano não comparável aos demais."
 if (has_data && nrow(data$effective_tax) > 0L) {
   plot_effective_rate_evolution(
     effective_tax_summary(data$effective_tax),
@@ -225,7 +226,7 @@ Os indicadores centrais são recalculados sob conceitos alternativos de renda �
 
 ```{r}
 #| fig-cap: "Gini agrupado nacional sob conceitos alternativos de renda"
-#| fig-alt: "Três séries de Gini entre 2017 e 2024, uma por conceito de renda, rotuladas no fim da linha e em rampa de cor que segue o aninhamento dos conceitos. RB4 corre no patamar mais alto, RB3 logo abaixo e RTB no mais baixo, com trajetórias paralelas e o mesmo pico em 2018."
+#| fig-alt: "Três séries de Gini entre 2017 e 2024, uma por conceito de renda, rotuladas no fim da linha e em rampa de cor que segue o aninhamento dos conceitos. RB4 corre no patamar mais alto, RB3 logo abaixo e RTB no mais baixo, com trajetórias paralelas e o mesmo pico em 2018. Uma faixa sombreada marca 2018, ano não comparável aos demais."
 if (has_data) {
   plot_ranking_comparison(
     data$metrics, "gini_grouped", "Gini agrupado",
@@ -237,7 +238,7 @@ if (has_data) {
 
 ```{r}
 #| fig-cap: "Participação do top 1% nacional sob conceitos alternativos de renda"
-#| fig-alt: "Três séries de participação do top 1% na renda entre 2017 e 2024, com eixo vertical a partir do zero. RB4 vai de 19,8% a 25,1%, RB3 acompanha um pouco abaixo e RTB permanece próxima de 11% em todo o período."
+#| fig-alt: "Três séries de participação do top 1% na renda entre 2017 e 2024, com eixo vertical a partir do zero. RB4 vai de 19,8% a 25,1%, RB3 acompanha um pouco abaixo e RTB permanece próxima de 11% em todo o período. Uma faixa sombreada marca 2018, ano não comparável aos demais."
 if (has_data) {
   plot_ranking_comparison(
     data$metrics, "top_1_share", "Participação do top 1%",
@@ -255,7 +256,7 @@ da RB5 constam de `distribution-metrics.parquet`.
 
 ```{r}
 #| fig-cap: "Gini agrupado da RB4 com e sem o grupo do top 0,01%"
-#| fig-alt: "Duas séries de Gini entre 2017 e 2024 na mesma escala. A série com todos os grupos apresenta pico acentuado em 2018; a série calculada sem o top 0,01% é visivelmente mais baixa e não apresenta esse pico, evoluindo de forma suave ao longo do período."
+#| fig-alt: "Duas séries de Gini entre 2017 e 2024 na mesma escala. A série com todos os grupos apresenta pico acentuado em 2018; a série calculada sem o top 0,01% é visivelmente mais baixa e não apresenta esse pico, evoluindo de forma suave ao longo do período. Uma faixa sombreada marca 2018, ano não comparável aos demais."
 if (has_data) {
   plot_sensibilidade_topo(
     data$bins, data$metrics, "gini_grouped", "Gini agrupado",

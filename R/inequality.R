@@ -167,6 +167,20 @@ calculate_all_metrics <- function(distribution_bins, epsilon = 0.5) {
     dplyr::mutate(grouped_estimate = TRUE, atkinson_epsilon = epsilon)
 }
 
+# Mesmas medidas sem o grupo 120 (top 0,01%). Em 2018 esse único grupo da fonte
+# oficial destoa dos anos vizinhos — 3.181 declarações movem o Gini nacional de
+# 0,584 para 0,666 (docs/limitations.md). A variante mostra quanto cada série
+# depende dele, no relatório e no painel. A participação do próprio top 0,01%
+# perde o sentido sem o grupo e fica NA.
+metricas_sem_grupo_120 <- function(distribution_bins, epsilon = 0.5,
+                                   geo_code = NULL, ranking = NULL) {
+  bins <- dplyr::filter(distribution_bins, .data$bin_code != 120L)
+  if (!is.null(geo_code)) bins <- dplyr::filter(bins, .data$geo_code %in% .env$geo_code)
+  if (!is.null(ranking)) bins <- dplyr::filter(bins, .data$ranking_id %in% .env$ranking)
+  calculate_all_metrics(bins, epsilon) |>
+    dplyr::mutate(top_0_01_share = NA_real_)
+}
+
 # Participação de topo é percentual; o leitor pergunta quantas declarações são.
 # A resposta não sai do total multiplicado pelo corte: os grupos divulgados têm
 # tamanho fixado pela Receita e o arredondamento deles é o dado publicado.

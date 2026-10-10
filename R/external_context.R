@@ -95,6 +95,24 @@ read_ibge_state_geometry <- function(path = "data/external/ibge-states.geojson")
 
 # Achata a malha sf em um tibble de vértices para que o app desenhe o mapa
 # com geom_polygon, sem depender de sf (requisito do shinylive/webR).
+# Ponto de rótulo de cada UF para o mapa do painel. `st_point_on_surface` cai
+# dentro do polígono mesmo em formas côncavas, o que o centroide não garante. O
+# cálculo fica no pipeline porque o sf não roda no navegador.
+state_label_points <- function(state_geometry) {
+  if (nrow(state_geometry) == 0L) {
+    return(tibble::tibble(codarea = character(), long = double(), lat = double()))
+  }
+  # Em coordenadas geográficas o sf avisa que o ponto é aproximado; para
+  # posicionar uma sigla de duas letras, a aproximação basta.
+  pontos <- suppressWarnings(sf::st_point_on_surface(sf::st_geometry(state_geometry)))
+  coords <- sf::st_coordinates(pontos)
+  tibble::tibble(
+    codarea = as.character(state_geometry$codarea),
+    long = coords[, "X"],
+    lat = coords[, "Y"]
+  )
+}
+
 flatten_state_geometry <- function(state_geometry) {
   if (nrow(state_geometry) == 0L) {
     return(tibble::tibble(

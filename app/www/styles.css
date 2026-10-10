@@ -1,20 +1,24 @@
+/* Fontes em woff2 com subconjunto latino (mais grego e operadores, para ε e
+   −): ~150 KB contra 1,65 MB dos TTF, que o shinylive embutia em base64 no
+   app.json e o navegador baixava antes de abrir o painel. Ver
+   styles/fonts/README.md. */
 @font-face {
   font-family: "Noto Sans";
-  src: url("fonts/NotoSans-Regular.ttf") format("truetype");
+  src: url("fonts/NotoSans-Regular.woff2") format("woff2");
   font-style: normal;
   font-weight: 400;
   font-display: swap;
 }
 @font-face {
   font-family: "Noto Sans";
-  src: url("fonts/NotoSans-Bold.ttf") format("truetype");
+  src: url("fonts/NotoSans-Bold.woff2") format("woff2");
   font-style: normal;
   font-weight: 700;
   font-display: swap;
 }
 @font-face {
   font-family: "Noto Sans Display";
-  src: url("fonts/NotoSansDisplay-Bold.ttf") format("truetype");
+  src: url("fonts/NotoSansDisplay-Bold.woff2") format("woff2");
   font-style: normal;
   font-weight: 700;
   font-display: swap;
@@ -97,7 +101,26 @@ h1, h2, h3, h4, .navbar-brand {
   padding: .9rem 1.1rem;
 }
 .bslib-value-box { border-top: 4px solid var(--irpf-blue); }
-.bslib-value-box .value-box-value { font-variant-numeric: tabular-nums; }
+.selo-serie-fixa {
+  background: #eef3fa;
+  border: 1px solid var(--irpf-rule);
+  border-radius: 999px;
+  color: var(--irpf-muted);
+  display: inline-block;
+  font-family: "Noto Sans", sans-serif;
+  font-size: .78rem;
+  font-weight: 600;
+  margin-left: .5rem;
+  padding: .1rem .6rem;
+  vertical-align: middle;
+}
+/* O valor não quebra entre o número e o "%": "52,2 %" em duas linhas lia como
+   dois números. A fonte encolhe com a largura em vez de quebrar a linha. */
+.bslib-value-box .value-box-value {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  font-size: clamp(1.45rem, 2.4vw, 2.1rem);
+}
 .bslib-value-box .value-box-title { font-weight: 700; }
 .bslib-value-box .text-muted { color: var(--irpf-muted) !important; }
 
@@ -272,10 +295,75 @@ a:focus-visible, button:focus-visible, .nav-link:focus-visible, select:focus-vis
   gap: 0.5rem;
 }
 
+/* Marca do painel: volta ao site do estudo. */
+.marca-painel { color: inherit; text-decoration: none; }
+.marca-painel:hover { color: #0757cf; text-decoration: underline; }
+.botao-copiar-link { margin: .25rem 0; white-space: nowrap; }
+
+/* Cabeçalho de cartão com título e botão de download na mesma linha. */
+.cabecalho-com-acao {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: .5rem;
+  justify-content: space-between;
+}
+.botao-baixar {
+  background: #fff;
+  border: 1px solid #a9b8ce;
+  color: #0757cf;
+  font-family: "Noto Sans", sans-serif;
+  font-size: .8rem;
+  font-weight: 600;
+}
+.botao-baixar:hover { background: #eef3fa; color: #003f9e; }
+
+/* Leitura do valor sob o cursor, logo abaixo do gráfico. Altura mínima fixa
+   para o texto não empurrar a página a cada movimento. */
+.leitura-ponto {
+  color: var(--irpf-navy);
+  font-size: .9rem;
+  font-variant-numeric: tabular-nums;
+  min-height: 1.6rem;
+  padding: .2rem .25rem .4rem;
+}
+.leitura-dica { color: var(--irpf-muted); font-style: italic; }
+
+/* Definição de uma linha sob o seletor de indicador ou de conceito. */
+.definicao-curta {
+  color: var(--irpf-muted);
+  font-size: .82rem;
+  line-height: 1.4;
+  margin: -.4rem 0 .9rem;
+}
+
+/* Ícone de ajuda ao lado dos títulos das caixas de valor. */
+.icone-ajuda {
+  color: var(--irpf-blue);
+  cursor: help;
+  font-size: .85em;
+  margin-left: .15rem;
+  vertical-align: .05em;
+}
+
+/* Cartões de pergunta da Visão geral. */
+.titulo-secao {
+  font-size: 1.3rem;
+  font-weight: 800;
+  margin: 1.4rem 0 .8rem;
+}
+.cartao-pergunta { border-left: 4px solid var(--irpf-blue); height: 100%; }
+.cartao-pergunta h3 { font-size: 1.05rem; font-weight: 700; margin-bottom: .5rem; }
+.cartao-pergunta p { color: var(--irpf-muted); margin-bottom: .6rem; }
+.link-pergunta { font-weight: 600; }
+
+/* Quadro de conceitos recolhido no fim de cada aba. */
+.bloco-conceitos .accordion-button { font-weight: 700; color: var(--irpf-navy); }
+.bloco-conceitos .accordion-button:not(.collapsed) { background: #eef3fa; }
+
 @media (max-width: 767px) {
   .tab-content { padding: 1rem .8rem; }
   .app-intro { margin-bottom: 1rem; }
   .card-body { min-width: 0; padding: 1rem .75rem; }
   .shiny-plot-output { overflow-x: auto; }
-  .bslib-value-box .value-box-value { overflow-wrap: anywhere; }
 }

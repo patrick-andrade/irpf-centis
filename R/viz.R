@@ -419,26 +419,68 @@ rotular_series_no_fim <- function(dados, x, y, grupo, tamanho = 3.2, nudge = 0.1
   )
 }
 
-faixa_referencia <- function(minimo, maximo, cor = cores_irpf$grade, alpha = 0.45) {
-  ggplot2::annotate(
-    "rect", xmin = -Inf, xmax = Inf, ymin = minimo, ymax = maximo,
-    fill = cor, alpha = alpha
+# Marca o ano que carrega ressalva metodológica — 2018, em que um único grupo do
+# topo destoa na fonte oficial (docs/limitations.md) — em vez de deixá-lo passar
+# como observação comum. A faixa vertical serve a séries múltiplas, onde marcar
+# um ponto só não basta; entra antes das linhas para ficar atrás delas, e o
+# rótulo vai na base do painel, longe dos picos que o próprio ano produz.
+# `anos` permite omitir a marca quando a série não cobre o ano.
+marcar_ano_ressalva <- function(anos = NULL, ano = 2018L, texto = "não comparável",
+                                tamanho = 2.9) {
+  if (!is.null(anos) && !ano %in% anos) return(NULL)
+  list(
+    ggplot2::annotate(
+      "rect", xmin = ano - 0.5, xmax = ano + 0.5, ymin = -Inf, ymax = Inf,
+      fill = cores_irpf$grade, alpha = 0.55
+    ),
+    ggplot2::annotate(
+      "text", x = ano, y = -Inf, label = texto, vjust = -0.7,
+      size = tamanho, colour = cores_irpf$texto_suave
+    )
   )
 }
 
-# Marca um ponto que carrega ressalva metodológica, em vez de deixá-lo passar
-# como observação comum.
-anotar_ressalva <- function(x, y, texto, tamanho = 3, cor = cores_irpf$texto_suave) {
-  list(
-    ggplot2::annotate(
-      "point", x = x, y = y, shape = 21, size = 3.4, stroke = 1,
-      colour = cores_irpf$tinta, fill = cores_irpf$fundo
-    ),
-    ggplot2::annotate(
-      "text", x = x, y = y, label = texto, size = tamanho, colour = cor,
-      hjust = -0.12, vjust = -1.2
+# ---------------------------------------------------------------------------
+# Gráficos usados pelo relatório e pelo painel
+# ---------------------------------------------------------------------------
+
+grupos_topo <- c("Top 10%" = "top_10_share", "Top 1%" = "top_1_share", "Top 0,1%" = "top_0_1_share")
+
+# Participação dos grupos do topo por ano, em formato longo. Base R, e não o
+# pivot_longer() do tidyr: este arquivo também roda no navegador.
+dados_top_shares <- function(metrics, geo_code = "BR", ranking = "RB4", grupos = grupos_topo) {
+  d <- metrics[metrics$geo_code == geo_code & metrics$ranking_id == ranking, , drop = FALSE]
+  if (nrow(d) == 0L) {
+    return(data.frame(year = integer(), group = factor(levels = names(grupos)), share = double()))
+  }
+  longo <- do.call(rbind, lapply(names(grupos), function(rotulo) {
+    data.frame(year = d$year, group = rotulo, share = d[[grupos[[rotulo]]]])
+  }))
+  longo <- longo[is.finite(longo$share), , drop = FALSE]
+  longo$group <- factor(longo$group, levels = names(grupos))
+  longo[order(longo$group, longo$year), , drop = FALSE]
+}
+
+# Os três grupos são aninhados (Top 10% ⊃ Top 1% ⊃ Top 0,1%): rampa sequencial
+# codifica essa ordem. Rótulo no fim da linha dispensa a legenda, que vinha em
+# ordem alfabética contra a ordem vertical das linhas.
+grafico_top_shares <- function(dados, base_size = 12) {
+  niveis <- levels(dados$group)
+  ggplot2::ggplot(dados, ggplot2::aes(.data$year, .data$share, colour = .data$group)) +
+    marcar_ano_ressalva(dados$year) +
+    ggplot2::geom_line(linewidth = 0.9) +
+    ggplot2::geom_point(size = 1.9) +
+    rotular_series_no_fim(dados, "year", "share", "group") +
+    escala_ano(dados$year) +
+    escala_participacao(dados$share, nome = "Participação na renda declarada") +
+    escala_cor_ordinal(niveis) +
+    ggplot2::coord_cartesian(clip = "off") +
+    ggplot2::labs(x = NULL) +
+    tema_irpf(base_size = base_size, direcao = "y") +
+    ggplot2::theme(
+      legend.position = "none",
+      plot.margin = ggplot2::margin(10, 62, 8, 8)
     )
-  )
 }
 
 # Ordena os níveis de um fator pelo valor final da série, para que a ordem da

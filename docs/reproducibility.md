@@ -31,5 +31,5 @@ para `output/site/`. No Windows, os mesmos comandos podem ser chamados por
 O site publicado pode mudar entre commits sem que um DOI arquivado seja
 substituído. Para conferir um número citado, registre também o commit ou a data
 de consulta. O [método](methodology.md), as [limitações](limitations.md) e a
-[proveniência no repositório](https://github.com/patrick-andrade/irpf-centis/blob/main/docs/provenance.md)
+[proveniência](provenance.md)
 explicam as escolhas e ressalvas de leitura.
