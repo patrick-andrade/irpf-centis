@@ -1,0 +1,79 @@
+---
+title: "Dados e código"
+subtitle: "Universo, construção dos dados curados e arquivos para baixar"
+page-layout: full
+toc: false
+---
+
+```{ojs}
+//| output: false
+import { subnav, lerSessao, el, contagem } from "../assets/js/irpf-viz.js"
+comum = FileAttachment("dados/comum.json").json()
+```
+
+```{ojs}
+subnav("dados", lerSessao())
+```
+
+{{< include _aviso.qmd >}}
+
+::: {.cartao-explorar}
+
+## Baixar os dados curados {#baixar}
+
+Arquivos CSV completos, com os valores exatamente como as páginas Explorar os usam. Seguem o formato legível por máquina: vírgula como separador, ponto decimal e UTF-8. Os arquivos que cada página oferece em "Baixar dados (CSV)" saem no formato do Excel em português (ponto e vírgula, vírgula decimal).
+
+- [Indicadores por ano, UF e conceito de renda](dados/csv/irpf-centis-indicadores.csv)
+- [Bens e dívidas por grupo](dados/csv/irpf-centis-bens-e-dividas-por-grupo.csv)
+- [Contagens dos grupos de topo](dados/csv/irpf-centis-contagens-do-topo.csv)
+- [Conceitos e indicadores](dados/csv/irpf-centis-conceitos-e-indicadores.csv)
+
+```{ojs}
+el("p", { class: "nota-grafico" },
+  `Série de renda: anos-calendário ${comum.safra.anos_renda.join(" a ")}. ` +
+  `Série patrimonial com ordenação direta: ${comum.safra.anos_patrimonio_direto.join(" a ")}. ` +
+  `Valores monetários em R$ de ${comum.safra.ano_base_precos}.`)
+```
+
+:::
+
+## Universo
+
+**Unidade de observação.** A unidade divulgada pela Receita Federal é a declaração válida do IRPF, que pode reunir titular, dependentes e declaração conjunta. Os resultados não descrevem diretamente pessoas, domicílios nem toda a população brasileira.
+
+**Grupos hierárquicos.** Os grupos 100 e 110 são agregados que se sobrepõem aos detalhamentos seguintes. A distribuição disjunta usada nos índices contém 1-99, 101-109 e 111-120; os agregados ficam preservados apenas para reconciliação e para a apresentação direta do top 1% e do top 0,1%.
+
+**Geografia.** Cada UF é ordenada separadamente. O centil 90 de uma UF não tem necessariamente o mesmo limite monetário do centil 90 de outra.
+
+**Valores reais.** Fluxos e estoques monetários são publicados em preços de 2024, deflacionados pelo IPCA anual médio (IBGE/SIDRA 1737). Os valores nominais permanecem nos dados curados.
+
+**Escopo inferencial.** O projeto é descritivo. Mudanças anuais podem refletir alterações econômicas, tributárias, cadastrais, metodológicas ou de cobertura, e não são apresentadas como efeitos causais. A lista completa está em [Limitações](../docs/limitations.html).
+
+## Como os dados curados são construídos
+
+1. **discover**: lê as páginas oficiais e registra as fontes encontradas.
+2. **download**: baixa os arquivos e grava tamanho e SHA-256 no manifesto; nada é reprocessado sem conferir o hash.
+3. **context**: atualiza o deflator IPCA anual e a malha estadual do IBGE.
+4. **build**: normaliza os layouts de cada ano e produz os dados curados e os arquivos destas páginas; dois portões de qualidade interrompem o pipeline em vez de degradar em silêncio.
+5. **check**: testa parser, harmonização, índices, patrimônio, tributação, o contrato de dados destas páginas e o código dos gráficos.
+6. **render**: gera os relatórios, as figuras e estas páginas.
+
+Decisões que o pipeline não negocia:
+
+- Valores publicados pela Receita são preservados; divergências são registradas, nunca corrigidas em silêncio.
+- Campo ausente na fonte permanece ausente e não é convertido em zero.
+- Índices usam apenas os 118 grupos disjuntos; os agregados 100 e 110 não entram duas vezes.
+- A ausência de deflator para qualquer ano interrompe o pipeline.
+- Nenhum denominador populacional provisório entra nos produtos publicados, e não há fusão distributiva entre IRPF e PNAD.
+
+## Ressalva de comparabilidade de 2018
+
+No arquivo oficial de 2018 o grupo do top 0,01% traz valores que destoam dos anos vizinhos em duas ordens de grandeza. Os 117 demais grupos seguem a tendência. Os números são os publicados, foram conferidos contra a origem e são preservados sem correção; o ano fica sinalizado e as séries acompanham a variante calculada sem esse grupo.
+
+## Código, documentação e fontes
+
+- [Repositório no GitHub](https://github.com/patrick-andrade/irpf-centis): pipeline, contratos de dados e testes.
+- [Glossário](../glossario.html): conceitos de renda, fichas dos indicadores e referências.
+- [Metodologia completa](../docs/methodology.html), [Limitações](../docs/limitations.html) e [Apêndice técnico](../reports/technical-appendix.html).
+- [Receita Federal: distribuição da renda](https://www.gov.br/receitafederal/pt-br/centrais-de-conteudo/publicacoes/estudos/distribuicao-da-renda).
+- [IBGE/SIDRA: IPCA, tabela 1737](https://sidra.ibge.gov.br/tabela/1737).

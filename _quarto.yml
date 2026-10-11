@@ -17,6 +17,8 @@ project:
     - explorar/rendimentos.qmd
     - explorar/bens.qmd
     - explorar/dividas.qmd
+    - explorar/dados.qmd
+    - glossario.qmd
     - explorar/estados.qmd
   resources:
     - styles/fonts/*
@@ -45,6 +47,8 @@ website:
         menu:
           - href: docs/methodology.md
             text: "Metodologia"
+          - href: glossario.qmd
+            text: "Glossário"
           - href: docs/limitations.md
             text: "Limitações"
           - href: reports/technical-appendix.qmd

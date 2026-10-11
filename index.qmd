@@ -10,7 +10,7 @@ toc: false
 Estudo descritivo e reprodutível da distribuição entre **declarações válidas do IRPF**. Explore os resultados por centil, ano e unidade da Federação.
 
 ::: {.landing-actions}
-[Ler os principais achados](reports/executive-summary.html) [Explorar o painel](app/)
+[Ler os principais achados](reports/executive-summary.html) [Explorar os dados](explorar/index.html)
 :::
 ::::
 
@@ -45,9 +45,9 @@ Os resultados descrevem **declarações válidas do IRPF**, não toda a populaç
 Principais achados, gráficos centrais e ressalvas para uma primeira leitura.
 :::
 ::: {.landing-card}
-### [Painel interativo](app/)
+### [Explorar os dados](explorar/index.html)
 
-Compare anos, geografias e conceitos de renda. A primeira carga pode levar alguns instantes porque o painel roda no navegador.
+Compare anos, geografias e conceitos de renda. Cada visão abre em menos de um segundo e tem um link próprio para compartilhar.
 :::
 ::: {.landing-card}
 ### [Relatório completo](reports/report.html)

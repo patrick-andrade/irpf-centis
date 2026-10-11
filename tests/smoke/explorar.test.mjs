@@ -273,3 +273,59 @@ test("Ajuda: o \"?\" abre a definição pelo teclado", async () => {
   assert.equal(await pagina.$eval("button.icone-ajuda", (b) => b.getAttribute("aria-expanded")), "false");
   await pagina.close();
 });
+
+test("Visão geral: caixas, cartões de pergunta e links para as páginas", async () => {
+  const { pagina, problemas } = await abrir("explorar/index.html");
+  await pagina.waitForSelector(".caixa-valor-numero");
+  assert.equal((await pagina.$$(".caixa-valor")).length, 4);
+  const links = await pagina.$$eval(".cartao-pergunta a", (as) => as.map((a) => a.getAttribute("href")));
+  assert.equal(links.length, 5);
+  assert.ok(links.every((h) => /^(topos|evolucao|rendimentos|estados|bens)\.html/.test(h)), links.join(" "));
+  assert.deepEqual(await axe(pagina), []);
+  assert.deepEqual(problemas, []);
+  await pagina.close();
+});
+
+test("Dados: os quatro CSV completos existem e têm cabeçalho", async () => {
+  const { pagina } = await abrir("explorar/dados.html");
+  await pagina.waitForSelector("a[href$='.csv']");
+  const resultados = await pagina.$$eval("a[href$='.csv']", (as) => Promise.all(as.map(async (a) => {
+    const r = await fetch(a.href);
+    const texto = await r.text();
+    return { href: a.getAttribute("href"), status: r.status, primeira: texto.split("\n")[0] };
+  })));
+  assert.equal(resultados.length, 4);
+  for (const r of resultados) {
+    assert.equal(r.status, 200, r.href);
+    assert.match(r.primeira, /^"?[a-z_]+"?,/, r.href);
+  }
+  await pagina.close();
+});
+
+// Todos os links internos das páginas do site resolvem, e as âncoras do
+// glossário para onde apontam os "?" existem.
+test("Links internos resolvem, inclusive as âncoras do glossário", async () => {
+  const origens = [
+    "index.html", "glossario.html", "explorar/index.html", "explorar/evolucao.html", "explorar/topos.html",
+    "explorar/rendimentos.html", "explorar/bens.html", "explorar/dividas.html", "explorar/estados.html", "explorar/dados.html"
+  ];
+  const vistos = new Map();
+  for (const origem of origens) {
+    const { pagina } = await abrir(origem);
+    await pagina.waitForNetworkIdle({ idleTime: 300 }).catch(() => {});
+    const hrefs = await pagina.$$eval("a[href]", (as) => as.map((a) => a.href));
+    for (const href of hrefs) {
+      if (!href.startsWith(base) || vistos.has(href.split("#")[0] + "#" + (href.split("#")[1] ?? ""))) continue;
+      const [endereco, ancora] = href.split("#");
+      const r = await pagina.evaluate(async (u) => (await fetch(u, { method: "GET" })).status, endereco);
+      vistos.set(`${endereco}#${ancora ?? ""}`, true);
+      assert.equal(r, 200, `${origem} → ${href}`);
+      if (ancora && endereco.endsWith("glossario.html")) {
+        const html = await pagina.evaluate(async (u) => (await fetch(u)).text(), endereco);
+        assert.ok(html.includes(`id="${ancora}"`), `âncora #${ancora} ausente no glossário (${origem})`);
+      }
+    }
+    await pagina.close();
+  }
+  assert.ok(vistos.size > 20);
+});
