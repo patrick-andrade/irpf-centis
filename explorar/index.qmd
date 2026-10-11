@@ -1,0 +1,12 @@
+---
+title: "Explorar"
+subtitle: "Os números do estudo por ano, geografia e conceito de renda"
+page-layout: full
+toc: false
+---
+
+{{< include _aviso.qmd >}}
+
+As páginas Explorar substituem o painel interativo antigo. Elas abrem em menos de um segundo e cada visão tem um link próprio.
+
+- [Evolução](evolucao.html): desigualdade por ano, geografia e conceito de renda.

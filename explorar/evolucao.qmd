@@ -1,0 +1,249 @@
+---
+title: "Evolução"
+subtitle: "Desigualdade da renda declarada por ano, geografia e conceito de renda"
+description: "Gini, Theil, Atkinson, participação do topo, Wolfson e Palma por ano, UF e conceito de renda, com até três geografias e a série sem o top 0,01%."
+page-layout: full
+toc: false
+---
+
+<!--
+Página Explorar · Evolução. Os dados vêm de explorar/dados/ (R/site_data.R) e
+o desenho de assets/js/irpf-viz.js (fonte em js/). Nenhum bloco R aqui: a
+página renderiza sem R e não entra no _freeze.
+-->
+
+```{ojs}
+//| output: false
+import {
+  paraLinhas, series, seletor, caixa, grupoFiltros, leitura, tabela, rodape, subnav,
+  lerEstado, valorInicial, publicarEstado, copiarLink, baixarCsv, botao, juntarNomes,
+  formatoIndicador, indice, html, el, legendaLinhas, blocoConceitos, tabelaConceitos,
+  corDestaque, nota2018Evolucao, notaIndicesAgrupados, fonteReceita
+} from "../assets/js/irpf-viz.js"
+```
+
+```{ojs}
+//| output: false
+comum = FileAttachment("dados/comum.json").json()
+glossario = FileAttachment("dados/glossario.json").json()
+evolucao = FileAttachment("dados/evolucao.json").json()
+geografias = paraLinhas(comum.geografias)
+nomeGeo = new Map(geografias.map((g) => [g.geo_code, g.geo_name]))
+nomes = (codigos) => juntarNomes(codigos.map((c) => nomeGeo.get(c)))
+conceitos = paraLinhas(glossario.conceitos)
+conceitosDisponiveis = conceitos.filter((c) => comum.conceitos_disponiveis.includes(c.ranking_id))
+indicadores = paraLinhas(glossario.indicadores)
+opcoesIndicador = paraLinhas(comum.indicadores_seletor)
+metricas = paraLinhas(evolucao.metricas)
+semTopo = paraLinhas(evolucao.sem_topo)
+estadoUrl = lerEstado(location.search, {
+  geos: geografias.map((g) => g.geo_code),
+  indicadores: opcoesIndicador.map((i) => i.id),
+  conceitos: comum.conceitos_disponiveis
+})
+```
+
+```{ojs}
+subnav("evolucao", { geo: filtros.geo1 })
+```
+
+{{< include _aviso.qmd >}}
+
+```{ojs}
+viewof filtros = {
+  const opcoesGeo = geografias.map((g) => ({ valor: g.geo_code, rotulo: g.geo_name }));
+  const nenhuma = { valor: "", rotulo: "Nenhuma" };
+  const comparar = estadoUrl.comparar ?? [];
+  return grupoFiltros({
+    geo1: seletor({
+      rotulo: "Geografia", opcoes: opcoesGeo,
+      valor: valorInicial(estadoUrl.geo, "geo", opcoesGeo.map((o) => o.valor), "BR")
+    }),
+    geo2: seletor({ rotulo: "Comparar com", opcoes: [nenhuma, ...opcoesGeo], valor: comparar[0] ?? "" }),
+    geo3: seletor({ rotulo: "e com", opcoes: [nenhuma, ...opcoesGeo], valor: comparar[1] ?? "" }),
+    conceito: seletor({
+      rotulo: "Conceito de renda",
+      opcoes: conceitosDisponiveis.map((c) => ({ valor: c.ranking_id, rotulo: c.label })),
+      valor: estadoUrl.conceito ?? "RB4",
+      dica: (id) => conceitos.find((c) => c.ranking_id === id)?.formula
+    }),
+    indicador: seletor({
+      rotulo: "Indicador",
+      opcoes: opcoesIndicador.map((i) => ({ valor: i.id, rotulo: i.rotulo })),
+      valor: estadoUrl.ind ?? "gini_grouped",
+      dica: (id) => indicadores.find((i) => i.indicator_id === id)?.definition
+    }),
+    semTopo: caixa({ rotulo: "Comparar com a série sem o top 0,01%", valor: estadoUrl.sem_topo })
+  }, { rotulo: "Filtros da evolução" });
+}
+```
+
+```{ojs}
+//| output: false
+escolhidas = [...new Set([filtros.geo1, filtros.geo2, filtros.geo3].filter(Boolean))]
+indicador = filtros.indicador
+conceito = filtros.conceito
+rotuloIndicador = opcoesIndicador.find((i) => i.id === indicador)?.rotulo ?? indicador
+rotuloConceito = conceitos.find((c) => c.ranking_id === conceito)?.label ?? conceito
+formatar = formatoIndicador(indicador)
+semTopoDisponivel = semTopo.length > 0 && indicador in semTopo[0]
+todos = "Todos os grupos"
+semTopoRotulo = "Sem o top 0,01%"
+dados = {
+  const monta = (base, serie) => base
+    .filter((d) => escolhidas.includes(d.geo_code) && d.ranking_id === conceito && Number.isFinite(d[indicador]))
+    .map((d) => ({
+      ano: d.year, valor: d[indicador], geo: d.geo_code, geografia: nomeGeo.get(d.geo_code), serie,
+      chave: `${d.geo_code}|${serie}`, superior: d.gini_upper_bound
+    }));
+  const linhas = monta(metricas, todos);
+  if (filtros.semTopo && semTopoDisponivel) linhas.push(...monta(semTopo, semTopoRotulo));
+  return linhas.sort((a, b) => escolhidas.indexOf(a.geo) - escolhidas.indexOf(b.geo) || a.ano - b.ano);
+}
+corGeo = new Map(escolhidas.map((g, i) => [g, corDestaque(3)[i]]))
+anos = [...new Set(dados.map((d) => d.ano))].sort((a, b) => a - b)
+```
+
+```{ojs}
+//| output: false
+publicarEstado({
+  geo: filtros.geo1, comparar: escolhidas.slice(1), ind: indicador, conceito, sem_topo: filtros.semTopo
+}, { comum: { geo: filtros.geo1 } })
+```
+
+::: {.cartao-explorar}
+
+```{ojs}
+{
+  const csv = botao("Baixar dados (CSV)", () => baixarCsv(
+    dados.map((d) => ({ ...d, conceito: rotuloConceito, indicador: rotuloIndicador })),
+    [
+      { id: "ano", rotulo: "Ano" }, { id: "geografia", rotulo: "Geografia" }, { id: "serie", rotulo: "Serie" },
+      { id: "conceito", rotulo: "Conceito" }, { id: "indicador", rotulo: "Indicador" }, { id: "valor", rotulo: "Valor" }
+    ],
+    `irpf-centis-evolucao-${indicador}.csv`
+  ));
+  const link = botao("Copiar link desta visão", (e) => copiarLink(e.currentTarget));
+  return el("div", { class: "cabecalho-com-acao" },
+    el("h2", { id: "titulo-evolucao" }, `${rotuloIndicador} — ${escolhidas.length ? nomes(escolhidas) : "escolha ao menos uma geografia"}`),
+    el("div", { class: "acoes-explorar" }, csv, link));
+}
+```
+
+::: {.panel-tabset}
+
+## Gráfico
+
+```{ojs}
+viewof ponto = series(dados, {
+  x: "ano", y: "valor", z: "chave",
+  cor: (chave) => corGeo.get(chave.split("|")[0]),
+  tracejado: (d) => d.serie !== todos,
+  eixo: /share$/.test(indicador) ? "participacao" : "indice",
+  rotuloY: rotuloIndicador,
+  rotulos: escolhidas.length > 1 ? "fim" : "extremos",
+  textoRotulo: (d) => d.geografia,
+  rotularSo: (d) => d.serie === todos,
+  formatarExtremos: formatar,
+  largura: Math.max(320, Math.min(width, 1180) - 40),
+  alturaPainel: 380,
+  interativo: true,
+  tip: (d) => `${d.ano} · ${d.geografia}${d.serie === todos ? "" : " sem o top 0,01%"}: ${formatar(d.valor)}` +
+    (d.ano === 2018 ? "\n2018 não é comparável" : ""),
+  ariaLabel: `Série por ano-calendário de ${rotuloIndicador} para ${nomes(escolhidas)}, no conceito ${rotuloConceito}` +
+    (filtros.semTopo && semTopoDisponivel ? ", com a série sem o top 0,01% tracejada" : ""),
+  ariaDescription: "A faixa sombreada marca 2018, ano não comparável; os valores estão na aba Tabela."
+})
+```
+
+```{ojs}
+filtros.semTopo && semTopoDisponivel
+  ? legendaLinhas([{ rotulo: todos, tracejado: false }, { rotulo: semTopoRotulo, tracejado: true }])
+  : html``
+```
+
+```{ojs}
+caixaLeitura = leitura()
+```
+
+```{ojs}
+viewof anoLeitura = seletor({
+  rotulo: "Ler os valores do ano",
+  opcoes: [{ valor: "", rotulo: "—" }, ...anos.map((a) => ({ valor: a, rotulo: String(a) }))],
+  valor: ""
+})
+```
+
+## Tabela
+
+```{ojs}
+{
+  const colunas = [...new Set(dados.map((d) => d.serie === todos ? d.geografia : `${d.geografia} (sem o top 0,01%)`))];
+  const linhas = anos.map((ano) => {
+    const linha = { ano };
+    for (const d of dados.filter((x) => x.ano === ano)) {
+      linha[d.serie === todos ? d.geografia : `${d.geografia} (sem o top 0,01%)`] = d.valor;
+    }
+    return linha;
+  });
+  return tabela({
+    linhas,
+    legenda: `${rotuloIndicador} por ano-calendário, conceito ${rotuloConceito}`,
+    colunas: [
+      { id: "ano", rotulo: "Ano", cabecalhoLinha: true },
+      ...colunas.map((c) => ({ id: c, rotulo: c, numerica: true, formatar: formatar }))
+    ]
+  });
+}
+```
+
+:::
+
+:::
+
+```{ojs}
+//| output: false
+{
+  const ano = ponto?.ano ?? (anoLeitura === "" || anoLeitura === null ? null : anoLeitura);
+  if (ano === null || ano === undefined) {
+    caixaLeitura.atualizar("");
+  } else {
+    const doAno = dados.filter((d) => d.ano === ano);
+    const partes = doAno.map((d) => `${d.geografia}${d.serie === todos ? "" : " sem o top 0,01%"}: ${formatar(d.valor)}`);
+    let texto = `${ano} · ${partes.join(" · ")}`;
+    // O Gini publicado é o limite inferior; o superior mostra quanto a
+    // desigualdade dentro dos grupos ainda poderia acrescentar.
+    if (indicador === "gini_grouped" && doAno.length === 1 && Number.isFinite(doAno[0].superior)) {
+      texto += ` (limite superior de Gastwirth: ${indice(0.0001)(doAno[0].superior)})`;
+    }
+    if (ano === 2018) texto += " · 2018 não é comparável";
+    caixaLeitura.atualizar(doAno.length ? texto : "");
+  }
+}
+```
+
+```{ojs}
+{
+  const saltos = evolucao.saltos_2018?.[conceito]?.[indicador] ?? [];
+  const comSalto = escolhidas.filter((g) => saltos.includes(g));
+  return rodape({
+    notas: [
+      notaIndicesAgrupados,
+      nota2018Evolucao({ escolhidasComSalto: comSalto, outrasComSalto: saltos, nomes, semTopoDisponivel })
+    ],
+    fonte: fonteReceita
+  });
+}
+```
+
+```{ojs}
+{
+  const c = conceitos.find((x) => x.ranking_id === conceito);
+  const i = indicadores.find((x) => x.indicator_id === indicador);
+  return blocoConceitos({
+    conceitos: c ? [{ termo: c.label, resumo: c.formula, detalhe: c.definition, href: `../glossario.html#conceito-${c.ranking_id}` }] : [],
+    indicadores: i ? [{ termo: i.short_label, resumo: i.definition, detalhe: i.reading, nota: i.grouped_note, href: `../glossario.html#indicador-${i.indicator_id}` }] : [],
+    adicional: tabelaConceitos(conceitos, conceito)
+  });
+}
+```

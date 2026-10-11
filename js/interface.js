@@ -35,17 +35,35 @@ export function seletor({ rotulo, opcoes, valor = null, id = null, dica = null }
     lista.map((o) => el("option", { value: String(o.valor) }, o.rotulo)));
   const inicial = lista.find((o) => String(o.valor) === String(valor)) ?? lista[0];
   if (inicial) select.value = String(inicial.valor);
+  // `dica` pode ser texto fixo ou função do valor escolhido: a definição de
+  // uma linha muda junto com a escolha.
+  const caixaDica = dica ? el("div", { class: "definicao-curta", id: `${idSelect}-dica` }) : null;
+  if (caixaDica) select.setAttribute("aria-describedby", caixaDica.id);
   const raiz = el("div", { class: "controle-explorar" },
-    el("label", { for: idSelect, class: "form-label" }, rotulo), select,
-    dica ? el("div", { class: "definicao-curta" }, dica) : null);
+    el("label", { for: idSelect, class: "form-label" }, rotulo), select, caixaDica);
   const original = (texto) => lista.find((o) => String(o.valor) === texto)?.valor ?? null;
+  const atualizarDica = () => {
+    if (caixaDica) caixaDica.textContent = (typeof dica === "function" ? dica(original(select.value)) : dica) ?? "";
+  };
   Object.defineProperty(raiz, "value", {
     get: () => original(select.value),
-    set: (v) => { select.value = String(v); }
+    set: (v) => { select.value = String(v); atualizarDica(); }
   });
-  select.addEventListener("change", (e) => { e.stopPropagation(); anunciar(raiz); });
+  select.addEventListener("change", (e) => { e.stopPropagation(); atualizarDica(); anunciar(raiz); });
   select.addEventListener("input", (e) => e.stopPropagation());
   raiz.value = inicial?.valor;
+  return raiz;
+}
+
+// Agrupa vários controles num só elemento com `.value` = { nome: valor }. Uma
+// célula `viewof` recebe todos os filtros de uma vez, e a faixa de filtros é
+// um bloco só no layout.
+export function grupoFiltros(controles, { classe = "explorar-filtros", rotulo = "Filtros" } = {}) {
+  const ler = () => Object.fromEntries(Object.entries(controles).map(([nome, c]) => [nome, c.value]));
+  const raiz = el("div", { class: classe, role: "group", "aria-label": rotulo }, Object.values(controles));
+  raiz.value = ler();
+  // Registrado antes do ouvinte do OJS: atualiza o valor antes de ele ler.
+  raiz.addEventListener("input", () => { raiz.value = ler(); });
   return raiz;
 }
 
@@ -84,7 +102,7 @@ export function grupoOpcoes({ rotulo, opcoes, valor = null }) {
   return raiz;
 }
 
-export function botao(texto, aoClicar, { classe = "btn btn-outline-primary btn-sm", rotuloAcessivel = null } = {}) {
+export function botao(texto, aoClicar, { classe = "btn btn-sm botao-explorar", rotuloAcessivel = null } = {}) {
   return el("button", { type: "button", class: classe, "aria-label": rotuloAcessivel, onclick: aoClicar }, texto);
 }
 
@@ -163,4 +181,67 @@ export function rodape({ notas = [], observacoes = [], fonte = null }) {
   };
   return el("div", { class: "bloco-rodape", role: "note" },
     bloco("Nota", notas), bloco("Observação", observacoes), fonte ? bloco("Fonte", fonte) : null);
+}
+
+// Glossário recolhido no fim de cada página: os textos vêm de
+// config/schema/indicators.csv e rankings.csv (glossario.json). Fica depois
+// dos gráficos, de propósito: explicar antes empurraria a visualização para
+// fora da primeira tela.
+export function itemGlossario({ termo, resumo = null, detalhe = null, nota = null, href = null }) {
+  return [
+    el("dt", {}, termo, href ? [" ", el("a", { href, class: "small" }, "(ficha)")] : null),
+    el("dd", {},
+      resumo ? el("span", {}, resumo) : null,
+      detalhe ? el("span", { class: "glossario-detalhe" }, detalhe) : null,
+      nota ? el("span", { class: "glossario-nota" }, nota) : null)
+  ];
+}
+
+export function blocoConceitos({ conceitos = [], indicadores = [], extras = [], adicional = null }) {
+  const secao = (titulo, itens) => (itens.length === 0 ? null : [
+    el("p", { class: "glossario-titulo" }, titulo),
+    el("dl", { class: "glossario-lista" }, itens.map(itemGlossario))
+  ]);
+  return el("details", { class: "bloco-conceitos" },
+    el("summary", {}, "Conceitos e indicadores"),
+    secao(conceitos.length > 1 ? "Conceitos de renda:" : "Conceito de renda:", conceitos),
+    secao(indicadores.length > 1 ? "Indicadores:" : "Indicador:", indicadores),
+    secao("Como ler esta página:", extras),
+    adicional);
+}
+
+// Os onze conceitos de renda numa tabela compacta, com o escolhido destacado.
+export function tabelaConceitos(conceitos, destaque = null) {
+  return el("table", { class: "tabela-conceitos" },
+    el("caption", { class: "visually-hidden" }, "Conceitos de renda disponíveis"),
+    el("thead", {}, el("tr", {}, ["Tabela", "Conceito", "Composição", "Anos"].map((t) => el("th", { scope: "col" }, t)))),
+    el("tbody", {}, conceitos.map((c) => el("tr", { class: c.ranking_id === destaque ? "conceito-principal" : null },
+      el("td", {}, c.roman), el("td", {}, c.label), el("td", {}, c.formula),
+      el("td", {}, c.year_max ? `${c.year_min}-${c.year_max}` : `${c.year_min}-`)))));
+}
+
+// Legenda do tipo de linha (contínua e tracejada), quando há duas séries.
+export function legendaLinhas(itens) {
+  const traco = (tracejado) => {
+    const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    svg.setAttribute("width", "28");
+    svg.setAttribute("height", "8");
+    svg.setAttribute("aria-hidden", "true");
+    const linha = document.createElementNS("http://www.w3.org/2000/svg", "line");
+    for (const [k, v] of Object.entries({ x1: 0, x2: 28, y1: 4, y2: 4, stroke: "#586179", "stroke-width": 2 })) linha.setAttribute(k, v);
+    if (tracejado) linha.setAttribute("stroke-dasharray", "5,4");
+    svg.append(linha);
+    return svg;
+  };
+  return el("p", { class: "legenda-linhas" }, itens.map((i) => [traco(i.tracejado), i.rotulo]));
+}
+
+// Legenda das classes do mapa, com os limites de cada classe.
+export function legendaClasses(quebras, coresClasses, formatar) {
+  if (!quebras) return null;
+  const itens = coresClasses.map((cor, i) => el("li", {},
+    el("span", { class: "amostra", style: `background:${cor}`, "aria-hidden": "true" }),
+    `${formatar(quebras[i])} a ${formatar(quebras[i + 1])}`));
+  itens.push(el("li", {}, el("span", { class: "amostra", style: "background:#E9ECEF", "aria-hidden": "true" }), "sem dado"));
+  return el("ul", { class: "legenda-classes", "aria-label": "Classes do mapa" }, itens);
 }

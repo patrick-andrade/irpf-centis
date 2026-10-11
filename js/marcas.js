@@ -101,37 +101,40 @@ export function eixoOrdinalTopo(limitesSuperiores) {
 }
 
 // Título, subtítulo e nota dentro do SVG, para as figuras dos PDFs. O texto é
-// quebrado por caracteres (como o strwrap do R), e as margens crescem com o
-// número de linhas: nada é cortado na largura da figura.
-export function cabecalho({ titulo = null, subtitulo = null, nota = null, largura = 560 } = {}) {
-  const porCaractereTitulo = Math.floor(largura / 8.4);
-  const porCaractereTexto = Math.floor(largura / 6.6);
-  const t = titulo ? quebrarTexto(titulo, porCaractereTitulo) : null;
-  const s = subtitulo ? quebrarTexto(subtitulo, porCaractereTexto) : null;
-  const n = nota ? quebrarTexto(nota, Math.floor(largura / 5.6)) : null;
+// quebrado por caracteres (como o strwrap do R) e as margens crescem com o
+// número de linhas: nada é cortado na largura da figura. O texto fica alinhado
+// à borda esquerda da figura, não à do painel.
+export function cabecalho({
+  titulo = null, subtitulo = null, nota = null, largura = 560,
+  margemEsquerda = 56, folgaEixoX = 26, topoPainel = 14
+} = {}) {
+  const t = titulo ? quebrarTexto(titulo, Math.floor(largura / 8.6)) : null;
+  const s = subtitulo ? quebrarTexto(subtitulo, Math.floor(largura / 6.7)) : null;
+  const n = nota ? quebrarTexto(nota, Math.floor(largura / 5.7)) : null;
   const linhas = (x) => (x ? x.split("\n").length : 0);
   const alturaTitulo = linhas(t) * 19;
   const alturaSub = linhas(s) * 16;
-  const topo = 12 + alturaTitulo + (s ? 4 + alturaSub : 0) + 16;
-  const base = n ? 14 + linhas(n) * 13 : 0;
+  const margemTopo = 6 + alturaTitulo + (s ? 4 + alturaSub : 0) + topoPainel;
+  const margemBase = folgaEixoX + (n ? 8 + linhas(n) * 13 : 0);
+  const comum = { frameAnchor: "top-left", lineAnchor: "top", textAnchor: "start", dx: -margemEsquerda + 2 };
   const marcas = [];
   if (t) {
     marcas.push(Plot.text([t], {
-      frameAnchor: "top-left", lineAnchor: "top", textAnchor: "start",
-      dy: -topo + 8, fontSize: tamanhos.titulo, fontWeight: "bold", fill: cores.tinta, lineHeight: 1.25
+      ...comum, dy: 6 - margemTopo, fontSize: tamanhos.titulo, fontWeight: "bold",
+      fill: cores.tinta, lineHeight: 1.25
     }));
   }
   if (s) {
     marcas.push(Plot.text([s], {
-      frameAnchor: "top-left", lineAnchor: "top", textAnchor: "start",
-      dy: -topo + 12 + alturaTitulo, fontSize: tamanhos.subtitulo, fill: cores.textoSuave, lineHeight: 1.3
+      ...comum, dy: 6 + alturaTitulo + 4 - margemTopo, fontSize: tamanhos.subtitulo,
+      fill: cores.textoSuave, lineHeight: 1.3
     }));
   }
   if (n) {
     marcas.push(Plot.text([n], {
-      frameAnchor: "bottom-left", lineAnchor: "top", textAnchor: "start",
-      dy: base - linhas(n) * 13 + 22, fontSize: tamanhos.nota, fill: cores.textoSuave, lineHeight: 1.25
+      ...comum, frameAnchor: "bottom-left", dy: folgaEixoX + 8, fontSize: tamanhos.nota,
+      fill: cores.textoSuave, lineHeight: 1.3
     }));
   }
-  return { marcas, margemTopo: topo, margemBase: base };
+  return { marcas, margemTopo, margemBase };
 }

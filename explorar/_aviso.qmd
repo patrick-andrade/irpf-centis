@@ -1,0 +1,3 @@
+::: {.aviso-universo role="note"}
+Os dados representam declarações válidas do IRPF, não toda a população brasileira.
+:::

@@ -11,8 +11,14 @@ project:
     - docs/reproducibility.md
     - docs/data-dictionary.md
     - docs/provenance.md
+    - explorar/index.qmd
+    - explorar/evolucao.qmd
   resources:
     - styles/fonts/*
+    # Dados das páginas Explorar. Os arquivos por geografia são lidos com nome
+    # montado em tempo de execução, que o Quarto não detecta sozinho.
+    - explorar/dados/**
+    - assets/js/*
 
 website:
   title: "IRPF por centis"
@@ -44,6 +50,8 @@ website:
             text: "Dicionário de dados"
           - href: docs/provenance.md
             text: "Proveniência"
+      - href: explorar/index.qmd
+        text: "Explorar"
       - href: app/
         text: "Painel interativo"
     right:
