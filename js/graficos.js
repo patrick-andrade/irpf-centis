@@ -23,6 +23,12 @@ export function larguraTexto(texto, tamanho = tamanhos.anotacao) {
   return Math.ceil(String(texto ?? "").length * tamanho * 0.56);
 }
 
+// Margem esquerda que cabe o maior rótulo do eixo y ("R$ 100,0 mil").
+export function margemPara(eixo, minima = 48) {
+  const rotulos = (eixo?.ticks ?? []).map((t) => (eixo.tickFormat ? eixo.tickFormat(t) : String(t)));
+  return Math.max(minima, ...rotulos.map((r) => larguraTexto(r, 12) + 14));
+}
+
 function plotar({
   marcas, x, y, color, largura, alturaPainel, margens = {}, cabecalhoTexto = null,
   folgaEixoX = 26, ariaLabel = null, ariaDescription = null, document, projection, extra = {}
@@ -76,7 +82,7 @@ export function series(dados, {
   eixo = "indice", eixoOpcoes = {}, rotuloY = null,
   faixa = null, ressalva2018 = true, rotulos = "fim", textoRotulo = null,
   rotularSo = null, formatarExtremos = null, extras = [], extrasAntes = [],
-  largura = 640, alturaPainel = 300, margemEsquerda = 56, margemDireita = null, girarAnos = false,
+  largura = 640, alturaPainel = 300, margemEsquerda = null, margemDireita = null, girarAnos = false,
   titulo = null, subtitulo = null, nota = null,
   interativo = false, tip = null, ariaLabel = null, ariaDescription = null, document
 } = {}) {
@@ -117,7 +123,7 @@ export function series(dados, {
   ];
   return plotar({
     marcas, x: { ...eixoAno(anos), ...(girarAnos ? { tickRotate: -45 } : {}) }, y: eixoY, largura, alturaPainel,
-    margens: { left: margemEsquerda, right: margemDireita ?? larguraRotulos },
+    margens: { left: margemEsquerda ?? margemPara(eixoY), right: margemDireita ?? larguraRotulos },
     folgaEixoX: girarAnos ? 40 : 26,
     cabecalhoTexto: { titulo, subtitulo, nota }, ariaLabel, ariaDescription, document
   });
@@ -129,7 +135,7 @@ export function curvaPercentil(dados, {
   x = "share_upper", y, eixo = "aliquota", rotuloY = null,
   rotuloX = "Posição na distribuição (limite superior do grupo)",
   faixaTopo = true, anotacaoTopo = null, zero = true, cor = corDestaque(1)[0],
-  largura = 640, alturaPainel = 240, margemEsquerda = 56,
+  largura = 640, alturaPainel = 240, margemEsquerda = null,
   titulo = null, subtitulo = null, nota = null,
   interativo = false, tip = null, ariaLabel = null, ariaDescription = null, document
 } = {}) {
@@ -151,7 +157,7 @@ export function curvaPercentil(dados, {
     ...(interativo ? [Plot.tip(pontos.filter((d) => finito(d[y])), Plot.pointerX({ x, y, title: tip }))] : [])
   ];
   return plotar({
-    marcas, x: eixoX, y: eixoY, largura, alturaPainel, margens: { left: margemEsquerda, right: 20 },
+    marcas, x: eixoX, y: eixoY, largura, alturaPainel, margens: { left: margemEsquerda ?? margemPara(eixoY), right: 20 },
     folgaEixoX: 48, cabecalhoTexto: { titulo, subtitulo, nota }, ariaLabel, ariaDescription, document
   });
 }
@@ -161,7 +167,7 @@ export function curvaTopo(dados, {
   x = "share_upper", y, eixo = "aliquota", rotuloY = null,
   rotuloX = "Percentil de renda (limite superior de cada grupo divulgado)",
   rotularPicoUltimo = false, formatar = null, zero = true, cor = corDestaque(1)[0],
-  largura = 640, alturaPainel = 240, margemEsquerda = 56,
+  largura = 640, alturaPainel = 240, margemEsquerda = null,
   titulo = null, subtitulo = null, nota = null,
   interativo = false, tip = null, ariaLabel = null, ariaDescription = null, document
 } = {}) {
@@ -197,7 +203,7 @@ export function curvaTopo(dados, {
   return plotar({
     marcas,
     x: { type: "point", domain: eixoX.dominio, label: rotuloX, labelArrow: "none", tickRotate: -45, padding: 0.4 },
-    y: eixoY, largura, alturaPainel, margens: { left: margemEsquerda, right: 24 },
+    y: eixoY, largura, alturaPainel, margens: { left: margemEsquerda ?? margemPara(eixoY), right: 24 },
     folgaEixoX: 86, cabecalhoTexto: { titulo, subtitulo, nota }, ariaLabel, ariaDescription, document
   });
 }

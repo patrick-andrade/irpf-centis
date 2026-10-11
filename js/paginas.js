@@ -1,7 +1,10 @@
 // Peças repetidas entre as páginas Explorar: opções dos seletores, textos do
 // glossário, cabeçalho de cartão com ações. Cada página .qmd fica só com o que
 // é dela.
-import { el, botao, ajuda } from "./interface.js";
+import { el, botao, ajuda, leitura } from "./interface.js";
+import { curvaPercentil, curvaTopo } from "./graficos.js";
+import { codigosTopo } from "./marcas.js";
+import { notaTopoOrdinal } from "./textos.js";
 import { copiarLink } from "./estado.js";
 import { baixarCsv } from "./csv.js";
 import { paraLinhas } from "./dados.js";
@@ -80,4 +83,45 @@ export function nomeGrupoPercentil(shareUpper, rotuloOrdinal = null) {
 export function larguraGrafico(largura, fracao = 1) {
   const util = Math.min(largura, 960) - 110;
   return Math.max(300, Math.floor(util * fracao));
+}
+
+// Par de gráficos das páginas de rendimentos, bens e dívidas: a distribuição
+// até o centésimo 99 em eixo de percentil e os 20 grupos do topo em eixo
+// ordinal, cada um com a sua frase de leitura (aria-live). Os mesmos valores
+// ficam na aba Tabela, para quem não usa o ponteiro.
+export function parCurvas({
+  dados, y, eixo, rotuloY, rotuloX = "Posição na distribuição de renda (limite superior do grupo)",
+  formatar, descricao, largura, alturaPainel = 240, ariaPrincipal, ariaTopo
+}) {
+  const definido = (d) => Number.isFinite(d[y]);
+  const principal = dados.filter((d) => d.bin_code <= 99).sort((a, b) => a.share_upper - b.share_upper);
+  const topo = dados.filter((d) => codigosTopo.includes(d.bin_code)).sort((a, b) => a.share_upper - b.share_upper);
+  const frase = (nome, d) => (d && definido(d) ? `${nome}: ${descricao} ${formatar(d[y])}` : "");
+  const dica = "Passe o cursor ou toque no gráfico para ler os valores; eles também estão na aba Tabela.";
+
+  const g1 = curvaPercentil(principal, {
+    y, eixo, rotuloY, rotuloX, largura, alturaPainel, interativo: true,
+    tip: (d) => frase(nomeGrupoPercentil(d.share_upper), d), ariaLabel: ariaPrincipal,
+    ariaDescription: "O último 1% fica sombreado e é detalhado no gráfico seguinte. Os valores estão na aba Tabela."
+  });
+  const l1 = leitura({ dica });
+  g1.addEventListener("input", () => l1.atualizar(g1.value ? frase(nomeGrupoPercentil(g1.value.share_upper), g1.value) : ""));
+
+  const g2 = curvaTopo(topo, {
+    y, eixo, rotuloY, largura, alturaPainel, interativo: true,
+    tip: (d) => frase(nomeGrupoPercentil(null, d.__posicao), d), ariaLabel: ariaTopo,
+    ariaDescription: "Cada grupo do topo ocupa a mesma largura. Os valores estão na aba Tabela."
+  });
+  const l2 = leitura({ dica });
+  g2.addEventListener("input", () => l2.atualizar(g2.value ? frase(nomeGrupoPercentil(null, g2.value.__posicao), g2.value) : ""));
+
+  return el("div", {},
+    principal.length ? [el("div", { class: "grafico-explorar" }, g1), l1] : el("p", {}, "Sem valores para a seleção."),
+    el("p", { class: "nota-grafico" }, notaTopoOrdinal),
+    topo.length ? [el("div", { class: "grafico-explorar" }, g2), l2] : el("p", {}, "Sem valores no topo para a seleção."));
+}
+
+// Rótulo do grupo em tabelas: "até o percentil 45,0" ou "99,91".
+export function rotuloGrupo(d) {
+  return codigosTopo.includes(d.bin_code) ? `${percentil(d.share_upper, 0.01)}` : `${percentil(d.share_upper, 0.1)}`;
 }

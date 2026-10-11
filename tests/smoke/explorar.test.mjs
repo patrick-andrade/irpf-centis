@@ -204,7 +204,10 @@ test("Relatórios: figuras SVG do módulo JS carregam, com texto alternativo", a
 // dentro do limite, sem erro nem 404, e sem violação grave de acessibilidade.
 const paginas = [
   { caminho: "explorar/topos.html?geo=SP&ano=2023", titulo: "#titulo-topos", espera: /São Paulo/ },
-  { caminho: "explorar/estados.html?ano=2018&ind=top_1_share", titulo: "#titulo-estados", espera: /Participação do top 1%, 2018/ }
+  { caminho: "explorar/estados.html?ano=2018&ind=top_1_share", titulo: "#titulo-estados", espera: /Participação do top 1%, 2018/ },
+  { caminho: "explorar/rendimentos.html?geo=SP&ano=2023&grupo=exempt", titulo: "#titulo-rendimentos", espera: /Alíquota efetiva média/ },
+  { caminho: "explorar/bens.html?geo=BR&ano=2024", titulo: "#titulo-bens", espera: /Patrimônio médio/ },
+  { caminho: "explorar/dividas.html?geo=AC&ano=2022", titulo: "#titulo-dividas", espera: /Dívida média/ }
 ];
 
 for (const p of paginas) {
@@ -241,5 +244,32 @@ test("Estados: mapa com 27 UFs e ordem por nome na URL e na tabela", async () =>
   assert.equal(primeira, "Acre");
   const ufs = await pagina.$$eval("svg[class^=plot] text", (ts) => ts.map((t) => t.textContent).filter((t) => /^[A-Z]{2}$/.test(t)));
   assert.equal(new Set(ufs).size, 27);
+  await pagina.close();
+});
+
+test("Rendimentos: trocar a geografia baixa o arquivo dela e redesenha", async () => {
+  const { pagina, problemas } = await abrir("explorar/rendimentos.html?geo=BR");
+  await esperarGrafico(pagina);
+  await escolher(pagina, "Geografia", "RJ");
+  await pagina.waitForFunction(() => location.search.includes("geo=RJ"));
+  await pagina.waitForFunction(() => document.querySelectorAll("svg[class^=plot]").length >= 3);
+  assert.deepEqual(await errosOjs(pagina), []);
+  assert.deepEqual(problemas, []);
+  await pagina.close();
+});
+
+test("Ajuda: o \"?\" abre a definição pelo teclado", async () => {
+  const { pagina } = await abrir("explorar/topos.html");
+  await esperarGrafico(pagina);
+  const botao = await pagina.$("button.icone-ajuda");
+  await botao.focus();
+  await pagina.keyboard.press("Enter");
+  const aberto = await pagina.$eval("button.icone-ajuda", (b) => ({
+    expandido: b.getAttribute("aria-expanded"),
+    visivel: !document.getElementById(b.getAttribute("aria-controls")).hidden
+  }));
+  assert.deepEqual(aberto, { expandido: "true", visivel: true });
+  await pagina.keyboard.press("Escape");
+  assert.equal(await pagina.$eval("button.icone-ajuda", (b) => b.getAttribute("aria-expanded")), "false");
   await pagina.close();
 });
