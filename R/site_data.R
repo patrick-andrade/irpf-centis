@@ -129,7 +129,7 @@ escrever_csv_completo <- function(dados, caminho) {
   caminho
 }
 
-# Componentes de renda e patrimônio por grupo, como o painel usava: RB4, só as
+# Componentes de renda e patrimônio por grupo, como o antigo painel usava: RB4, só as
 # folhas disjuntas, soma por campo preservando a ausência.
 componentes_agregados <- function(income_components) {
   income_components |>

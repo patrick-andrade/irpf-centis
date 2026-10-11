@@ -3,8 +3,8 @@
 # número é conferido aqui.
 
 entradas_site_sinteticas <- function() {
-  b <- synthetic_app_bundle()
-  # A fixture do painel já vem agregada; o pipeline entrega por grupo.
+  b <- fixture_sintetica()
+  # A fixture vem agregada como no antigo painel; o pipeline entrega por grupo.
   componentes <- dplyr::bind_rows(
     dplyr::mutate(b$income_components, bin_code = 50L),
     dplyr::mutate(b$income_components, bin_code = 101L),
@@ -94,6 +94,21 @@ test_that("ausência não vira zero e agregados não são somados de novo", {
   expect_equal(unique(br$value_real[br$component_id == "other_taxable"]), 2.2e6)
   # Bens vão para o arquivo de patrimônio, não para o de rendimentos.
   expect_false("assets_real_estate" %in% br$component_id)
+})
+
+test_that("soma por campo preserva ausência integral sem perder valores conhecidos", {
+  expect_true(is.na(sum_known_values(c(NA_real_, NA_real_))))
+  expect_equal(sum_known_values(c(2, NA_real_, 3)), 5)
+  expect_equal(sum_known_values(c(0, NA_real_)), 0)
+  componentes <- tibble::tibble(
+    component_id = c("ausente", "ausente", "parcial", "parcial", "zero"),
+    field_label = c("Ausente", "Ausente", "Parcial", "Parcial", "Zero"),
+    value_real = c(NA_real_, NA_real_, 2, NA_real_, 0)
+  )
+  totais <- component_totals(componentes)
+  expect_true(is.na(totais$value[totais$component_id == "ausente"]))
+  expect_equal(totais$value[totais$component_id == "parcial"], 2)
+  expect_equal(totais$value[totais$component_id == "zero"], 0)
 })
 
 test_that("médias por declaração só onde há declarações", {

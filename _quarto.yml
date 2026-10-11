@@ -26,6 +26,8 @@ project:
     # montado em tempo de execução, que o Quarto não detecta sozinho.
     - explorar/dados/**
     - assets/js/*
+    # Redireciona links antigos do painel shinylive (app/?aba=...).
+    - app/index.html
 
 website:
   title: "IRPF por centis"
@@ -61,8 +63,6 @@ website:
             text: "Proveniência"
       - href: explorar/index.qmd
         text: "Explorar"
-      - href: app/
-        text: "Painel interativo"
     right:
       - icon: github
         href: https://github.com/patrick-andrade/irpf-centis

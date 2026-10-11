@@ -14,14 +14,26 @@ usage <- function() {
     "  discover             Descobre fontes oficiais e grava o inventário\n",
     "  download [ano]       Baixa fontes e atualiza o manifesto\n",
     "  context              Atualiza deflatores IPCA e malha estadual IBGE\n",
-    "  build                Executa o pipeline targets\n",
-    "  check                Executa testes e validações\n",
-    "  render               Renderiza o site Quarto\n",
-    "  site                 Renderiza o site e exporta o painel (shinylive)\n",
-    "  app                  Inicia o painel Shiny\n",
+    "  build                Executa o pipeline targets (inclui os dados do site)\n",
+    "  check                Executa os testes R e, com Node, os testes JS\n",
+    "  render               Gera bundle JS e figuras (Node) e renderiza o site\n",
     "  release              Monta o pacote local de publicação\n",
     sep = ""
   )
+}
+
+# A camada visual (páginas Explorar e figuras dos relatórios) é JavaScript,
+# rodado pelo Node. Sem Node instalado, os passos dele são pulados com aviso:
+# o bundle e as figuras versionados continuam valendo.
+rodar_npm <- function(...) {
+  npm <- Sys.which(if (.Platform$OS.type == "windows") "npm.cmd" else "npm")
+  if (!nzchar(npm)) {
+    cli::cli_alert_warning("Node/npm não encontrado: pulando npm {paste(c(...), collapse = ' ')}.")
+    return(invisible(FALSE))
+  }
+  status <- system2(npm, c(...))
+  if (!identical(status, 0L)) stop("npm ", paste(c(...), collapse = " "), " falhou.", call. = FALSE)
+  invisible(TRUE)
 }
 
 if (command == "discover") {
@@ -47,7 +59,7 @@ if (command == "discover") {
   testthat::test_dir("tests/testthat", reporter = "summary", stop_on_failure = TRUE)
   if (requireNamespace("lintr", quietly = TRUE)) {
     lint_counts <- vapply(
-      c("R", "app/R"),
+      "R",
       function(directory) length(lintr::lint_dir(directory)),
       integer(1)
     )
@@ -59,16 +71,12 @@ if (command == "discover") {
   } else {
     cat("Lint não verificado: pacote lintr indisponível.\n")
   }
+  rodar_npm("test")
 } else if (command == "render") {
+  rodar_npm("run", "build")
+  rodar_npm("run", "figuras")
   quarto::quarto_render(".")
-} else if (command == "site") {
-  quarto::quarto_render(".")
-  sync_app_viz()
-  source("scripts/export-app.R")
-  cli::cli_alert_success("Site completo em output/site (relatórios + painel).")
-} else if (command == "app") {
-  sync_app_viz()
-  shiny::runApp("app", launch.browser = interactive())
+  cli::cli_alert_success("Site em output/site. Para ver: node scripts/servir.mjs output/site")
 } else if (command == "release") {
   path <- create_release_bundle()
   cli::cli_alert_success("Pacote de publicação montado em {path}.")

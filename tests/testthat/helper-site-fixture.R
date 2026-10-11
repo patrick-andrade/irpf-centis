@@ -1,6 +1,7 @@
-# Bundle sintético mínimo com o contrato atual do painel, para testes de
-# módulo via shiny::testServer sem depender do pipeline.
-synthetic_app_bundle <- function() {
+# Fixture sintética mínima com as tabelas do pipeline (ano, geografia, grupo),
+# para testar o contrato de dados do site e os helpers dos relatórios sem
+# depender do pipeline.
+fixture_sintetica <- function() {
   metrics <- tidyr::expand_grid(
     year = 2023:2024,
     geo_code = c("BR", "SP", "RJ")
@@ -47,7 +48,7 @@ synthetic_app_bundle <- function() {
     dplyr::select(-"component")
 
   # Inclui os grupos disjuntos do topo (99, 101-109, 111-120) além dos centis
-  # baixos: sem eles o painel de detalhe do topo não teria o que desenhar, e é
+  # baixos: sem eles o gráfico de detalhe do topo não teria o que desenhar, e é
   # justamente ali que está a queda da alíquota que o estudo quer comunicar.
   codigos_fixture <- c(1L, 50L, 90L, 95L, 99L, 101:109, 111:120)
   limites <- purrr::map_dfr(codigos_fixture, bin_attributes)
@@ -105,7 +106,7 @@ synthetic_app_bundle <- function() {
     dplyr::ungroup()
 
   # 2023 sem declarações conjuntas reproduz os anos em que o campo não é
-  # divulgado. O painel precisa dizer isso, em vez de exibir zero.
+  # divulgado. A página Topos precisa dizer isso, em vez de exibir zero.
   rotulos <- c(top_10 = "10%", top_1 = "1%", top_0_1 = "0,1%", top_0_01 = "0,01%")
   cortes <- c(top_10 = 0.9, top_1 = 0.99, top_0_1 = 0.999, top_0_01 = 0.9999)
   tamanhos <- c(top_10 = 100000, top_1 = 10000, top_0_1 = 1000, top_0_01 = 100)
@@ -125,7 +126,7 @@ synthetic_app_bundle <- function() {
     )
 
   # Conceitos, indicadores e referências vêm dos contratos reais: é o mesmo
-  # texto que o painel publica, e o teste falha se o contrato sumir.
+  # texto que o site publica, e o teste falha se o contrato sumir.
   esquema <- function(nome) {
     readr::read_csv(
       file.path(test_project_root, "config", "schema", paste0(nome, ".csv")),
@@ -175,11 +176,4 @@ synthetic_app_bundle <- function() {
     indicators = esquema("indicators"),
     references = esquema("references")
   )
-}
-
-load_app_module_env <- function(root = test_project_root) {
-  env <- new.env(parent = globalenv())
-  files <- sort(list.files(file.path(root, "app", "R"), pattern = "\\.R$", full.names = TRUE))
-  invisible(lapply(files, source, local = env, encoding = "UTF-8"))
-  env
 }

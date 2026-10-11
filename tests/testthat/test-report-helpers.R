@@ -1,5 +1,5 @@
 report_metrics_fixture <- function() {
-  bundle <- synthetic_app_bundle()
+  bundle <- fixture_sintetica()
   bundle$metrics |>
     dplyr::bind_rows(
       bundle$metrics |>
@@ -31,7 +31,7 @@ test_that("comparação entre rankings traz apenas os conceitos pedidos", {
 })
 
 test_that("curva e evolução da alíquota efetiva usam os filtros esperados", {
-  bundle <- synthetic_app_bundle()
+  bundle <- fixture_sintetica()
   curve <- plot_effective_rate_curve(bundle$effective_tax, year = 2024)
   expect_setequal(unique(curve$data$geo_code), "BR")
   # O painel principal cobre a distribuição até o centil 99; o topo tem gráfico

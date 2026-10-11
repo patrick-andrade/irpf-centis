@@ -93,9 +93,9 @@ read_ibge_state_geometry <- function(path = "data/external/ibge-states.geojson")
   sf::read_sf(path, quiet = TRUE)
 }
 
-# Achata a malha sf em um tibble de vértices para que o app desenhe o mapa
-# com geom_polygon, sem depender de sf (requisito do shinylive/webR).
-# Ponto de rótulo de cada UF para o mapa do painel. `st_point_on_surface` cai
+# Achata a malha sf em um tibble de vértices; R/site_data.R remonta daqui o
+# GeoJSON do mapa das páginas Explorar, com os anéis na orientação do d3.
+# Ponto de rótulo de cada UF para o mapa da página Estados. `st_point_on_surface` cai
 # dentro do polígono mesmo em formas côncavas, o que o centroide não garante. O
 # cálculo fica no pipeline porque o sf não roda no navegador.
 state_label_points <- function(state_geometry) {

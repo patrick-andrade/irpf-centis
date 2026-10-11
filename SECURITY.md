@@ -2,8 +2,8 @@
 
 ## Versões cobertas
 
-O projeto publica um site estático e um painel que roda inteiramente no
-navegador do leitor. Não há servidor, banco de dados nem autenticação. A versão
+O projeto publica um site estático, cujas páginas interativas rodam inteiramente
+no navegador do leitor. Não há servidor, banco de dados nem autenticação. A versão
 coberta é sempre a mais recente publicada em `main`.
 
 ## Relatando uma vulnerabilidade
@@ -20,9 +20,10 @@ versão ou commit onde você observou o problema.
 
 ## O que está no escopo
 
-- Execução de código ou injeção pelo painel shinylive ou pelas páginas do site.
+- Execução de código ou injeção pelas páginas do site, inclusive as páginas
+  Explorar e o bundle JavaScript que elas carregam (`assets/js/irpf-viz.js`).
 - Comprometimento da cadeia de build: workflows do GitHub Actions, dependências
-  do `renv.lock`, scripts de aquisição de dados.
+  do `renv.lock` e do `package-lock.json`, scripts de aquisição de dados.
 - Qualquer credencial, token ou dado pessoal que tenha vazado para o
   repositório ou para o site — inclusive no histórico.
 

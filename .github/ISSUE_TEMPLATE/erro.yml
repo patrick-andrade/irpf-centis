@@ -1,4 +1,4 @@
-name: Erro no código ou no painel
+name: Erro no código ou nas páginas
 description: Algo quebra, não carrega ou se comporta de forma inesperada
 labels: ["bug"]
 body:
@@ -13,7 +13,7 @@ body:
     attributes:
       label: Como reproduzir
       placeholder: |
-        1. Abrir o painel
+        1. Abrir a página (ex.: Explorar, Evolução)
         2. Selecionar ...
         3. ...
     validations:
@@ -29,15 +29,15 @@ body:
     attributes:
       label: Onde
       options:
-        - Painel publicado (navegador)
+        - Páginas Explorar publicadas (navegador)
         - Site e relatórios publicados
         - Pipeline local (run.sh / run.cmd)
-        - Painel local
+        - Site renderizado localmente
     validations:
       required: true
   - type: textarea
     id: ambiente
     attributes:
       label: Ambiente
-      description: Para o painel publicado, navegador e sistema. Para uso local, saída de `sessionInfo()`.
+      description: Para as páginas publicadas, navegador, sistema e o link da visão (botão "Copiar link desta visão"). Para uso local, saída de `sessionInfo()` e `node --version`.
       render: text

@@ -107,18 +107,6 @@ list(
     },
     format = "file"
   ),
-  tar_target(
-    app_bundle,
-    {
-      quality_gate
-      derived_quality_gate
-      write_app_bundle(
-        income_components, distribution_metrics, effective_tax, wealth_bins,
-        top_counts, wealth_metrics, state_polygons, metrics_sem_topo, state_labels
-      )
-    },
-    format = "file"
-  ),
   # JSON das páginas Explorar (explorar/dados/) e CSV completos da página de
   # dados. Versionados: o deploy só repete o render do Quarto.
   tar_target(

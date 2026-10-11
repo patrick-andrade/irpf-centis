@@ -25,9 +25,6 @@ data/metadata/official/**
 !data/external/ibge-states.geojson
 output/**
 !output/.gitkeep
-app/data/**
-!app/data/.gitkeep
-!app/data/app-bundle.rds
 
 # Quarto
 /.quarto/

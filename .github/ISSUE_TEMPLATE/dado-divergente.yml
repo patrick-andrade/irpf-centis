@@ -11,8 +11,8 @@ body:
     id: onde
     attributes:
       label: Onde você viu
-      description: Página, aba do painel ou arquivo de dados curados.
-      placeholder: "Painel → Topos da renda; ou reports/report.html, seção 3"
+      description: Página, link da visão ou arquivo de dados curados.
+      placeholder: "explorar/topos.html?geo=SP&ano=2023; ou reports/report.html, seção 3"
     validations:
       required: true
   - type: input

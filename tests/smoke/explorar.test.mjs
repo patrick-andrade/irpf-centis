@@ -329,3 +329,22 @@ test("Links internos resolvem, inclusive as âncoras do glossário", async () =>
   }
   assert.ok(vistos.size > 20);
 });
+
+test("Links antigos do painel (app/?aba=…) levam à página Explorar com o mesmo estado", async () => {
+  // A página de destino pode reescrever a URL (acrescenta padrões, muda a
+  // ordem): o teste confere o caminho e os parâmetros, não a string.
+  const casos = [
+    ["app/?aba=evolucao&geo=SP&comparar=RJ&ind=top_1_share", "explorar/evolucao.html", { geo: "SP", comparar: "RJ", ind: "top_1_share" }],
+    ["app/?aba=topos&ano=2023&geo=PE", "explorar/topos.html", { ano: "2023", geo: "PE" }],
+    ["app/?aba=metodologia", "glossario.html", {}],
+    ["app/", "explorar/index.html", {}]
+  ];
+  for (const [origem, caminho, parametros] of casos) {
+    const { pagina } = await abrir(origem);
+    await pagina.waitForFunction((c) => location.pathname.endsWith(c), { timeout: 10000 }, caminho);
+    await pagina.waitForNetworkIdle({ idleTime: 300 }).catch(() => {});
+    const busca = await pagina.evaluate(() => Object.fromEntries(new URLSearchParams(location.search)));
+    for (const [k, v] of Object.entries(parametros)) assert.equal(busca[k], v, `${origem}: ${k}`);
+    await pagina.close();
+  }
+});

@@ -170,7 +170,7 @@ calculate_all_metrics <- function(distribution_bins, epsilon = 0.5) {
 # Mesmas medidas sem o grupo 120 (top 0,01%). Em 2018 esse único grupo da fonte
 # oficial destoa dos anos vizinhos — 3.181 declarações movem o Gini nacional de
 # 0,584 para 0,666 (docs/limitations.md). A variante mostra quanto cada série
-# depende dele, no relatório e no painel. A participação do próprio top 0,01%
+# depende dele, no relatório e nas páginas Explorar. A participação do próprio top 0,01%
 # perde o sentido sem o grupo e fica NA.
 metricas_sem_grupo_120 <- function(distribution_bins, epsilon = 0.5,
                                    geo_code = NULL, ranking = NULL) {
@@ -212,7 +212,7 @@ top_group_counts <- function(distribution_bins, income_components, ranking = "RB
       dplyr::group_by(.data$year, .data$geo_level, .data$geo_code, .data$ranking_id) |>
       dplyr::summarise(
         # Sem `na.rm`: declarações conjuntas não são divulgadas até 2022 e campo
-        # ausente não pode virar zero. O NA propaga e o painel diz "não
+        # ausente não pode virar zero. O NA propaga e a página Topos diz "não
         # divulgado" em vez de exibir um total falso.
         contributors = sum(.data$contributors),
         joint_returns = sum(.data$joint_returns),
