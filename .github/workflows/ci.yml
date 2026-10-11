@@ -35,3 +35,53 @@ jobs:
       - uses: r-lib/actions/setup-renv@v2
       - name: Testes e diagnóstico de lint
         run: Rscript scripts/run.R check
+
+  # Camada visual: módulo JS das páginas Explorar e das figuras dos relatórios.
+  # O bundle servido ao site fica versionado, porque o deploy só repete o render
+  # do Quarto; aqui ele é gerado de novo e precisa sair idêntico ao do git.
+  js:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - name: Testes do módulo JS
+        run: npm test
+      - name: Bundle versionado em dia
+        run: |
+          npm run build
+          git diff --exit-code -- assets/js || { echo "assets/js/irpf-viz.js desatualizado: rode npm run build e commite"; exit 1; }
+      - name: Figuras dos relatórios em dia
+        # Os SVG dos PDFs saem dos JSON versionados; gerados de novo aqui, no
+        # Ubuntu, precisam ser iguais aos gerados no Windows do autor.
+        run: |
+          npm run figuras
+          git diff --exit-code -- reports/figuras || { echo "reports/figuras desatualizado: rode npm run figuras e commite"; exit 1; }
+
+  # Site renderizado como no deploy (replay do _freeze, sem R) e testado num
+  # navegador de verdade: erro em tempo de execução, arquivo não copiado,
+  # tempo até o primeiro gráfico e acessibilidade (axe).
+  site:
+    runs-on: ubuntu-latest
+    env:
+      RENV_CONFIG_AUTOLOADER_ENABLED: "false"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - uses: quarto-dev/quarto-actions/setup@v2
+        with:
+          # A mesma versão do deploy: o runtime OJS e o Typst mudam com o Quarto.
+          version: 1.9.38
+      - name: Renderizar site (replay do _freeze)
+        run: quarto render
+      - name: Testes de fumaça no navegador
+        env:
+          NAVEGADOR: /usr/bin/google-chrome
+        run: npm run smoke

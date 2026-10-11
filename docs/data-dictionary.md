@@ -16,7 +16,7 @@ Uma linha por chave distributiva e `component_id`. Contém o valor nominal, o va
 
 ## `effective_tax`
 
-Uma linha por chave distributiva das folhas disjuntas, com o imposto devido, a renda do conceito de ranking e a alíquota efetiva média do grupo (`effective_rate = tax_due / rank_sum`; `NA` quando a renda é nula ou não divulgada). Exportado em `data/processed/effective-tax.parquet` e, no recorte RB4, no bundle do painel.
+Uma linha por chave distributiva das folhas disjuntas, com o imposto devido, a renda do conceito de ranking e a alíquota efetiva média do grupo (`effective_rate = tax_due / rank_sum`; `NA` quando a renda é nula ou não divulgada). Exportado em `data/processed/effective-tax.parquet` e, no recorte RB4, em `explorar/dados/rendimentos/<geo>.json`.
 
 ## `distribution_metrics`
 
@@ -33,7 +33,7 @@ Série suplementar nacional em que a ordenação é realizada diretamente pelo p
 
 ## `wealth_by_bin`
 
-Uma linha por ano, geografia e grupo disjunto de RB4, com bens e dívidas observados dentro dos grupos ordenados por renda. Contém a soma das quatro famílias de bens (`assets_sum_real`), o total consolidado quando divulgado (`assets_total_real`, de 2022 em diante), as dívidas e ônus, a participação de cada grupo nos estoques do recorte (`assets_share`, `debt_share`) e a razão dívida/renda (`debt_income_ratio` = `debts_real / rank_sum_real`; `NA` quando a renda do grupo é nula). Exportado em `data/processed/wealth-by-bin.parquet`; o bundle do painel recebe um recorte de colunas.
+Uma linha por ano, geografia e grupo disjunto de RB4, com bens e dívidas observados dentro dos grupos ordenados por renda. Contém a soma das quatro famílias de bens (`assets_sum_real`), o total consolidado quando divulgado (`assets_total_real`, de 2022 em diante), as dívidas e ônus, a participação de cada grupo nos estoques do recorte (`assets_share`, `debt_share`) e a razão dívida/renda (`debt_income_ratio` = `debts_real / rank_sum_real`; `NA` quando a renda do grupo é nula). Exportado em `data/processed/wealth-by-bin.parquet`; `explorar/dados/patrimonio/<geo>.json` recebe um recorte de colunas, com o patrimônio médio e a dívida média por declaração já calculados.
 
 ## `top_group_counts`
 
@@ -41,4 +41,22 @@ Uma linha por ano, geografia, ranking e grupo de topo (`top_10`, `top_1`, `top_0
 
 ## Contratos de glossário
 
-`config/schema/indicators.csv` define cada indicador exibido: rótulo, definição, leitura, faixa, a nota metodológica de cálculo com dados agrupados e as chaves bibliográficas. `config/schema/references.csv` projeta `reports/references.bib` num formato que o painel consegue renderizar sem pandoc; `test-glossary.R` falha se os dois divergirem.
+`config/schema/indicators.csv` define cada indicador exibido: rótulo, definição, leitura, faixa, a nota metodológica de cálculo com dados agrupados e as chaves bibliográficas. `config/schema/references.csv` projeta `reports/references.bib` num formato que o glossário e as páginas Explorar usam sem pandoc; `test-glossary.R` falha se os dois divergirem. A coluna `explorar_ordem` define quais indicadores aparecem nos seletores das páginas Explorar, e em que ordem.
+
+## Dados das páginas Explorar
+
+`R/site_data.R` (`write_site_data()`, alvo `site_data`) escreve em `explorar/dados/` os JSON que as páginas leem no navegador e os quatro CSV completos da página de dados. As tabelas vêm em formato colunar (cada coluna é uma lista de valores), com `schema_version`, LF e sem carimbo de hora. Precisão: inteiros exatos, valores monetários ao real, proporções, alíquotas e índices com seis casas; `NA` vira `null`.
+
+| Arquivo | Conteúdo |
+|---|---|
+| `comum.json` | geografias em ordem (Brasil, UFs pelo nome, Exterior), conceitos disponíveis, indicadores do seletor, grupos e campos de componentes, safra |
+| `glossario.json` | indicadores, conceitos de renda e referências |
+| `evolucao.json` | indicadores por ano, geografia e conceito, a variante sem o top 0,01% e as geografias em que 2018 destoa (`saltos_2018`) |
+| `topos.json` | participações do topo (RB4) e contagens dos grupos de topo |
+| `estados.json`, `ufs.geojson` | indicadores estaduais (RB4), pontos de rótulo e a malha das UFs com os anéis na orientação do d3 |
+| `rendimentos/<geo>.json` | componentes declarados (ausência preservada) e alíquota efetiva por grupo |
+| `patrimonio/<geo>.json`, `patrimonio-direto.json` | bens e dívidas por grupo e a série do Gini patrimonial direto |
+| `visao-geral.json` | caixas e cartões de pergunta da visão geral, já redigidos |
+| `csv/*.csv` | indicadores, bens e dívidas por grupo, contagens do topo, conceitos e indicadores |
+
+`reports/dados/aliquota-grupos.json` (alvo `report_figure_data`) traz a alíquota efetiva dos grupos agregados usada numa figura do relatório.

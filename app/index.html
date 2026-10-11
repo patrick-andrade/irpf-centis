@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>O painel mudou de endereço — IRPF por centis</title>
+<!--
+  O painel shinylive foi substituído pelas páginas Explorar. Links antigos
+  (app/?aba=evolucao&geo=SP…) continuam valendo: o parâmetro `aba` escolhe a
+  página e os demais seguem com os mesmos nomes. Sem JavaScript, o meta refresh
+  leva à visão geral.
+-->
+<meta http-equiv="refresh" content="3; url=../explorar/index.html">
+<script>
+  (function () {
+    var paginas = {
+      "visao-geral": "../explorar/index.html",
+      "evolucao": "../explorar/evolucao.html",
+      "topos": "../explorar/topos.html",
+      "rendimentos": "../explorar/rendimentos.html",
+      "bens": "../explorar/bens.html",
+      "dividas": "../explorar/dividas.html",
+      "estados": "../explorar/estados.html",
+      "metodologia": "../glossario.html"
+    };
+    var busca = new URLSearchParams(window.location.search);
+    var destino = paginas[busca.get("aba")] || paginas["visao-geral"];
+    busca.delete("aba");
+    var resto = busca.toString();
+    window.location.replace(destino + (resto ? "?" + resto : "") + window.location.hash);
+  })();
+</script>
+<style>
+  body { font-family: "Noto Sans", "Segoe UI", Arial, sans-serif; color: #101d40; margin: 3rem auto; max-width: 36rem; padding: 0 1rem; line-height: 1.6; }
+  a { color: #0757cf; }
+</style>
+</head>
+<body>
+<main>
+<h1>O painel interativo mudou de endereço</h1>
+<p>As visões do painel agora estão nas páginas <a href="../explorar/index.html">Explorar</a>, que abrem em menos de um segundo. Você será levado para lá automaticamente.</p>
+</main>
+</body>
+</html>

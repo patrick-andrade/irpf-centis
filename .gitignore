@@ -25,15 +25,18 @@ data/metadata/official/**
 !data/external/ibge-states.geojson
 output/**
 !output/.gitkeep
-app/data/**
-!app/data/.gitkeep
-!app/data/app-bundle.rds
 
 # Quarto
 /.quarto/
 reports/*_files/
 index_files/
 tmp/**
+
+# Node (camada visual)
+node_modules/
+
+# Worktrees criados por ferramentas locais
+/.claude/worktrees/
 
 # Documentação interna de desenvolvimento
 internal/

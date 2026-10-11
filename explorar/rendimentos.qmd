@@ -1,0 +1,162 @@
+---
+title: "Rendimentos e imposto"
+subtitle: "Composição dos rendimentos declarados e alíquota efetiva por posição na distribuição"
+page-layout: full
+toc: false
+---
+
+```{ojs}
+//| output: false
+import {
+  paraLinhas, carregarJson, barras, parCurvas, seletor, grupoFiltros, tabela, rodape, subnav, el, html,
+  lerEstado, valorInicial, publicarEstado, percentual, dinheiro, fonteReceita, blocoConceitos,
+  glossarioDe, opcoesGeografia, opcoesAno, cabecalhoCartao, larguraGrafico, rotuloGrupo
+} from "../assets/js/irpf-viz.js"
+```
+
+```{ojs}
+//| output: false
+comum = FileAttachment("dados/comum.json").json()
+glossario = FileAttachment("dados/glossario.json").json()
+g = glossarioDe(glossario)
+campos = new Map(paraLinhas(comum.campos).map((c) => [c.component_id, c]))
+gruposCampos = paraLinhas(comum.grupos_de_campos)
+geos = opcoesGeografia(comum)
+nomeGeo = new Map(geos.map((o) => [o.valor, o.rotulo]))
+anos = comum.anos
+estadoUrl = lerEstado(location.search, {
+  anos, geos: geos.map((o) => o.valor), grupos: gruposCampos.map((x) => x.id)
+})
+```
+
+```{ojs}
+subnav("rendimentos", { geo: filtros.geo, ano: filtros.ano })
+```
+
+{{< include _aviso.qmd >}}
+
+```{ojs}
+viewof filtros = grupoFiltros({
+  ano: seletor({ rotulo: "Ano", opcoes: opcoesAno(anos), valor: Number(valorInicial(estadoUrl.ano, "ano", anos, anos[anos.length - 1])) }),
+  geo: seletor({ rotulo: "Geografia", opcoes: geos, valor: valorInicial(estadoUrl.geo, "geo", geos.map((o) => o.valor), "BR") }),
+  grupo: seletor({
+    rotulo: "Grupo de campos", opcoes: gruposCampos.map((x) => ({ valor: x.id, rotulo: x.rotulo })),
+    valor: estadoUrl.grupo ?? "taxable"
+  })
+}, { rotulo: "Filtros de rendimentos" })
+```
+
+```{ojs}
+//| output: false
+ano = filtros.ano
+geo = filtros.geo
+nome = nomeGeo.get(geo)
+// Um arquivo por geografia: a página baixa só a que o leitor escolheu.
+dadosGeo = carregarJson(`dados/rendimentos/${geo}.json`)
+componentes = paraLinhas(dadosGeo.componentes)
+aliquotas = paraLinhas(dadosGeo.aliquota).filter((d) => d.year === ano)
+pct = percentual(0.1)
+```
+
+```{ojs}
+//| output: false
+publicarEstado({ ano, geo, grupo: filtros.grupo }, { comum: { ano, geo } })
+```
+
+::: {.cartao-explorar}
+
+```{ojs}
+{
+  const doGrupo = componentes
+    .filter((d) => d.year === ano && campos.get(d.component_id)?.component_group === filtros.grupo)
+    .map((d) => ({ ...d, rotulo: campos.get(d.component_id)?.field_label ?? d.component_id }));
+  const semValor = doGrupo.filter((d) => !Number.isFinite(d.value_real));
+  const comValor = doGrupo.filter((d) => Number.isFinite(d.value_real)).sort((a, b) => b.value_real - a.value_real).slice(0, 12);
+  const rotuloGrupoCampos = gruposCampos.find((x) => x.id === filtros.grupo)?.rotulo.toLowerCase();
+  return el("div", {},
+    el("h2", { class: "h5" }, "Composição declarada"),
+    comValor.length
+      ? barras(comValor, {
+          x: "value_real", y: "rotulo", eixo: "dinheiro", rotuloX: "Valor declarado em R$ de 2024",
+          largura: larguraGrafico(width), interativo: true, tip: (d) => `${d.rotulo}: ${dinheiro()(d.value_real)}`,
+          ariaLabel: `Barras horizontais dos componentes declarados (${rotuloGrupoCampos}) em R$ de 2024, ${nome}, ${ano}`,
+          ariaDescription: "Os doze maiores campos do grupo, em ordem decrescente de valor."
+        })
+      : el("p", {}, "Sem valores de componentes divulgados para a seleção."),
+    semValor.length ? el("p", { class: "nota-grafico" }, `${semValor.length} campo(s) sem valor divulgado fora do gráfico.`) : null);
+}
+```
+
+:::
+
+::: {.cartao-explorar}
+
+```{ojs}
+cabecalhoCartao({
+  titulo: "Alíquota efetiva média por posição na distribuição", id: "titulo-rendimentos",
+  csv: {
+    linhas: () => aliquotas.map((d) => ({
+      ano: d.year, geografia: nome, grupo: d.bin_code, percentil: 100 * d.share_upper, aliquota: d.effective_rate
+    })),
+    colunas: [
+      { id: "ano", rotulo: "Ano" }, { id: "geografia", rotulo: "Geografia" }, { id: "grupo", rotulo: "Grupo" },
+      { id: "percentil", rotulo: "Percentil_limite_superior" }, { id: "aliquota", rotulo: "Aliquota_efetiva_media" }
+    ],
+    arquivo: `irpf-centis-aliquota-efetiva-${geo}-${ano}.csv`
+  }
+})
+```
+
+<p class="nota-grafico">Imposto devido dividido pela renda RB4 de cada grupo; média com dados agrupados, sem variação interna aos grupos.</p>
+
+::: {.panel-tabset}
+
+## Gráfico
+
+```{ojs}
+parCurvas({
+  dados: aliquotas, y: "effective_rate", eixo: "aliquota", rotuloY: "Alíquota efetiva média",
+  rotuloX: "Posição na distribuição (limite superior do grupo)",
+  formatar: pct, descricao: "alíquota efetiva média de", largura: larguraGrafico(width),
+  ariaPrincipal: `Linha da alíquota efetiva média por posição na distribuição da renda RB4, ${nome}, ${ano}`,
+  ariaTopo: `Linha da alíquota efetiva média no centil 99 e nos 19 grupos do top 1% da renda RB4, ${nome}, ${ano}`
+})
+```
+
+## Tabela
+
+```{ojs}
+tabela({
+  linhas: [...aliquotas].sort((a, b) => a.share_upper - b.share_upper),
+  legenda: `Alíquota efetiva média por grupo, ${nome}, ${ano}`,
+  colunas: [
+    { id: "share_upper", rotulo: "Grupo (limite superior, percentil)", cabecalhoLinha: true, formatar: (_, d) => rotuloGrupo(d) },
+    { id: "effective_rate", rotulo: "Alíquota efetiva média", numerica: true, formatar: pct }
+  ]
+})
+```
+
+:::
+
+:::
+
+```{ojs}
+rodape({
+  notas: [
+    "Os valores são somas declaradas em cada grupo, em R$ de 2024; ausência de campo na fonte não é convertida em zero.",
+    "A alíquota efetiva média divide o imposto devido pela renda ampla declarada (RB4), e não pela base de cálculo legal."
+  ],
+  fonte: fonteReceita
+})
+```
+
+```{ojs}
+blocoConceitos({
+  conceitos: [g.itemConceito("RB4")].filter(Boolean),
+  indicadores: [g.itemIndicador("effective_rate")].filter(Boolean),
+  extras: [{
+    termo: "Grupos de campos",
+    resumo: "Tributáveis, exclusivos, isentos, deduções e imposto são os grupos semânticos dos campos divulgados pela Receita. Somá-los entre si duplicaria rendimentos que já entram no conceito de ordenação."
+  }]
+})
+```

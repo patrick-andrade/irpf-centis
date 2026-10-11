@@ -6,6 +6,37 @@ O formato segue *Keep a Changelog* e as versões públicas usarão versionamento
 
 ## [Não publicado]
 
+### Camada visual em Quarto + OJS
+
+A decisão e as medições estão na [ADR 0002](docs/decisions/0002-camada-visual-quarto-ojs.md).
+
+- **Páginas Explorar no lugar do painel shinylive.** Visão geral, Evolução, Topos, Rendimentos, Bens, Dívidas, Estados e Dados agora são páginas do próprio site, em OJS com Observable Plot. O primeiro gráfico da Evolução sai em ~0,5 s na primeira visita, contra 22,1 s do painel (Edge headless, servidor local). Todos os recursos do painel foram mantidos:
+  - link da visão e ano e geografia comuns entre as páginas;
+  - até três geografias e série sem o top 0,01%;
+  - leitura de valores por ponteiro e por teclado;
+  - Gráfico | Tabela e CSV em pt-BR;
+  - ajuda "?" e glossário;
+  - notas de 2018 por geografia.
+- **Links antigos continuam valendo.** `app/?aba=…` redireciona para a página correspondente, com os mesmos parâmetros.
+- **Glossário** (`glossario.html`) gerado dos contratos, com um endereço por conceito e por indicador. As ajudas das páginas apontam para ele.
+- **Figuras dos relatórios** desenhadas pelo mesmo módulo das páginas, renderizadas no Node:
+  - no PDF, o texto dos gráficos passa a ser texto, em Noto Sans;
+  - o relatório caiu de 479 KB para 202 KB e o sumário de 171 KB para 87 KB;
+  - os ticks com passo 0,025 deixam de sair com duas casas ("0,53" para 0,525).
+- **Dados do site** (`explorar/dados/`) gerados pelo pipeline (`write_site_data()`), em JSON por página e por geografia. Cálculos e textos com número continuam em R e testados lá.
+- **Testes:**
+  - `node --test` para o módulo JavaScript;
+  - fixtures de formatação compartilhadas entre R e JS;
+  - fumaça em navegador com axe-core, checagem de links e redirecionamento.
+- **Publicação:** o CI ganha os jobs `js` e `site`. O deploy não instala R, só repete o render, com o Quarto fixado em 1.9.38.
+- **Removidos:**
+  - `app/`, `R/viz.R` e as funções `plot_*`;
+  - `scripts/export-app.R`, `scripts/benchmark-app.R` e o `Dockerfile`;
+  - ggplot2, shiny, bsicons, shinylive e httpuv saem do `renv.lock`, com 17 dependências exclusivas deles;
+  - bslib e callr saem do `DESCRIPTION`, mas seguem no `renv.lock` como dependências do rmarkdown e do targets.
+
+  A tag `ultimo-shinylive` marca o último commit com o painel.
+
 ### Corrigido
 
 - Fórmula de Foster–Wolfson: o fator média/mediana agora multiplica toda a expressão. Em Brasil–RB4, 2024, o valor passa de 0,92206242 para 0,47504184; a [comparação integral](docs/revisao-2026/resultados.md) registra os campos afetados. O DOI da 0.3.0 arquiva o cálculo anterior.

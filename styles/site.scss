@@ -157,11 +157,256 @@ a:focus-visible, button:focus-visible, .nav-link:focus-visible {
   text-align: left;
 }
 .cell-output-display:has(table) { overflow-x: auto; }
+/* Figuras dos relatórios (reports/figuras/*.svg, desenhadas pelo módulo JS):
+   largura de leitura, sem ampliar o texto do gráfico além do corpo da página. */
+.quarto-figure img[src*="figuras/"] { display: block; max-width: min(100%, 760px); height: auto; }
 table { background: #fff; font-variant-numeric: tabular-nums; }
 table th { background: #eaf1fb; color: var(--irpf-navy); font-weight: 700; }
 table td, table th { border-color: var(--irpf-rule) !important; }
 table tbody tr:hover { background: #f2f6fc; }
 .page-footer { background: #edf2f9; color: var(--irpf-muted); border-top: 1px solid var(--irpf-rule); }
+
+/* ---------------------------------------------------------------------------
+   Páginas Explorar (explorar/*.qmd): filtros, caixas de valor, leitura de
+   valores, ajuda, rodapé e glossário. Portado de app/www/styles.css.
+   --------------------------------------------------------------------------- */
+.aviso-universo {
+  background: #fff7dc;
+  border: 1px solid #d5a827;
+  border-radius: 6px;
+  color: #453400;
+  font-weight: 600;
+  margin: .4rem 0 1rem;
+  padding: .55rem .9rem;
+}
+
+.subnav-explorar ul {
+  border-bottom: 1px solid var(--irpf-rule);
+  display: flex;
+  flex-wrap: wrap;
+  gap: .15rem .9rem;
+  list-style: none;
+  margin: 0 0 1.2rem;
+  padding: 0 0 .45rem;
+}
+.subnav-explorar a { font-weight: 600; text-decoration: none; }
+.subnav-explorar a[aria-current="page"] {
+  border-bottom: 3px solid var(--irpf-blue);
+  color: var(--irpf-navy);
+  padding-bottom: .3rem;
+}
+
+.explorar-filtros {
+  background: #eef3fa;
+  border: 1px solid var(--irpf-rule);
+  border-radius: 8px;
+  display: grid;
+  gap: .2rem 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
+  margin-bottom: 1rem;
+  padding: .9rem 1rem .1rem;
+}
+.controle-explorar { margin-bottom: .85rem; }
+.controle-explorar .form-label, .controle-explorar legend {
+  color: var(--irpf-navy);
+  font-size: .92rem;
+  font-weight: 700;
+  margin-bottom: .25rem;
+}
+.controle-explorar legend { float: none; }
+.form-select, .form-control { border-color: #a9b8ce; }
+.form-select:focus, .form-control:focus, .form-check-input:focus {
+  border-color: var(--irpf-blue);
+  box-shadow: 0 0 0 .2rem rgb(21 109 249 / 16%);
+}
+select:focus-visible, input:focus-visible { outline: 3px solid var(--irpf-blue); outline-offset: 2px; }
+
+.definicao-curta {
+  color: var(--irpf-muted);
+  font-size: .82rem;
+  line-height: 1.4;
+  margin: .3rem 0 0;
+}
+
+.cartao-explorar {
+  background: #fff;
+  border: 1px solid var(--irpf-rule);
+  border-radius: 8px;
+  box-shadow: 0 3px 16px rgb(16 29 64 / 4%);
+  margin-bottom: 1rem;
+  padding: 1rem 1.1rem;
+}
+.cabecalho-com-acao {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: .5rem;
+  justify-content: space-between;
+  margin-bottom: .4rem;
+}
+.cabecalho-com-acao h2, .cabecalho-com-acao h3 { font-size: 1.1rem; margin: 0; }
+.acoes-explorar { display: flex; flex-wrap: wrap; gap: .4rem; }
+.acoes-explorar .btn { font-size: .82rem; font-weight: 600; }
+.botao-explorar {
+  background: #fff;
+  border: 1px solid #a9b8ce;
+  color: #0757cf;
+  font-weight: 600;
+}
+.botao-explorar:hover, .botao-explorar:focus-visible { background: #eef3fa; color: #003f9e; }
+.explorar-filtros .form-check { align-self: center; margin-top: .6rem; }
+
+.caixas-valor {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  margin-bottom: 1rem;
+}
+.caixa-valor {
+  background: #fff;
+  border: 1px solid var(--irpf-rule);
+  border-radius: 8px;
+  border-top: 4px solid var(--irpf-blue);
+  padding: .9rem 1rem;
+}
+.caixa-valor-titulo { color: var(--irpf-navy); font-weight: 700; }
+/* O valor não quebra entre o número e o "%": "52,2 %" em duas linhas lia como
+   dois números. A fonte encolhe com a largura em vez de quebrar a linha. */
+.caixa-valor-numero {
+  font-family: "Noto Sans Display", "Noto Sans", sans-serif;
+  font-size: clamp(1.45rem, 2.4vw, 2.1rem);
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.caixa-valor-variacao { color: var(--irpf-muted); font-size: .85rem; margin: 0; }
+
+.selo-serie-fixa {
+  background: #eef3fa;
+  border: 1px solid var(--irpf-rule);
+  border-radius: 999px;
+  color: var(--irpf-muted);
+  display: inline-block;
+  font-size: .78rem;
+  font-weight: 600;
+  margin-left: .5rem;
+  padding: .1rem .6rem;
+  vertical-align: middle;
+}
+
+/* Leitura do valor sob o cursor. Altura mínima fixa para o texto não empurrar
+   a página a cada movimento. */
+.leitura-ponto {
+  color: var(--irpf-navy);
+  font-size: .9rem;
+  font-variant-numeric: tabular-nums;
+  min-height: 1.6rem;
+  padding: .2rem .25rem .4rem;
+}
+.leitura-dica { color: var(--irpf-muted); font-style: italic; }
+.legenda-linhas { color: var(--irpf-muted); font-size: .85rem; margin: .2rem 0 .4rem; }
+.legenda-linhas svg { margin: 0 .3rem 0 .8rem; vertical-align: middle; }
+.nota-grafico { color: var(--irpf-muted); font-size: .85rem; margin: .4rem 0; }
+.grafico-explorar svg { max-width: 100%; height: auto; }
+
+/* "?" com a definição do termo, que abre e fecha pelo teclado. */
+.icone-ajuda {
+  background: #fff;
+  border: 1px solid var(--irpf-blue);
+  border-radius: 50%;
+  color: var(--irpf-blue);
+  font-size: .75rem;
+  font-weight: 700;
+  height: 1.35rem;
+  line-height: 1;
+  margin-left: .25rem;
+  padding: 0;
+  vertical-align: .1em;
+  width: 1.35rem;
+}
+.icone-ajuda[aria-expanded="true"] { background: var(--irpf-blue); color: #fff; }
+.quadro-ajuda {
+  background: #fff;
+  border: 1px solid var(--irpf-rule);
+  border-radius: 6px;
+  box-shadow: 0 6px 24px rgb(16 29 64 / 12%);
+  color: var(--irpf-navy);
+  display: block;
+  font-size: .85rem;
+  font-weight: 400;
+  line-height: 1.45;
+  margin-top: .4rem;
+  max-width: 34rem;
+  padding: .6rem .75rem;
+}
+
+.tabela-explorar { font-size: .9rem; }
+.tabela-explorar caption { caption-side: top; color: var(--irpf-muted); font-size: .85rem; }
+.tabela-explorar .num { text-align: right; white-space: nowrap; }
+
+/* Aparato de rodapé: nota, observação e fonte, nesta ordem. */
+.bloco-rodape {
+  border-top: 1px solid var(--irpf-rule);
+  color: var(--irpf-muted);
+  font-size: .88rem;
+  line-height: 1.5;
+  margin-top: .75rem;
+  padding-top: .6rem;
+}
+.bloco-rodape .rodape-item { margin-bottom: .35rem; }
+.bloco-rodape strong { color: var(--irpf-navy); }
+.bloco-rodape ul { margin-bottom: .35rem; padding-left: 1.2rem; }
+
+/* Quadro de conceitos recolhido no fim de cada página. */
+.bloco-conceitos {
+  background: #fff;
+  border: 1px solid var(--irpf-rule);
+  border-radius: 8px;
+  margin-top: 1rem;
+  padding: .7rem 1rem;
+}
+.bloco-conceitos summary { color: var(--irpf-navy); cursor: pointer; font-weight: 700; }
+.bloco-conceitos .glossario-titulo { color: var(--irpf-navy); font-weight: 600; margin: .6rem 0 .3rem; }
+.bloco-conceitos dt { color: var(--irpf-navy); font-weight: 600; }
+.bloco-conceitos dd { color: var(--irpf-muted); margin: 0 0 .65rem 1.1rem; }
+.bloco-conceitos dd span { display: block; }
+.glossario-detalhe, .glossario-nota { color: var(--irpf-muted); font-size: .9em; }
+.glossario-nota { font-style: italic; }
+.tabela-conceitos { font-size: .9rem; width: 100%; }
+.tabela-conceitos th, .tabela-conceitos td {
+  border-bottom: 1px solid var(--irpf-rule);
+  padding: .35rem .5rem;
+  text-align: left;
+  vertical-align: top;
+}
+.tabela-conceitos tr.conceito-principal { background: #f2f7fb; }
+
+.cartoes-pergunta {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+.cartao-pergunta {
+  background: #fff;
+  border: 1px solid var(--irpf-rule);
+  border-left: 4px solid var(--irpf-blue);
+  border-radius: 8px;
+  padding: 1rem 1.1rem;
+}
+.cartao-pergunta h3 { font-size: 1.05rem; margin: 0 0 .5rem; }
+.cartao-pergunta p { color: var(--irpf-muted); margin-bottom: .6rem; }
+.cartao-pergunta a { font-weight: 600; }
+
+.legenda-classes { display: flex; flex-wrap: wrap; font-size: .82rem; gap: .3rem .9rem; list-style: none; margin: .4rem 0; padding: 0; }
+.legenda-classes .amostra { border-radius: 2px; display: inline-block; height: .8rem; margin-right: .3rem; vertical-align: middle; width: 1.2rem; }
+
+@media (max-width: 991px) {
+  .caixas-valor { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .cartoes-pergunta { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 575px) {
+  .caixas-valor, .cartoes-pergunta { grid-template-columns: 1fr; }
+}
 
 @media (max-width: 700px) {
   .landing-facts, .landing-grid, .term-grid { grid-template-columns: 1fr; }

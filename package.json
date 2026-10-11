@@ -1,0 +1,30 @@
+{
+  "name": "irpf-centis-viz",
+  "version": "0.4.0",
+  "private": true,
+  "description": "Camada visual do irpf-centis: páginas Explorar (Quarto + OJS) e figuras dos relatórios.",
+  "license": "MIT",
+  "type": "module",
+  "engines": {
+    "node": ">=24.18.0"
+  },
+  "scripts": {
+    "build": "node scripts/bundle-js.mjs",
+    "test": "node --test \"tests/js/*.test.mjs\"",
+    "figuras": "node scripts/figuras.mjs",
+    "smoke": "node --test --test-concurrency=1 \"tests/smoke/*.test.mjs\"",
+    "medir": "node scripts/medir-carga.mjs"
+  },
+  "dependencies": {
+    "@observablehq/plot": "0.6.17",
+    "d3": "7.9.0",
+    "htl": "1.0.0"
+  },
+  "devDependencies": {
+    "axe-core": "4.14.0",
+    "esbuild": "0.28.2",
+    "jsdom": "30.1.2",
+    "opentype.js": "2.0.0",
+    "puppeteer-core": "25.13.0"
+  }
+}

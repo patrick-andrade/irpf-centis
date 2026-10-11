@@ -1,0 +1,20 @@
+---
+title: "Glossário"
+subtitle: "Conceitos de renda, indicadores e referências do estudo"
+description: "Definições dos conceitos de renda (RTB a RB10) e fichas dos indicadores de desigualdade, com leitura, faixa, nota de cálculo com dados agrupados e referências."
+toc: true
+toc-depth: 2
+---
+
+```{r}
+#| include: false
+source("R/utils.R", encoding = "UTF-8")
+source("R/glossario.R", encoding = "UTF-8")
+```
+
+Os textos desta página vêm dos contratos de dados do projeto (`config/schema/`), os mesmos que alimentam as ajudas "?" das páginas [Explorar](explorar/index.html). Cada termo tem um endereço próprio para citação.
+
+```{r}
+#| results: asis
+cat(glossario_markdown(), sep = "\n")
+```

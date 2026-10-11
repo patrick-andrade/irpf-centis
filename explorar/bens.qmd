@@ -1,0 +1,185 @@
+---
+title: "Bens"
+subtitle: "Bens e direitos declarados ao longo da distribuição de renda"
+page-layout: full
+toc: false
+---
+
+```{ojs}
+//| output: false
+import {
+  paraLinhas, carregarJson, barras, parCurvas, series, seletor, grupoFiltros, tabela, rodape, subnav, el, html,
+  lerEstado, valorInicial, publicarEstado, percentual, dinheiro, indice, fonteReceita, blocoConceitos,
+  glossarioDe, opcoesGeografia, opcoesAno, cabecalhoCartao, larguraGrafico, rotuloGrupo, corDestaque
+} from "../assets/js/irpf-viz.js"
+```
+
+```{ojs}
+//| output: false
+comum = FileAttachment("dados/comum.json").json()
+glossario = FileAttachment("dados/glossario.json").json()
+direto = FileAttachment("dados/patrimonio-direto.json").json()
+g = glossarioDe(glossario)
+campos = new Map(paraLinhas(comum.campos).map((c) => [c.component_id, c]))
+geos = opcoesGeografia(comum)
+nomeGeo = new Map(geos.map((o) => [o.valor, o.rotulo]))
+anos = comum.anos
+estadoUrl = lerEstado(location.search, { anos, geos: geos.map((o) => o.valor) })
+```
+
+```{ojs}
+subnav("bens", { geo: filtros.geo, ano: filtros.ano })
+```
+
+{{< include _aviso.qmd >}}
+
+```{ojs}
+viewof filtros = grupoFiltros({
+  ano: seletor({ rotulo: "Ano", opcoes: opcoesAno(anos), valor: Number(valorInicial(estadoUrl.ano, "ano", anos, anos[anos.length - 1])) }),
+  geo: seletor({ rotulo: "Geografia", opcoes: geos, valor: valorInicial(estadoUrl.geo, "geo", geos.map((o) => o.valor), "BR") })
+}, { rotulo: "Filtros de bens" })
+```
+
+```{ojs}
+//| output: false
+ano = filtros.ano
+geo = filtros.geo
+nome = nomeGeo.get(geo)
+dadosGeo = carregarJson(`dados/patrimonio/${geo}.json`)
+grupos = paraLinhas(dadosGeo.grupos).filter((d) => d.year === ano)
+comPatrimonio = grupos.filter((d) => d.contributors > 0 && Number.isFinite(d.patrimonio_medio))
+bensComponentes = paraLinhas(dadosGeo.bens_componentes).filter((d) => d.year === ano)
+reais = dinheiro()
+```
+
+```{ojs}
+//| output: false
+publicarEstado({ ano, geo }, { comum: { ano, geo } })
+```
+
+::: {.cartao-explorar}
+
+```{ojs}
+{
+  const linhas = bensComponentes.map((d) => ({ ...d, rotulo: campos.get(d.component_id)?.field_label ?? d.component_id }));
+  const semValor = linhas.filter((d) => !Number.isFinite(d.value_real)).map((d) => d.rotulo);
+  const comValor = linhas.filter((d) => Number.isFinite(d.value_real));
+  return el("div", {},
+    el("h2", { class: "h5" }, "Composição dos bens e direitos declarados"),
+    comValor.length
+      ? barras(comValor, {
+          x: "value_real", y: "rotulo", eixo: "dinheiro", rotuloX: "Valor declarado em R$ de 2024",
+          largura: larguraGrafico(width), interativo: true, tip: (d) => `${d.rotulo}: ${reais(d.value_real)}`,
+          ariaLabel: `Barras horizontais com a composição de bens e direitos declarados, em R$ de 2024, ${nome}, ${ano}`
+        })
+      : el("p", {}, "Sem valores patrimoniais divulgados para a seleção."),
+    semValor.length ? el("p", { class: "nota-grafico" }, `Sem valor divulgado: ${semValor.join(", ")}.`) : null);
+}
+```
+
+:::
+
+::: {.cartao-explorar}
+
+```{ojs}
+cabecalhoCartao({
+  titulo: "Patrimônio médio por posição na distribuição de renda", id: "titulo-bens",
+  csv: {
+    linhas: () => comPatrimonio.map((d) => ({ ...d, geografia: nome, percentil: 100 * d.share_upper })),
+    colunas: [
+      { id: "year", rotulo: "Ano" }, { id: "geografia", rotulo: "Geografia" }, { id: "bin_code", rotulo: "Grupo" },
+      { id: "percentil", rotulo: "Percentil_limite_superior" }, { id: "contributors", rotulo: "Declaracoes" },
+      { id: "assets_sum_real", rotulo: "Bens_e_direitos_RS_2024" }, { id: "patrimonio_medio", rotulo: "Patrimonio_medio_RS_2024" },
+      { id: "assets_share", rotulo: "Participacao_nos_bens" }
+    ],
+    arquivo: `irpf-centis-bens-${geo}-${ano}.csv`
+  }
+})
+```
+
+::: {.panel-tabset}
+
+## Gráfico
+
+```{ojs}
+parCurvas({
+  dados: comPatrimonio, y: "patrimonio_medio", eixo: "dinheiro",
+  rotuloY: "Patrimônio médio por declaração, R$ de 2024",
+  formatar: reais, descricao: "patrimônio médio por declaração de", largura: larguraGrafico(width),
+  ariaPrincipal: `Linha do patrimônio médio por declaração ao longo dos percentis de renda RB4, ${nome}, ${ano}`,
+  ariaTopo: `Linha do patrimônio médio no centil 99 e nos 19 grupos do top 1% da renda RB4, ${nome}, ${ano}`
+})
+```
+
+## Tabela
+
+```{ojs}
+tabela({
+  linhas: [...comPatrimonio].sort((a, b) => a.share_upper - b.share_upper),
+  legenda: `Patrimônio declarado por grupo de renda, ${nome}, ${ano} (R$ de 2024)`,
+  colunas: [
+    { id: "share_upper", rotulo: "Grupo (limite superior, percentil)", cabecalhoLinha: true, formatar: (_, d) => rotuloGrupo(d) },
+    { id: "patrimonio_medio", rotulo: "Patrimônio médio", numerica: true, formatar: reais },
+    { id: "assets_share", rotulo: "Participação nos bens", numerica: true, formatar: percentual(0.01) }
+  ]
+})
+```
+
+:::
+
+:::
+
+::: {.cartao-explorar}
+
+```{ojs}
+el("div", { class: "cabecalho-com-acao" },
+  el("h2", {}, "Desigualdade patrimonial — ordenação direta nacional",
+    el("span", { class: "selo-serie-fixa" }, "Brasil · 2006–2021 · não segue os filtros")))
+```
+
+```{ojs}
+series(paraLinhas(direto.gini_direto).map((d) => ({ ano: d.year, valor: d.gini_grouped, serie: "Gini" })), {
+  rotulos: "extremos", ressalva2018: false, eixoOpcoes: { ancora: [0.7, 1] }, cor: () => corDestaque(1)[0],
+  rotuloY: "Gini patrimonial agrupado", girarAnos: true, largura: larguraGrafico(width), alturaPainel: 260,
+  interativo: true, tip: (d) => `${d.ano}: ${indice(0.001)(d.valor)}`,
+  ariaLabel: "Série nacional de 2006 a 2021 do Gini patrimonial agrupado, ordenado diretamente por bens e direitos",
+  ariaDescription: "Eixo vertical de 0,70 a 1,00."
+})
+```
+
+<p class="nota-grafico">Eixo de 0,70 a 1,00: a série varia menos de 0,03 em dezesseis anos.</p>
+
+:::
+
+```{ojs}
+{
+  const topo = grupos.filter((d) => d.share_lower >= 0.99 - 1e-9);
+  const soma = topo.reduce((s, d) => s + (Number.isFinite(d.assets_share) ? d.assets_share : 0), 0);
+  return rodape({
+    notas: [
+      "Valores de bens declarados seguem regras fiscais de avaliação e não equivalem necessariamente a preços de mercado.",
+      "O total consolidado de bens só é divulgado a partir de 2022; a série usa a soma dos quatro grupos divulgados, conferida contra o total nos anos em que ele existe."
+    ],
+    observacoes: topo.length ? [`${nome}, ${ano}: o 1% de maior renda declara ${percentual(0.1)(soma)} do patrimônio total do recorte.`] : [],
+    fonte: fonteReceita
+  });
+}
+```
+
+```{ojs}
+blocoConceitos({
+  conceitos: [g.itemConceito("RB4")].filter(Boolean),
+  indicadores: ["assets_sum_real", "wealth_gini_direct"].map(g.itemIndicador).filter(Boolean),
+  extras: [
+    {
+      termo: "Bens dentro dos centis de renda",
+      resumo: "Os gráficos de patrimônio médio observam o patrimônio declarado dentro de grupos ordenados por renda (RB4). Medem concentração patrimonial ao longo da distribuição de renda."
+    },
+    {
+      termo: "Ordenação direta nacional",
+      resumo: "O último gráfico ordena as declarações diretamente pelo valor dos bens e direitos, na série nacional de 2006 a 2021 da Tabela III. É a única leitura que o projeto chama de desigualdade patrimonial.",
+      detalhe: "A série inclui o grupo com patrimônio declarado igual a zero, que responde por parcela expressiva das declarações e puxa o índice para perto de 1."
+    }
+  ]
+})
+```

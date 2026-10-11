@@ -1,0 +1,63 @@
+---
+title: "Explorar os dados"
+subtitle: "Os números centrais do IRPF por centis: declarações válidas, desigualdade agrupada e participação do topo no conceito principal de renda (RB4)"
+description: "Visão geral das páginas Explorar: números centrais do estudo e perguntas que levam a cada página, com links próprios para cada visão."
+page-layout: full
+toc: false
+---
+
+```{ojs}
+//| output: false
+import {
+  paraLinhas, subnav, el, rodape, blocoConceitos, glossarioDe, caixaValor, hrefComEstado,
+  paginas, lerSessao, notaUnidade, fonteReceita
+} from "../assets/js/irpf-viz.js"
+```
+
+```{ojs}
+//| output: false
+visao = FileAttachment("dados/visao-geral.json").json()
+glossario = FileAttachment("dados/glossario.json").json()
+g = glossarioDe(glossario)
+sessao = lerSessao()
+```
+
+```{ojs}
+subnav("visao-geral", sessao)
+```
+
+{{< include _aviso.qmd >}}
+
+```{ojs}
+el("div", { class: "caixas-valor" }, visao.caixas.map((c) => caixaValor({
+  titulo: c.titulo, valor: c.valor, variacao: c.variacao,
+  ajudaTermo: c.id === "contributors" ? null : g.ajudaIndicador(c.id, c.titulo)
+})))
+```
+
+## Por onde começar {#por-onde-comecar}
+
+```{ojs}
+el("div", { class: "cartoes-pergunta" }, visao.perguntas.map((p) => {
+  const pagina = paginas.find((x) => x.id === p.pagina);
+  return el("article", { class: "cartao-pergunta" },
+    el("h3", {}, p.pergunta),
+    el("p", {}, p.resposta),
+    el("a", { href: pagina ? hrefComEstado(pagina, sessao) : `${p.pagina}.html` }, `Ver em ${p.rotulo}`));
+}))
+```
+
+```{ojs}
+rodape({
+  notas: [notaUnidade, "Valores monetários em R$ de 2024, deflacionados pelo IPCA anual médio."],
+  observacoes: [visao.observacao],
+  fonte: fonteReceita
+})
+```
+
+```{ojs}
+blocoConceitos({
+  conceitos: [g.itemConceito("RB4")].filter(Boolean),
+  indicadores: ["gini_grouped", "top_1_share", "top_0_1_share"].map(g.itemIndicador).filter(Boolean)
+})
+```

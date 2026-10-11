@@ -11,8 +11,23 @@ project:
     - docs/reproducibility.md
     - docs/data-dictionary.md
     - docs/provenance.md
+    - explorar/index.qmd
+    - explorar/evolucao.qmd
+    - explorar/topos.qmd
+    - explorar/rendimentos.qmd
+    - explorar/bens.qmd
+    - explorar/dividas.qmd
+    - explorar/dados.qmd
+    - glossario.qmd
+    - explorar/estados.qmd
   resources:
     - styles/fonts/*
+    # Dados das páginas Explorar. Os arquivos por geografia são lidos com nome
+    # montado em tempo de execução, que o Quarto não detecta sozinho.
+    - explorar/dados/**
+    - assets/js/*
+    # Redireciona links antigos do painel shinylive (app/?aba=...).
+    - app/index.html
 
 website:
   title: "IRPF por centis"
@@ -34,6 +49,8 @@ website:
         menu:
           - href: docs/methodology.md
             text: "Metodologia"
+          - href: glossario.qmd
+            text: "Glossário"
           - href: docs/limitations.md
             text: "Limitações"
           - href: reports/technical-appendix.qmd
@@ -44,8 +61,8 @@ website:
             text: "Dicionário de dados"
           - href: docs/provenance.md
             text: "Proveniência"
-      - href: app/
-        text: "Painel interativo"
+      - href: explorar/index.qmd
+        text: "Explorar"
     right:
       - icon: github
         href: https://github.com/patrick-andrade/irpf-centis

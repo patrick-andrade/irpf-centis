@@ -12,7 +12,7 @@ RB4 ordena as declarações pela soma dos rendimentos tributáveis, isentos e su
 
 ## Conceitos de renda disponíveis
 
-Cada conceito produz uma ordenação própria, publicada pela Receita Federal em uma tabela separada. As contagens nacionais dos grupos disjuntos em 2024 coincidem entre os conceitos, mas as tabelas agregadas não permitem confirmar que as declarações individuais sejam exatamente as mesmas. O [metadado oficial de 2024](https://www.gov.br/receitafederal/pt-br/centrais-de-conteudo/publicacoes/estudos/distribuicao-da-renda/distribuicao-de-renda-por-centis-estudo-ampliado-2017-a-2023/2024/metadados-centis-ac2024.pdf) informa uma exclusão específica na Tabela X: declarações com RB9 acima de R$ 100 milhões. O contrato executável está em `config/schema/rankings.csv` e alimenta tanto os relatórios quanto o painel.
+Cada conceito produz uma ordenação própria, publicada pela Receita Federal em uma tabela separada. As contagens nacionais dos grupos disjuntos em 2024 coincidem entre os conceitos, mas as tabelas agregadas não permitem confirmar que as declarações individuais sejam exatamente as mesmas. O [metadado oficial de 2024](https://www.gov.br/receitafederal/pt-br/centrais-de-conteudo/publicacoes/estudos/distribuicao-da-renda/distribuicao-de-renda-por-centis-estudo-ampliado-2017-a-2023/2024/metadados-centis-ac2024.pdf) informa uma exclusão específica na Tabela X: declarações com RB9 acima de R$ 100 milhões. O contrato executável está em `config/schema/rankings.csv` e alimenta os relatórios, as páginas Explorar e o glossário.
 
 | Tabela | Código | Conceito | Composição | Anos |
 |---|---|---|---|---|
@@ -56,7 +56,7 @@ Nos arquivos ampliados, bens e direitos são observados dentro de grupos ordenad
 
 ## Valores reais
 
-Os fluxos e estoques monetários são publicados em preços de 2024, deflacionados pelo IPCA anual médio (IBGE/SIDRA 1737); os valores nominais são preservados nos dados curados. Os produtos editoriais e o painel rotulam explicitamente "R$ de 2024". O arquivo de deflatores registra fonte, método e índice anual utilizado, e a ausência de deflator para qualquer ano interrompe o pipeline em vez de degradar silenciosamente.
+Os fluxos e estoques monetários são publicados em preços de 2024, deflacionados pelo IPCA anual médio (IBGE/SIDRA 1737); os valores nominais são preservados nos dados curados. Os produtos editoriais e as páginas Explorar rotulam explicitamente "R$ de 2024". O arquivo de deflatores registra fonte, método e índice anual utilizado, e a ausência de deflator para qualquer ano interrompe o pipeline em vez de degradar silenciosamente.
 
 ## Escopo inferencial
 
@@ -79,9 +79,9 @@ Participação de topo é uma fração da renda; a quantidade de declarações p
 1. `discover` lê as páginas oficiais e registra o inventário de fontes.
 2. `download` baixa os arquivos e grava tamanho e SHA-256 em `data/metadata/sources-manifest.csv`.
 3. `context` atualiza o deflator IPCA anual e a malha estadual do IBGE.
-4. `build` normaliza os layouts de cada ano e produz os dados curados. Dois portões de qualidade — estrutura da fonte e plausibilidade dos indicadores derivados — interrompem o pipeline em vez de degradar em silêncio.
-5. `check` testa parser, harmonização, índices, patrimônio, tributação, os helpers dos relatórios e os módulos do painel.
-6. `render` e `site` geram os relatórios e exportam o painel para WebAssembly.
+4. `build` normaliza os layouts de cada ano e produz os dados curados e os dados das páginas Explorar. Dois portões de qualidade — estrutura da fonte e plausibilidade dos indicadores derivados — interrompem o pipeline em vez de degradar em silêncio.
+5. `check` testa parser, harmonização, índices, patrimônio, tributação, os helpers dos relatórios, o contrato de dados do site e o módulo JavaScript dos gráficos.
+6. `render` gera as figuras dos relatórios e o site (relatórios em HTML e PDF e as páginas Explorar).
 
 Decisões que o pipeline não negocia: valores publicados pela Receita são preservados, e divergências são registradas em vez de corrigidas; campo ausente na fonte permanece ausente e não vira zero; os índices usam apenas os 118 grupos disjuntos; a ausência de deflator para qualquer ano interrompe a execução.
 

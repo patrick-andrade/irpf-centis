@@ -35,5 +35,7 @@ pyftsubset <fonte>.ttf --unicodes="U+0000-017F,U+0300-036F,U+0370-03FF,U+2000-20
 - `NotoSansDisplay-Bold.woff2` — SHA-256 `87681994C29C130A4D49F6AA0DEABB0C57F8DA581EF813238BB66E87154E7E95`.
 
 O site declara a woff2 primeiro e o TTF como alternativa; os PDFs seguem
-com os TTF. O painel (`app/www/fonts`) leva só as woff2, porque o shinylive
-embute tudo o que está na pasta do app no `app.json` da primeira carga.
+com os TTF. As figuras dos relatórios (`reports/figuras/*.svg`) pedem "Noto
+Sans", que o Typst encontra nos TTF desta pasta; `tests/js/glifos.test.mjs`
+falha se algum caractere de uma figura não existir na fonte, porque o Typst
+trocaria a fonte do texto inteiro.

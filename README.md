@@ -4,7 +4,7 @@
 [![CI](https://github.com/patrick-andrade/irpf-centis/actions/workflows/ci.yml/badge.svg)](https://github.com/patrick-andrade/irpf-centis/actions/workflows/ci.yml)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.22046673.svg)](https://doi.org/10.5281/zenodo.22046673)
 
-Estudo descritivo e reprodutível da distribuição de renda, tributação e patrimônio entre declarantes do Imposto de Renda da Pessoa Física, por centis, anos-calendário e unidades da Federação. Parte das tabelas agregadas publicadas pela Receita Federal e entrega relatórios, um painel interativo e os dados curados que sustentam cada número.
+Estudo descritivo e reprodutível da distribuição de renda, tributação e patrimônio entre declarantes do Imposto de Renda da Pessoa Física, por centis, anos-calendário e unidades da Federação. Parte das tabelas agregadas publicadas pela Receita Federal e entrega relatórios, páginas interativas e os dados curados que sustentam cada número.
 
 **Site publicado:** <https://patrick-andrade.github.io/irpf-centis/>
 
@@ -36,7 +36,8 @@ Os arquivos oficiais não são redistribuídos aqui: `data/metadata/sources-mani
 
 | | |
 |---|---|
-| [Painel interativo](https://patrick-andrade.github.io/irpf-centis/app/) | Indicadores por ano, geografia e conceito de renda, mapa por UF, composição de rendimentos, alíquota efetiva, bens e dívidas. Roda inteiramente no navegador (shinylive/WebAssembly), sem servidor. |
+| [Explorar](https://patrick-andrade.github.io/irpf-centis/explorar/) | Indicadores por ano, geografia e conceito de renda, mapa por UF, composição de rendimentos, alíquota efetiva, bens e dívidas. Cada visão abre em menos de um segundo, tem link próprio e oferece os dados em CSV. |
+| [Glossário](https://patrick-andrade.github.io/irpf-centis/glossario.html) | Conceitos de renda, fichas dos indicadores e referências, com um endereço por termo. |
 | [Relatório completo](https://patrick-andrade.github.io/irpf-centis/reports/report.html) | Evolução nacional, tipos de rendimento, tributação, patrimônio, estados e regiões, robustez e limitações. |
 | [Sumário executivo](https://patrick-andrade.github.io/irpf-centis/reports/executive-summary.html) | Principais achados em formato curto. |
 | [Apêndice técnico](https://patrick-andrade.github.io/irpf-centis/reports/technical-appendix.html) | Contratos de dados, fórmulas, validações e proveniência. |
@@ -49,7 +50,7 @@ Os relatórios também estão disponíveis em PDF, pelo link "Outros formatos" d
 
 ## Como está construído
 
-Pipeline em R orquestrado por [`targets`](https://books.ropensci.org/targets/), com aquisição verificada por SHA-256, harmonização dos layouts anuais contra contratos declarados em `config/schema/`, testes automatizados e portões de qualidade entre o cálculo e a publicação. Relatórios em Quarto; painel em Shiny, exportado para shinylive e servido como site estático no GitHub Pages — roda no navegador do leitor, sem servidor.
+Pipeline em R orquestrado por [`targets`](https://books.ropensci.org/targets/), com aquisição verificada por SHA-256, harmonização dos layouts anuais contra contratos declarados em `config/schema/`, testes automatizados e portões de qualidade entre o cálculo e a publicação. Site em Quarto, servido como site estático no GitHub Pages, sem servidor. Os gráficos das páginas Explorar e as figuras dos relatórios (HTML e PDF) saem de um único módulo JavaScript com [Observable Plot](https://observablehq.com/plot/) (`js/`); os dados que ele desenha são preparados e testados em R e versionados em `explorar/dados/`. A decisão está registrada em [docs/decisions/0002](docs/decisions/0002-camada-visual-quarto-ojs.md).
 
 ## Contribuir e tirar dúvidas
 

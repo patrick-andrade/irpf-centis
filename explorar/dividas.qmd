@@ -1,0 +1,157 @@
+---
+title: "Dívidas"
+subtitle: "Dívidas e ônus declarados ao longo da distribuição de renda"
+page-layout: full
+toc: false
+---
+
+```{ojs}
+//| output: false
+import {
+  paraLinhas, carregarJson, parCurvas, seletor, grupoFiltros, tabela, rodape, subnav, el, html,
+  lerEstado, valorInicial, publicarEstado, percentual, dinheiro, indice, fonteReceita, notaUnidade,
+  blocoConceitos, glossarioDe, opcoesGeografia, opcoesAno, cabecalhoCartao, larguraGrafico, rotuloGrupo
+} from "../assets/js/irpf-viz.js"
+```
+
+```{ojs}
+//| output: false
+comum = FileAttachment("dados/comum.json").json()
+glossario = FileAttachment("dados/glossario.json").json()
+g = glossarioDe(glossario)
+geos = opcoesGeografia(comum)
+nomeGeo = new Map(geos.map((o) => [o.valor, o.rotulo]))
+anos = comum.anos
+estadoUrl = lerEstado(location.search, { anos, geos: geos.map((o) => o.valor) })
+```
+
+```{ojs}
+subnav("dividas", { geo: filtros.geo, ano: filtros.ano })
+```
+
+{{< include _aviso.qmd >}}
+
+```{ojs}
+viewof filtros = grupoFiltros({
+  ano: seletor({ rotulo: "Ano", opcoes: opcoesAno(anos), valor: Number(valorInicial(estadoUrl.ano, "ano", anos, anos[anos.length - 1])) }),
+  geo: seletor({ rotulo: "Geografia", opcoes: geos, valor: valorInicial(estadoUrl.geo, "geo", geos.map((o) => o.valor), "BR") })
+}, { rotulo: "Filtros de dívidas" })
+```
+
+```{ojs}
+//| output: false
+ano = filtros.ano
+geo = filtros.geo
+nome = nomeGeo.get(geo)
+dadosGeo = carregarJson(`dados/patrimonio/${geo}.json`)
+selecionados = paraLinhas(dadosGeo.grupos).filter((d) => d.year === ano && d.contributors > 0)
+reais = dinheiro()
+razao = indice(0.01)
+```
+
+```{ojs}
+//| output: false
+publicarEstado({ ano, geo }, { comum: { ano, geo } })
+```
+
+::: {.cartao-explorar}
+
+```{ojs}
+cabecalhoCartao({
+  titulo: "Dívida média declarada por posição na distribuição de renda", id: "titulo-dividas",
+  csv: {
+    linhas: () => selecionados.map((d) => ({ ...d, geografia: nome, percentil: 100 * d.share_upper })),
+    colunas: [
+      { id: "year", rotulo: "Ano" }, { id: "geografia", rotulo: "Geografia" }, { id: "bin_code", rotulo: "Grupo" },
+      { id: "percentil", rotulo: "Percentil_limite_superior" }, { id: "contributors", rotulo: "Declaracoes" },
+      { id: "debts_real", rotulo: "Dividas_RS_2024" }, { id: "divida_media", rotulo: "Divida_media_RS_2024" },
+      { id: "debt_share", rotulo: "Participacao_nas_dividas" }, { id: "debt_income_ratio", rotulo: "Razao_divida_renda" }
+    ],
+    arquivo: `irpf-centis-dividas-${geo}-${ano}.csv`
+  }
+})
+```
+
+::: {.panel-tabset}
+
+## Gráfico
+
+```{ojs}
+parCurvas({
+  dados: selecionados.filter((d) => Number.isFinite(d.divida_media)), y: "divida_media", eixo: "dinheiro",
+  rotuloY: "Dívida média por declaração, R$ de 2024",
+  formatar: reais, descricao: "dívida média por declaração de", largura: larguraGrafico(width),
+  ariaPrincipal: `Linha da dívida média por declaração ao longo dos percentis de renda RB4, ${nome}, ${ano}`,
+  ariaTopo: `Linha da dívida média no centil 99 e nos 19 grupos do top 1% da renda RB4, ${nome}, ${ano}`
+})
+```
+
+## Tabela
+
+```{ojs}
+tabela({
+  linhas: [...selecionados].sort((a, b) => a.share_upper - b.share_upper),
+  legenda: `Dívidas declaradas por grupo de renda, ${nome}, ${ano} (R$ de 2024)`,
+  colunas: [
+    { id: "share_upper", rotulo: "Grupo (limite superior, percentil)", cabecalhoLinha: true, formatar: (_, d) => rotuloGrupo(d) },
+    { id: "divida_media", rotulo: "Dívida média", numerica: true, formatar: reais },
+    { id: "debt_income_ratio", rotulo: "Dívida por real de renda", numerica: true, formatar: razao },
+    { id: "debt_share", rotulo: "Participação nas dívidas", numerica: true, formatar: percentual(0.01) }
+  ]
+})
+```
+
+:::
+
+:::
+
+::: {.cartao-explorar}
+
+```{ojs}
+el("h2", { class: "h5" }, "Razão dívida/renda por posição na distribuição de renda")
+```
+
+```{ojs}
+// A lacuna do primeiro centil é informação: renda declarada nula não é dívida
+// zero. O grupo fica na base e sai da linha como buraco.
+parCurvas({
+  dados: selecionados, y: "debt_income_ratio", eixo: "indice",
+  rotuloY: "Dívidas declaradas por real de renda anual",
+  formatar: razao, descricao: "dívidas por real de renda anual:", largura: larguraGrafico(width),
+  ariaPrincipal: `Linha da razão entre dívida declarada e renda anual por percentil de renda RB4, ${nome}, ${ano}`,
+  ariaTopo: `Linha da razão entre dívida declarada e renda anual no centil 99 e nos 19 grupos do top 1% da renda RB4, ${nome}, ${ano}`
+})
+```
+
+:::
+
+```{ojs}
+{
+  const topo = selecionados.filter((d) => Number.isFinite(d.share_lower) && d.share_lower >= 0.99 - 1e-9);
+  const soma = topo.reduce((s, d) => s + (Number.isFinite(d.debt_share) ? d.debt_share : 0), 0);
+  const semRazao = selecionados.filter((d) => !Number.isFinite(d.debt_income_ratio)).length;
+  return rodape({
+    notas: [
+      "Dívidas e ônus são o saldo declarado no encerramento do ano; a renda é o fluxo dos doze meses. A razão mede alavancagem declarada, não capacidade de pagamento.",
+      notaUnidade
+    ],
+    observacoes: [
+      topo.length ? `${nome}, ${ano}: o 1% de maior renda responde por ${percentual(0.1)(soma)} do estoque de dívidas declarado no recorte.` : null,
+      semRazao ? `${semRazao} de ${selecionados.length} grupos ficam sem razão dívida/renda porque a renda declarada do grupo é nula.` : null
+    ],
+    fonte: fonteReceita
+  });
+}
+```
+
+```{ojs}
+blocoConceitos({
+  conceitos: [g.itemConceito("RB4")].filter(Boolean),
+  indicadores: ["debt_income_ratio", "debt_share"].map(g.itemIndicador).filter(Boolean),
+  extras: [
+    { termo: "Estoque contra fluxo", resumo: "Dívidas e ônus são um saldo declarado no encerramento do ano; a renda é um fluxo de doze meses. A razão entre os dois mede alavancagem declarada, não capacidade de pagamento nem inadimplência." },
+    { termo: "Ordenação por renda", resumo: "Os grupos são ordenados pela renda (RB4), não pelo endividamento. A página mostra como a dívida declarada se distribui ao longo da renda, e não uma distribuição de devedores." },
+    { termo: "Grupos sem razão definida", resumo: "Onde a renda declarada do grupo é nula — o que ocorre no primeiro centil de várias geografias — a razão fica indefinida e aparece como lacuna na linha, nunca como zero." }
+  ]
+})
+```

@@ -95,8 +95,8 @@ calculate_wealth_metrics <- function(wealth_ranked_national, epsilon = 0.5) {
     dplyr::mutate(grouped_estimate = TRUE, atkinson_epsilon = epsilon)
 }
 
-# Bens e dívidas observados dentro dos grupos ordenados por renda. O bundle do
-# painel soma os componentes sobre os bins e descarta `bin_code`, de modo que
+# Bens e dívidas observados dentro dos grupos ordenados por renda. Os dados do
+# site somam os componentes sobre os bins e descartam `bin_code`, de modo que
 # sem esta tabela não há como mostrar a distribuição do endividamento nem a
 # razão dívida/renda ao longo da distribuição.
 wealth_bin_families <- c(

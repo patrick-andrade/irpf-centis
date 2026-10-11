@@ -15,8 +15,8 @@ permissions:
   id-token: write
 
 env:
-  # O job de deploy não deve ativar o renv: o render usa o _freeze/ committed
-  # e o export shinylive empacota os pacotes instalados abaixo.
+  # O deploy não executa R: o render repete o _freeze/ versionado. Se algum
+  # passo chamar o R por engano, ele não deve tentar restaurar o renv.
   RENV_CONFIG_AUTOLOADER_ENABLED: "false"
 
 jobs:
@@ -58,32 +58,24 @@ jobs:
           # Publica exatamente o commit que o CI aprovou.
           ref: ${{ needs.verificar.outputs.sha }}
       - uses: quarto-dev/quarto-actions/setup@v2
+        with:
+          # Fixado: o runtime OJS e o Typst que desenham as páginas e os PDFs
+          # mudam com o Quarto. O CI usa a mesma versão (test-deploy-workflow.R).
+          version: 1.9.38
       - name: Renderizar site (replay do _freeze)
         run: quarto render
-      - name: Guardas de integridade do freeze
+      - name: Guardas de integridade
         run: |
           test -d _freeze/reports/report || { echo "_freeze ausente: renderize localmente antes do push"; exit 1; }
           if grep -rl "Dados processados ainda não disponíveis" output/site/reports; then
             echo "Relatórios renderizaram sem dados: freeze desatualizado"; exit 1
           fi
-      - uses: r-lib/actions/setup-r@v2
-        with:
-          r-version: '4.6.0'
-          use-public-rspm: true
-      - name: Instalar shinylive e os pacotes do painel
-        # O shinylive só leva ao site os pacotes que encontra instalados aqui, e
-        # baixa os binários WebAssembly na versão que o repositório do webR
-        # servir no dia; scripts/export-app.R compara essas versões com o
-        # renv.lock testado no CI e falha se divergirem. pak usa binários do
-        # P3M. `--no-init-file` ignora o .Rprofile do projeto, que força o CRAN
-        # em código-fonte e ativaria o renv.
-        run: |
-          Rscript --no-init-file -e 'install.packages("pak", repos = sprintf("https://r-lib.github.io/p/pak/stable/%s/%s/%s", .Platform$pkgType, R.Version()$os, R.Version()$arch))'
-          Rscript --no-init-file -e 'pak::pak(c("shinylive@0.5.0", "shiny", "bslib", "bsicons", "ggplot2", "dplyr", "scales", "tibble", "viridisLite"))'
-      - name: Exportar painel shinylive
-        run: |
-          Rscript --no-init-file scripts/export-app.R
-          touch output/site/.nojekyll
+          # As páginas Explorar dependem dos JSON e do bundle versionados.
+          test -s output/site/explorar/dados/evolucao.json || { echo "Dados das páginas Explorar ausentes"; exit 1; }
+          test -s output/site/assets/js/irpf-viz.js || { echo "Bundle JS ausente"; exit 1; }
+          test -s output/site/app/index.html || { echo "Redirecionamento do painel antigo ausente"; exit 1; }
+      - name: Desativar o Jekyll do Pages
+        run: touch output/site/.nojekyll
       - uses: actions/upload-pages-artifact@v4
         with:
           path: output/site
