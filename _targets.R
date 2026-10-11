@@ -118,5 +118,29 @@ list(
       )
     },
     format = "file"
+  ),
+  # JSON das páginas Explorar (explorar/dados/) e CSV completos da página de
+  # dados. Versionados: o deploy só repete o render do Quarto.
+  tar_target(
+    site_data,
+    {
+      quality_gate
+      derived_quality_gate
+      write_site_data(
+        income_components, distribution_metrics, effective_tax, wealth_bins,
+        top_counts, wealth_metrics, metrics_sem_topo, state_polygons, state_labels
+      )
+    },
+    format = "file"
+  ),
+  # Dados das figuras dos relatórios que não estão nos JSON do site.
+  tar_target(
+    report_figure_data,
+    {
+      quality_gate
+      derived_quality_gate
+      write_report_figure_data(effective_tax)
+    },
+    format = "file"
   )
 )
