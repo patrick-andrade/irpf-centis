@@ -119,7 +119,7 @@ parCurvas({
   rotuloX: "Posição na distribuição (limite superior do grupo)",
   formatar: pct, descricao: "alíquota efetiva média de", largura: larguraGrafico(width),
   ariaPrincipal: `Linha da alíquota efetiva média por posição na distribuição da renda RB4, ${nome}, ${ano}`,
-  ariaTopo: `Linha da alíquota efetiva média nos vinte grupos disjuntos do topo da renda RB4, ${nome}, ${ano}`
+  ariaTopo: `Linha da alíquota efetiva média no centil 99 e nos 19 grupos do top 1% da renda RB4, ${nome}, ${ano}`
 })
 ```
 

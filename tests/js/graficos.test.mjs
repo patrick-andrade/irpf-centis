@@ -73,3 +73,15 @@ test("classes do mapa por quantis, com fallback para dado degenerado", () => {
   assert.equal(classesQuantis([0.6, 0.6, 0.6]), null);
   assert.equal(classesQuantis([Number.NaN, 0.6]), null);
 });
+
+test("ano sem valor interrompe a linha e continua no eixo", () => {
+  const comLacuna = [2021, 2022, 2023, 2024].map((ano) => ({ ano, valor: ano === 2023 ? null : 0.5 + ano / 1e4, serie: "SP" }));
+  const svg = series(comLacuna, { document, z: "serie", ressalva2018: false });
+  const linha = [...svg.querySelectorAll("path[d]")].sort((a, b) => b.getAttribute("d").length - a.getAttribute("d").length)[0];
+  // Dois trechos: 2021-2022 e 2024 sozinho (sem reta de 2022 a 2024).
+  assert.ok((linha.getAttribute("d").match(/M/g) ?? []).length >= 2, linha.getAttribute("d"));
+  const ticks = [...svg.querySelectorAll("text")].map((t) => t.textContent);
+  assert.ok(ticks.includes("2023"), "2023 sumiu do eixo");
+  // Sem ponto desenhado no ano ausente.
+  assert.equal(svg.querySelectorAll("circle").length, 3);
+});

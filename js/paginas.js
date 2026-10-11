@@ -86,8 +86,8 @@ export function larguraGrafico(largura, fracao = 1) {
 }
 
 // Par de gráficos das páginas de rendimentos, bens e dívidas: a distribuição
-// até o centésimo 99 em eixo de percentil e os 20 grupos do topo em eixo
-// ordinal, cada um com a sua frase de leitura (aria-live). Os mesmos valores
+// até o centésimo 99 em eixo de percentil e, em eixo ordinal, o centil 99 de
+// referência e os 19 grupos do top 1%, cada um com a sua frase de leitura (aria-live). Os mesmos valores
 // ficam na aba Tabela, para quem não usa o ponteiro.
 export function parCurvas({
   dados, y, eixo, rotuloY, rotuloX = "Posição na distribuição de renda (limite superior do grupo)",
@@ -110,7 +110,7 @@ export function parCurvas({
   const g2 = curvaTopo(topo, {
     y, eixo, rotuloY, largura, alturaPainel, interativo: true,
     tip: (d) => frase(nomeGrupoPercentil(null, d.__posicao), d), ariaLabel: ariaTopo,
-    ariaDescription: "Cada grupo do topo ocupa a mesma largura. Os valores estão na aba Tabela."
+    ariaDescription: "O primeiro ponto é o centil 99, de referência; os demais são os 19 grupos do top 1%, cada um com a mesma largura. Os valores estão na aba Tabela."
   });
   const l2 = leitura({ dica });
   g2.addEventListener("input", () => l2.atualizar(g2.value ? frase(nomeGrupoPercentil(null, g2.value.__posicao), g2.value) : ""));

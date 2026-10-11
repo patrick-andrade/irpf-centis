@@ -1,6 +1,6 @@
 // Marcas e anotações compartilhadas pelos gráficos das páginas e dos PDFs.
 import * as Plot from "@observablehq/plot";
-import { cores, tamanhos } from "./tokens.js";
+import { cores, tamanhos, corTexto } from "./tokens.js";
 import { indice, percentil, quebrarTexto } from "./formatos.js";
 
 // 2018 carrega ressalva metodológica: um único grupo do topo destoa na fonte
@@ -63,7 +63,9 @@ export function rotularNoFim(dados, { x, y, z, texto = z, cor, separacaoMin = 0.
   const rotulos = ultimos.map((d, i) => ({ ...d, __y: posicoes[i] }));
   return [Plot.text(rotulos, {
     x, y: "__y", text: typeof texto === "function" ? texto : (d) => d[texto],
-    fill: cor ?? z, textAnchor: "start", dx, fontSize
+    // Texto pede 4,5:1; a linha, 3:1. O rótulo leva a cor da série escurecida.
+    fill: typeof cor === "function" ? (d) => corTexto(cor(d)) : cor ? corTexto(cor) : z,
+    textAnchor: "start", dx, fontSize
   })];
 }
 
@@ -87,8 +89,10 @@ export function rotularExtremos(dados, { x, y, formatar = indice(0.001), cor = c
   return marcas;
 }
 
-// Grupos disjuntos do topo: o centil 99, os dez décimos do top 1% e os dez do
-// top 0,1%. Em eixo linear de percentil eles ocupam 2% da largura; em eixo
+// Detalhe do topo (R/parsing.R): o centil 99 (código 99, de 98% a 99%), que
+// fica fora do top 1% e entra como referência, e os 19 grupos disjuntos do top
+// 1%: os nove décimos até 99,9% (101 a 109) e os dez décimos do top 0,1% (111 a
+// 120). Em eixo linear de percentil eles ocupam 2% da largura; em eixo
 // ordinal, cada um ganha a mesma largura.
 export const codigosTopo = Object.freeze([99, 101, 102, 103, 104, 105, 106, 107, 108, 109,
   111, 112, 113, 114, 115, 116, 117, 118, 119, 120]);

@@ -86,7 +86,12 @@ export function series(dados, {
   titulo = null, subtitulo = null, nota = null,
   interativo = false, tip = null, ariaLabel = null, ariaDescription = null, document
 } = {}) {
-  const pontos = dados.filter((d) => finito(d[x]) && finito(d[y]));
+  // Linhas com x válido e y ausente ficam nos dados das linhas como NaN: o
+  // Plot interrompe a linha ali, e o ano sem valor não some do eixo nem é
+  // atravessado por uma reta entre os vizinhos.
+  const comX = dados.filter((d) => finito(d[x]));
+  const pontos = comX.filter((d) => finito(d[y]));
+  const comLacuna = (lista) => lista.map((d) => (finito(d[y]) ? d : { ...d, [y]: Number.NaN }));
   const grupos = [...new Set(pontos.map((d) => d[z]))];
   const paleta = corDestaque(Math.max(grupos.length, 1));
   const corDe = typeof cor === "function" ? cor
@@ -95,10 +100,11 @@ export function series(dados, {
   const valoresY = pontos.map((d) => d[y]);
   if (faixa) for (const d of pontos) valoresY.push(d[faixa.inferior], d[faixa.superior]);
   const eixoY = eixoValor(eixo, valoresY.filter(finito), { rotulo: rotuloY, ...eixoOpcoes });
-  const anos = [...new Set(pontos.map((d) => d[x]))];
+  const anos = [...new Set(comX.map((d) => d[x]))];
   const ehTracejada = tracejado ?? (() => false);
   const cheias = pontos.filter((d) => !ehTracejada(d));
-  const tracejadas = pontos.filter((d) => ehTracejada(d));
+  const linhasCheias = comLacuna(comX.filter((d) => !ehTracejada(d)));
+  const linhasTracejadas = comLacuna(comX.filter((d) => ehTracejada(d)));
   const paraRotulo = rotularSo ? pontos.filter(rotularSo) : cheias;
   const textoDe = textoRotulo ?? ((d) => d[z]);
   const larguraRotulos = rotulos === "fim"
@@ -111,8 +117,8 @@ export function series(dados, {
     ...(faixa ? [Plot.areaY(cheias.filter((d) => finito(d[faixa.inferior]) && finito(d[faixa.superior])), {
       x, y1: faixa.inferior, y2: faixa.superior, z, fill: cores.grade, fillOpacity: 0.8
     })] : []),
-    Plot.line(cheias, { x, y, z, stroke: (d) => corDe(d[z]), strokeWidth: 2 }),
-    Plot.line(tracejadas, { x, y, z, stroke: (d) => corDe(d[z]), strokeWidth: 2, strokeDasharray: "5,4" }),
+    Plot.line(linhasCheias, { x, y, z, stroke: (d) => corDe(d[z]), strokeWidth: 2 }),
+    Plot.line(linhasTracejadas, { x, y, z, stroke: (d) => corDe(d[z]), strokeWidth: 2, strokeDasharray: "5,4" }),
     Plot.dot(pontos, { x, y, fill: (d) => corDe(d[z]), r: 3 }),
     ...(rotulos === "fim" ? rotularNoFim(paraRotulo, { x, y, z, texto: textoDe, cor: (d) => corDe(d[z]) }) : []),
     ...(rotulos === "extremos" ? rotularExtremos(cheias, {
@@ -162,7 +168,8 @@ export function curvaPercentil(dados, {
   });
 }
 
-// Os 20 grupos disjuntos do topo em eixo ordinal de largura igual.
+// Topo em eixo ordinal de largura igual: o centil 99 (de 98% a 99%), como
+// referência, e os 19 grupos disjuntos do top 1%.
 export function curvaTopo(dados, {
   x = "share_upper", y, eixo = "aliquota", rotuloY = null,
   rotuloX = "Percentil de renda (limite superior de cada grupo divulgado)",

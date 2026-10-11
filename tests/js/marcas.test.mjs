@@ -21,7 +21,7 @@ test("último ponto finito de cada série", () => {
   assert.deepEqual(ultimos.map((d) => [d.g, d.ano]).sort(), [["a", 2023], ["b", 2024]]);
 });
 
-test("eixo ordinal do topo: 20 grupos, rótulos com duas casas", () => {
+test("eixo ordinal do topo: centil 99 e 19 grupos do top 1%, rótulos com duas casas", () => {
   assert.equal(codigosTopo.length, 20);
   const eixo = eixoOrdinalTopo([0.9991, 0.99, 0.9992, 1]);
   assert.deepEqual(eixo.dominio, ["99,00", "99,91", "99,92", "100,00"]);
@@ -51,4 +51,16 @@ test("série de contexto sai da rampa e recebe cinza", () => {
   const paleta = coresOrdinais(["Todos os declarantes", "Top 10%", "Top 1%"], { contexto: ["Todos os declarantes"] });
   assert.equal(paleta[0], cores.contexto);
   assert.ok(!paleta.slice(1).includes(cores.contexto));
+});
+
+test("rampa ordinal com 3:1 contra o branco e rótulos com 4,5:1", async () => {
+  const { contrasteComBranco, corTexto } = await import("../../js/tokens.js");
+  for (let n = 1; n <= 8; n++) {
+    for (const cor of corOrdinal(n)) assert.ok(contrasteComBranco(cor) >= 3, `${cor} abaixo de 3:1`);
+  }
+  for (const cor of [...corOrdinal(8), ...corDestaque(3), cores.contexto]) {
+    assert.ok(contrasteComBranco(corTexto(cor)) >= 4.5, `${cor} → ${corTexto(cor)} abaixo de 4,5:1`);
+  }
+  // Cor que já passa fica como está.
+  assert.equal(corTexto("#0072B2"), "#0072B2");
 });

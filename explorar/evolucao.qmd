@@ -89,13 +89,23 @@ formatar = formatoIndicador(indicador)
 semTopoDisponivel = semTopo.length > 0 && indicador in semTopo[0]
 todos = "Todos os grupos"
 semTopoRotulo = "Sem o top 0,01%"
+// Grade completa ano × geografia: um ano sem valor na fonte (como SP na RB9 em
+// 2023) fica com valor nulo, a linha se interrompe ali e a tabela mostra "–".
+anosDoConceito = [...new Set(metricas.filter((d) => d.ranking_id === conceito).map((d) => d.year))].sort((a, b) => a - b)
 dados = {
-  const monta = (base, serie) => base
-    .filter((d) => escolhidas.includes(d.geo_code) && d.ranking_id === conceito && Number.isFinite(d[indicador]))
-    .map((d) => ({
-      ano: d.year, valor: d[indicador], geo: d.geo_code, geografia: nomeGeo.get(d.geo_code), serie,
-      chave: `${d.geo_code}|${serie}`, superior: d.gini_upper_bound
+  const monta = (base, serie) => {
+    const porChave = new Map(base
+      .filter((d) => escolhidas.includes(d.geo_code) && d.ranking_id === conceito)
+      .map((d) => [`${d.geo_code}|${d.year}`, d]));
+    return escolhidas.flatMap((geo) => anosDoConceito.map((ano) => {
+      const d = porChave.get(`${geo}|${ano}`);
+      const valor = d?.[indicador];
+      return {
+        ano, valor: Number.isFinite(valor) ? valor : null, geo, geografia: nomeGeo.get(geo), serie,
+        chave: `${geo}|${serie}`, superior: d?.gini_upper_bound ?? null
+      };
     }));
+  };
   const linhas = monta(metricas, todos);
   if (filtros.semTopo && semTopoDisponivel) linhas.push(...monta(semTopo, semTopoRotulo));
   return linhas.sort((a, b) => escolhidas.indexOf(a.geo) - escolhidas.indexOf(b.geo) || a.ano - b.ano);
@@ -209,7 +219,7 @@ viewof anoLeitura = seletor({
     caixaLeitura.atualizar("");
   } else {
     const doAno = dados.filter((d) => d.ano === ano);
-    const partes = doAno.map((d) => `${d.geografia}${d.serie === todos ? "" : " sem o top 0,01%"}: ${formatar(d.valor)}`);
+    const partes = doAno.map((d) => `${d.geografia}${d.serie === todos ? "" : " sem o top 0,01%"}: ${d.valor === null ? "sem valor divulgado" : formatar(d.valor)}`);
     let texto = `${ano} · ${partes.join(" · ")}`;
     // O Gini publicado é o limite inferior; o superior mostra quanto a
     // desigualdade dentro dos grupos ainda poderia acrescentar.

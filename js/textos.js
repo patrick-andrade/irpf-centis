@@ -9,8 +9,9 @@ export const notaUnidade = "A unidade divulgada é a declaração válida, que p
 export const notaIndicesAgrupados = "Os índices são estimados a partir das médias e das quantidades " +
   "dos grupos divulgados; não observam a variação dentro de cada grupo.";
 
-export const notaTopoOrdinal = "O último 1% da distribuição reúne 20 grupos divulgados, que na escala " +
-  "acima ocupariam 1% da largura. Abaixo, cada um recebe a mesma largura.";
+export const notaTopoOrdinal = "O último 1% da distribuição reúne 19 grupos divulgados, que na escala " +
+  "acima ocupariam 1% da largura. Abaixo, cada um recebe a mesma largura; o primeiro ponto, até o " +
+  "percentil 99,00, é o centil 99, que fica fora do top 1% e serve de referência.";
 
 export const avisoUniverso = "Os dados representam declarações válidas do IRPF, não toda a população brasileira.";
 

@@ -104,11 +104,12 @@ A alíquota efetiva média divide o imposto devido pela renda RB4 de cada grupo 
 
 ![Alíquota efetiva média por posição na distribuição da RB4, ano mais recente](figuras/f3-aliquota-curva.svg){#fig-aliquota-curva fig-alt="Curva da alíquota efetiva média ao longo dos percentis 1 a 99, começando no zero. A alíquota fica próxima de zero até o percentil 15, sobe de forma contínua a partir daí e chega a cerca de 9,9% no percentil 90, estabilizando até o percentil 99. Uma faixa sombreada marca o último 1% da distribuição, detalhado no gráfico seguinte." width="100%"}
 
-O último por cento da distribuição concentra 20 grupos divulgados, que em escala
+O último por cento da distribuição concentra 19 grupos divulgados, que em escala
 de percentil ocupariam 1% da largura do gráfico acima. O gráfico seguinte dá a
-cada um desses grupos a mesma largura.
+cada um desses grupos a mesma largura e começa pelo centil 99, que fica fora do
+top 1% e serve de referência.
 
-![Alíquota efetiva média nos vinte grupos disjuntos do topo, ano mais recente](figuras/f4-aliquota-topo.svg){#fig-aliquota-topo fig-alt="Alíquota efetiva média nos vinte grupos divulgados do topo da distribuição, cada um com a mesma largura no eixo horizontal. A alíquota parte de cerca de 7,4% no grupo que termina no percentil 99, cai de forma contínua ao longo dos décimos do top 1% e do top 0,1%, e chega a 0,9% no último grupo, o 0,01% mais rico." width="100%"}
+![Alíquota efetiva média no centil 99 e nos 19 grupos disjuntos do top 1%, ano mais recente](figuras/f4-aliquota-topo.svg){#fig-aliquota-topo fig-alt="Alíquota efetiva média no centil 99 e nos 19 grupos divulgados do top 1%, cada um com a mesma largura no eixo horizontal. A alíquota parte de cerca de 7,4% no centil 99, de referência, cai de forma contínua ao longo dos décimos do top 1% e do top 0,1%, e chega a 0,9% no último grupo, o 0,01% mais rico." width="100%"}
 
 A queda decorre da composição da renda no topo: rendimentos isentos e sujeitos à
 tributação exclusiva ganham peso conforme se sobe na distribuição, e a RB4 os

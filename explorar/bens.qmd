@@ -107,7 +107,7 @@ parCurvas({
   rotuloY: "Patrimônio médio por declaração, R$ de 2024",
   formatar: reais, descricao: "patrimônio médio por declaração de", largura: larguraGrafico(width),
   ariaPrincipal: `Linha do patrimônio médio por declaração ao longo dos percentis de renda RB4, ${nome}, ${ano}`,
-  ariaTopo: `Linha do patrimônio médio nos vinte grupos disjuntos do topo da renda RB4, ${nome}, ${ano}`
+  ariaTopo: `Linha do patrimônio médio no centil 99 e nos 19 grupos do top 1% da renda RB4, ${nome}, ${ano}`
 })
 ```
 

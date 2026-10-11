@@ -348,3 +348,15 @@ test("Links antigos do painel (app/?aba=…) levam à página Explorar com o mes
     await pagina.close();
   }
 });
+
+test("Evolução: ano sem valor na fonte aparece como lacuna, não some", async () => {
+  // SP na RB9 não tem 2023 na fonte.
+  const { pagina } = await abrir("explorar/evolucao.html?geo=SP&conceito=RB9");
+  await esperarGrafico(pagina);
+  const ticks = await pagina.$$eval("svg[class^=plot] text", (ts) => ts.map((t) => t.textContent));
+  assert.ok(ticks.includes("2023"));
+  await escolher(pagina, "Ler os valores do ano", 2023);
+  await pagina.waitForFunction(() => document.querySelector(".leitura-ponto").textContent.includes("2023"));
+  assert.match(await leitura(pagina), /São Paulo: sem valor divulgado/);
+  await pagina.close();
+});

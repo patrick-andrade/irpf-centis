@@ -103,8 +103,8 @@ const figuras = [
         document, largura: LARGURA, alturaPainel: ALTURA, y: "effective_rate", rotuloY: "Alíquota efetiva média",
         rotularPicoUltimo: true,
         titulo: "No topo, a alíquota efetiva recua",
-        subtitulo: `Vinte grupos disjuntos em eixo ordinal, Brasil, ${ano}.`,
-        nota: "Vinte grupos disjuntos com a mesma largura no eixo: os dez décimos do top 1% e os dez do top 0,1%."
+        subtitulo: `Centil 99 e os 19 grupos do top 1% em eixo ordinal, Brasil, ${ano}.`,
+        nota: "Mesma largura para cada grupo: o centil 99 (de 98% a 99%), como referência, os nove décimos do top 1% até 99,9% e os dez décimos do top 0,1%."
       });
     }
   },

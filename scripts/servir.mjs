@@ -34,7 +34,10 @@ export function servir({ raiz = "output/site", prefixo = "/irpf-centis", porta =
       caminho = caminho.slice(prefixo.length);
     }
     let arquivo = path.join(base, caminho);
-    if (!arquivo.startsWith(base)) {
+    // Confina à pasta servida: um prefixo de texto deixaria passar uma pasta
+    // irmã cujo nome começa igual (site-segredo/ ao lado de site/).
+    const relativo = path.relative(base, arquivo);
+    if (relativo === ".." || relativo.startsWith(`..${path.sep}`) || path.isAbsolute(relativo)) {
       res.writeHead(403);
       return res.end();
     }

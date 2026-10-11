@@ -51,9 +51,11 @@ geo = filtros.geo
 nome = nomeGeo.get(geo)
 daGeo = metricas.filter((d) => d.geo_code === geo).sort((a, b) => a.year - b.year)
 linhaDoAno = (a) => daGeo.find((d) => d.year === a)
-serie = grupos.flatMap(([rotulo, coluna]) => daGeo
-  .filter((d) => Number.isFinite(d[coluna]))
-  .map((d) => ({ ano: d.year, valor: d[coluna], serie: rotulo })))
+// Grade completa ano × grupo: um ano sem valor fica nulo e interrompe a linha.
+serie = grupos.flatMap(([rotulo, coluna]) => anos.map((a) => {
+  const v = linhaDoAno(a)?.[coluna];
+  return { ano: a, valor: Number.isFinite(v) ? v : null, serie: rotulo };
+}))
 pct = percentual(0.1)
 pp = (x) => percentual(0.1)(x).replace("%", "")
 ```
@@ -148,7 +150,7 @@ tabela({
   if (doAno.length === 0) {
     caixaLeitura.atualizar("");
   } else {
-    let texto = `${a} · ${doAno.map((d) => `${d.serie}: ${pct(d.valor)}`).join(" · ")}`;
+    let texto = `${a} · ${doAno.map((d) => `${d.serie}: ${d.valor === null ? "sem valor divulgado" : pct(d.valor)}`).join(" · ")}`;
     if (a === 2018) texto += " · 2018 não é comparável";
     caixaLeitura.atualizar(texto);
   }
