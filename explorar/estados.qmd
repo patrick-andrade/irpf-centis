@@ -1,0 +1,174 @@
+---
+title: "Estados e regiões"
+subtitle: "Indicadores de desigualdade por unidade da Federação"
+page-layout: full
+toc: false
+---
+
+```{ojs}
+//| output: false
+import {
+  paraLinhas, mapaUF, barras, seletor, grupoFiltros, tabela, rodape, subnav, el, html,
+  lerEstado, valorInicial, publicarEstado, formatoIndicador, contagem, legendaClasses,
+  juntarNomes, fonteReceita, blocoConceitos, glossarioDe, opcoesAno, cabecalhoCartao, semAcento, larguraGrafico
+} from "../assets/js/irpf-viz.js"
+```
+
+```{ojs}
+//| output: false
+comum = FileAttachment("dados/comum.json").json()
+glossario = FileAttachment("dados/glossario.json").json()
+estados = FileAttachment("dados/estados.json").json()
+malha = FileAttachment("dados/ufs.geojson").json()
+g = glossarioDe(glossario)
+metricas = paraLinhas(estados.metricas)
+rotulosMapa = paraLinhas(estados.rotulos)
+geografias = paraLinhas(comum.geografias)
+porUf = new Map(geografias.map((x) => [x.geo_code, x]))
+opcoesIndicador = paraLinhas(comum.indicadores_seletor)
+anos = [...new Set(metricas.map((d) => d.year))].sort((a, b) => a - b)
+estadoUrl = lerEstado(location.search, { anos, indicadores: opcoesIndicador.map((i) => i.id) })
+```
+
+```{ojs}
+subnav("estados", { ano: filtros.ano })
+```
+
+{{< include _aviso.qmd >}}
+
+```{ojs}
+viewof filtros = grupoFiltros({
+  ano: seletor({ rotulo: "Ano", opcoes: opcoesAno(anos), valor: Number(valorInicial(estadoUrl.ano, "ano", anos, anos[anos.length - 1])) }),
+  indicador: seletor({
+    rotulo: "Indicador", opcoes: opcoesIndicador.map((i) => ({ valor: i.id, rotulo: i.rotulo })),
+    valor: estadoUrl.ind ?? "gini_grouped", dica: (id) => g.indicador(id)?.definition
+  }),
+  ordem: seletor({
+    rotulo: "Ordenar UFs por",
+    opcoes: [{ valor: "valor", rotulo: "Valor do indicador" }, { valor: "nome", rotulo: "Nome" }, { valor: "regiao", rotulo: "Região" }],
+    valor: estadoUrl.ordem ?? "valor"
+  })
+}, { rotulo: "Filtros dos estados" })
+```
+
+```{ojs}
+//| output: false
+ano = filtros.ano
+indicador = filtros.indicador
+rotuloIndicador = opcoesIndicador.find((i) => i.id === indicador)?.rotulo ?? indicador
+formatar = formatoIndicador(indicador, { precisaoIndice: 0.001 })
+formatarClasse = formatoIndicador(indicador, { precisaoIndice: 0.01 })
+participacao = /share$/.test(indicador)
+selecionados = {
+  const linhas = metricas
+    .filter((d) => d.year === ano && Number.isFinite(d[indicador]))
+    .map((d) => ({
+      uf: d.geo_code, nome: porUf.get(d.geo_code)?.geo_name ?? d.geo_code,
+      regiao: porUf.get(d.geo_code)?.region_name ?? "", valor: d[indicador], declarantes: d.contributors
+    }));
+  // A ordem escolhida vale para as barras e para a tabela.
+  const ordens = {
+    nome: (a, b) => (semAcento(a.nome) < semAcento(b.nome) ? -1 : 1),
+    regiao: (a, b) => (semAcento(a.regiao) === semAcento(b.regiao) ? b.valor - a.valor : semAcento(a.regiao) < semAcento(b.regiao) ? -1 : 1),
+    valor: (a, b) => b.valor - a.valor
+  };
+  return linhas.sort(ordens[filtros.ordem] ?? ordens.valor);
+}
+```
+
+```{ojs}
+//| output: false
+publicarEstado({ ano, ind: indicador, ordem: filtros.ordem === "valor" ? null : filtros.ordem }, { comum: { ano } })
+```
+
+::: {.cartao-explorar}
+
+```{ojs}
+cabecalhoCartao({
+  titulo: `Comparação entre UFs — ${rotuloIndicador}, ${ano}`, id: "titulo-estados",
+  csv: {
+    linhas: () => selecionados.map((d) => ({ ano, ...d })),
+    colunas: [
+      { id: "ano", rotulo: "Ano" }, { id: "uf", rotulo: "UF" }, { id: "nome", rotulo: "Unidade da Federação" },
+      { id: "regiao", rotulo: "Região" }, { id: "valor", rotulo: rotuloIndicador }, { id: "declarantes", rotulo: "Declarantes" }
+    ],
+    arquivo: `irpf-centis-ufs-${indicador}-${ano}.csv`
+  }
+})
+```
+
+::: {.grid}
+
+::: {.g-col-12 .g-col-lg-7}
+
+```{ojs}
+mapa = mapaUF(malha, new Map(selecionados.map((d) => [d.uf, d.valor])), {
+  rotulos: rotulosMapa, formatar, largura: larguraGrafico(width, 0.58), alturaPainel: 460,
+  interativo: true,
+  ariaLabel: `Mapa das unidades da Federação, com as siglas, por ${rotuloIndicador} em ${ano}`,
+  ariaDescription: "Cores em cinco classes de quantis. Os mesmos valores aparecem na tabela abaixo do mapa."
+})
+```
+
+```{ojs}
+legendaClasses(mapa.classes?.quebras, mapa.classes?.cores ?? [], formatarClasse)
+```
+
+<p class="nota-grafico">Fonte da malha: IBGE. Indicadores calculados dentro de cada UF.</p>
+
+:::
+
+::: {.g-col-12 .g-col-lg-5}
+
+```{ojs}
+barras(selecionados, {
+  x: "valor", y: "nome", ordem: selecionados.map((d) => d.nome),
+  eixo: participacao ? "participacao" : "indice", rotuloX: rotuloIndicador,
+  largura: larguraGrafico(width, 0.42), alturaBarra: 17, interativo: true,
+  tip: (d) => `${d.nome}: ${formatar(d.valor)}`,
+  ariaLabel: `Barras horizontais com as unidades da Federação por ${rotuloIndicador} em ${ano}`,
+  ariaDescription: "Os valores exatos aparecem na tabela abaixo."
+})
+```
+
+<p class="nota-grafico">Centis calculados separadamente dentro de cada UF.</p>
+
+:::
+
+:::
+
+```{ojs}
+tabela({
+  linhas: selecionados,
+  legenda: `${rotuloIndicador} por unidade da Federação, ${ano}`,
+  colunas: [
+    { id: "nome", rotulo: "Unidade da Federação", cabecalhoLinha: true },
+    { id: "regiao", rotulo: "Região" },
+    { id: "valor", rotulo: rotuloIndicador, numerica: true, formatar },
+    { id: "declarantes", rotulo: "Declarantes", numerica: true, formatar: contagem() }
+  ]
+})
+```
+
+:::
+
+```{ojs}
+{
+  const saltos = ano === 2018 ? (estados.saltos_2018?.[indicador] ?? []) : [];
+  const nomes = juntarNomes(saltos.map((u) => porUf.get(u)?.geo_name ?? u));
+  return rodape({
+    notas: [
+      "Cada UF é ordenada separadamente pela Receita: o centil 90 de uma UF não tem o mesmo limite monetário do centil 90 de outra. O mapa compara indicadores calculados dentro de cada UF, não centis nacionais.",
+      saltos.length ? `Em 2018, ${nomes} destoa${saltos.length > 1 ? "m" : ""} dos anos vizinhos por causa de um único grupo do topo no arquivo oficial; o mapa desse ano é dominado por esse efeito.` : null
+    ],
+    fonte: [fonteReceita, "Malha estadual: IBGE."]
+  });
+}
+```
+
+```{ojs}
+blocoConceitos({
+  conceitos: [g.itemConceito("RB4")].filter(Boolean),
+  indicadores: [g.itemIndicador(indicador)].filter(Boolean)
+})
+```

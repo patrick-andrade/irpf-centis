@@ -2,7 +2,7 @@
 // vírgula decimal, CRLF e BOM UTF-8. Sem o BOM, o Excel lê "São Paulo" como
 // "SÃ£o Paulo". É o mesmo dialeto do `write.csv2()` que o painel antigo usava.
 
-const BOM = "﻿";
+const BOM = "\uFEFF";
 
 function celula(valor) {
   if (valor === null || valor === undefined || (typeof valor === "number" && !Number.isFinite(valor))) return "";

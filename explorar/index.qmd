@@ -10,3 +10,5 @@ toc: false
 As páginas Explorar substituem o painel interativo antigo. Elas abrem em menos de um segundo e cada visão tem um link próprio.
 
 - [Evolução](evolucao.html): desigualdade por ano, geografia e conceito de renda.
+- [Topos da renda](topos.html): participação do 10%, 1%, 0,1% e 0,01% do topo.
+- [Estados e regiões](estados.html): mapa e comparação entre UFs.

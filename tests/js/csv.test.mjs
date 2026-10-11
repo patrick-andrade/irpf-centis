@@ -8,7 +8,7 @@ test("CSV em pt-BR: BOM, ponto e vírgula, vírgula decimal e CRLF", () => {
     [{ geo: "São Paulo", valor: 0.55 }, { geo: "Brasil", valor: 1234.5 }, { geo: 'Aspas "duplas"', valor: null }],
     [{ id: "geo", rotulo: "Geografia" }, { id: "valor", rotulo: "Valor" }]
   );
-  assert.ok(texto.startsWith("﻿"));
+  assert.ok(texto.startsWith("\uFEFF"));
   const linhas = texto.slice(1).split("\r\n");
   assert.equal(linhas[0], '"Geografia";"Valor"');
   assert.equal(linhas[1], '"São Paulo";0,55');

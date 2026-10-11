@@ -1,0 +1,180 @@
+---
+title: "Topos da renda"
+subtitle: "Quanto da renda declarada fica com o 10%, o 1%, o 0,1% e o 0,01% do topo"
+page-layout: full
+toc: false
+---
+
+```{ojs}
+//| output: false
+import {
+  paraLinhas, series, seletor, grupoFiltros, leitura, tabela, rodape, subnav, el, html,
+  lerEstado, valorInicial, publicarEstado, percentual, contagem, coresOrdinais, cores,
+  caixaValor, variacao, fraseContagem, notaUnidade, fonteReceita, blocoConceitos,
+  glossarioDe, opcoesGeografia, opcoesAno, cabecalhoCartao, Plot, larguraGrafico
+} from "../assets/js/irpf-viz.js"
+```
+
+```{ojs}
+//| output: false
+comum = FileAttachment("dados/comum.json").json()
+glossario = FileAttachment("dados/glossario.json").json()
+topos = FileAttachment("dados/topos.json").json()
+g = glossarioDe(glossario)
+metricas = paraLinhas(topos.metricas)
+contagens = paraLinhas(topos.contagens)
+geos = opcoesGeografia(comum, { codigos: [...new Set(metricas.map((d) => d.geo_code))] })
+nomeGeo = new Map(geos.map((o) => [o.valor, o.rotulo]))
+anos = [...new Set(metricas.map((d) => d.year))].sort((a, b) => a - b)
+estadoUrl = lerEstado(location.search, { anos, geos: geos.map((o) => o.valor) })
+grupos = [["Top 10%", "top_10_share"], ["Top 1%", "top_1_share"], ["Top 0,1%", "top_0_1_share"]]
+paleta = new Map(grupos.map(([r], i) => [r, coresOrdinais(grupos.map(([n]) => n))[i]]))
+```
+
+```{ojs}
+subnav("topos", { geo: filtros.geo, ano: filtros.ano })
+```
+
+{{< include _aviso.qmd >}}
+
+```{ojs}
+viewof filtros = grupoFiltros({
+  ano: seletor({ rotulo: "Ano", opcoes: opcoesAno(anos), valor: Number(valorInicial(estadoUrl.ano, "ano", anos, anos[anos.length - 1])) }),
+  geo: seletor({ rotulo: "Geografia", opcoes: geos, valor: valorInicial(estadoUrl.geo, "geo", geos.map((o) => o.valor), "BR") })
+}, { rotulo: "Filtros dos topos" })
+```
+
+```{ojs}
+//| output: false
+ano = filtros.ano
+geo = filtros.geo
+nome = nomeGeo.get(geo)
+daGeo = metricas.filter((d) => d.geo_code === geo).sort((a, b) => a.year - b.year)
+linhaDoAno = (a) => daGeo.find((d) => d.year === a)
+serie = grupos.flatMap(([rotulo, coluna]) => daGeo
+  .filter((d) => Number.isFinite(d[coluna]))
+  .map((d) => ({ ano: d.year, valor: d[coluna], serie: rotulo })))
+pct = percentual(0.1)
+pp = (x) => percentual(0.1)(x).replace("%", "")
+```
+
+```{ojs}
+//| output: false
+publicarEstado({ geo, ano }, { comum: { geo, ano } })
+```
+
+```{ojs}
+{
+  const atual = linhaDoAno(ano);
+  const anterior = linhaDoAno(ano - 1);
+  if (!atual) return html`<p>Sem dados para a seleção.</p>`;
+  const caixa = (titulo, coluna) => caixaValor({
+    titulo, valor: pct(atual[coluna]), ajudaTermo: g.ajudaIndicador(coluna, titulo),
+    variacao: anterior ? variacao(atual[coluna], anterior[coluna], pp, "p.p.", ano) : null
+  });
+  return el("div", { class: "caixas-valor" },
+    caixa("Top 10%", "top_10_share"), caixa("Top 1%", "top_1_share"),
+    caixa("Top 0,1%", "top_0_1_share"), caixa("Top 0,01%", "top_0_01_share"));
+}
+```
+
+::: {.cartao-explorar}
+
+```{ojs}
+cabecalhoCartao({
+  titulo: `Participação dos grupos do topo na renda declarada — ${nome}`, id: "titulo-topos",
+  csv: {
+    linhas: () => serie.map((d) => ({ ano: d.ano, geografia: nome, grupo: d.serie, participacao: d.valor })),
+    colunas: [
+      { id: "ano", rotulo: "Ano" }, { id: "geografia", rotulo: "Geografia" },
+      { id: "grupo", rotulo: "Grupo" }, { id: "participacao", rotulo: "Participacao" }
+    ],
+    arquivo: `irpf-centis-topos-${geo}.csv`
+  }
+})
+```
+
+::: {.panel-tabset}
+
+## Gráfico
+
+```{ojs}
+viewof ponto = series(serie, {
+  x: "ano", y: "valor", z: "serie", cor: paleta, eixo: "participacao",
+  rotuloY: "Participação na renda declarada",
+  // A linha tracejada liga o gráfico às caixas acima: é o ano escolhido.
+  extrasAntes: [Plot.ruleX([ano], { stroke: cores.referencia, strokeDasharray: "4,3", strokeWidth: 1 })],
+  largura: larguraGrafico(width), alturaPainel: 340, interativo: true,
+  tip: (d) => `${d.ano} · ${d.serie}: ${pct(d.valor)}` + (d.ano === 2018 ? "\n2018 não é comparável" : ""),
+  ariaLabel: `Séries da participação do top 10%, do top 1% e do top 0,1% na renda RB4 declarada, ${nome}, por ano-calendário`,
+  ariaDescription: "A faixa sombreada marca 2018, ano não comparável; a linha tracejada marca o ano escolhido. Os valores estão na aba Tabela."
+})
+```
+
+```{ojs}
+caixaLeitura = leitura()
+```
+
+```{ojs}
+viewof anoLeitura = seletor({
+  rotulo: "Ler os valores do ano",
+  opcoes: [{ valor: "", rotulo: "—" }, ...anos.map((a) => ({ valor: a, rotulo: String(a) }))],
+  valor: ""
+})
+```
+
+## Tabela
+
+```{ojs}
+tabela({
+  linhas: daGeo.map((d) => ({ ano: d.year, ...Object.fromEntries(grupos.map(([r, c]) => [r, d[c]])) })),
+  legenda: `Participação na renda RB4 declarada, ${nome}`,
+  colunas: [
+    { id: "ano", rotulo: "Ano", cabecalhoLinha: true },
+    ...grupos.map(([r]) => ({ id: r, rotulo: r, numerica: true, formatar: pct }))
+  ]
+})
+```
+
+:::
+
+:::
+
+```{ojs}
+//| output: false
+{
+  const a = ponto?.ano ?? (anoLeitura === "" || anoLeitura === null ? null : anoLeitura);
+  const doAno = a === null || a === undefined ? [] : serie.filter((d) => d.ano === a);
+  if (doAno.length === 0) {
+    caixaLeitura.atualizar("");
+  } else {
+    let texto = `${a} · ${doAno.map((d) => `${d.serie}: ${pct(d.valor)}`).join(" · ")}`;
+    if (a === 2018) texto += " · 2018 não é comparável";
+    caixaLeitura.atualizar(texto);
+  }
+}
+```
+
+```{ojs}
+{
+  const doAno = contagens.filter((d) => d.year === ano && d.geo_code === geo).sort((a, b) => a.share_lower - b.share_lower);
+  const contar = contagem();
+  const semConjuntas = doAno.length > 0 && doAno.every((d) => !Number.isFinite(d.joint_returns));
+  return rodape({
+    notas: [
+      "Os grupos detalhados do topo são disjuntos no cálculo. Os agregados 100 e 110 não são somados novamente.",
+      notaUnidade,
+      semConjuntas ? "A quantidade de declarações conjuntas não é divulgada neste ano; o campo fica ausente, e não zerado." : null
+    ],
+    observacoes: doAno.map((d) => fraseContagem(d, nome, contar)),
+    fonte: fonteReceita
+  });
+}
+```
+
+```{ojs}
+blocoConceitos({
+  conceitos: [g.itemConceito("RB4")].filter(Boolean),
+  indicadores: ["top_10_share", "top_1_share", "top_0_1_share", "top_0_01_share"].map(g.itemIndicador).filter(Boolean)
+})
+```

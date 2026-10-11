@@ -170,9 +170,6 @@ table tbody tr:hover { background: #f2f6fc; }
    Páginas Explorar (explorar/*.qmd): filtros, caixas de valor, leitura de
    valores, ajuda, rodapé e glossário. Portado de app/www/styles.css.
    --------------------------------------------------------------------------- */
-.explorar #quarto-document-content { max-width: 1280px; }
-.explorar .quarto-title-block .quarto-title { padding-bottom: .6rem; }
-
 .aviso-universo {
   background: #fff7dc;
   border: 1px solid #d5a827;

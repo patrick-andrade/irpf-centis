@@ -18,7 +18,7 @@ import {
   paraLinhas, series, seletor, caixa, grupoFiltros, leitura, tabela, rodape, subnav,
   lerEstado, valorInicial, publicarEstado, copiarLink, baixarCsv, botao, juntarNomes,
   formatoIndicador, indice, html, el, legendaLinhas, blocoConceitos, tabelaConceitos,
-  corDestaque, nota2018Evolucao, notaIndicesAgrupados, fonteReceita
+  corDestaque, nota2018Evolucao, notaIndicesAgrupados, fonteReceita, larguraGrafico
 } from "../assets/js/irpf-viz.js"
 ```
 
@@ -145,7 +145,7 @@ viewof ponto = series(dados, {
   textoRotulo: (d) => d.geografia,
   rotularSo: (d) => d.serie === todos,
   formatarExtremos: formatar,
-  largura: Math.max(320, Math.min(width, 1180) - 40),
+  largura: larguraGrafico(width),
   alturaPainel: 380,
   interativo: true,
   tip: (d) => `${d.ano} · ${d.geografia}${d.serie === todos ? "" : " sem o top 0,01%"}: ${formatar(d.valor)}` +

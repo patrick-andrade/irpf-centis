@@ -15,3 +15,4 @@ export * from "./dados.js";
 export * from "./interface.js";
 export * from "./textos.js";
 export * from "./graficos.js";
+export * from "./paginas.js";

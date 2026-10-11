@@ -199,3 +199,47 @@ test("Relatórios: figuras SVG do módulo JS carregam, com texto alternativo", a
     await pagina.close();
   }
 });
+
+// Checagens comuns a cada página Explorar: abre com o estado do link, desenha
+// dentro do limite, sem erro nem 404, e sem violação grave de acessibilidade.
+const paginas = [
+  { caminho: "explorar/topos.html?geo=SP&ano=2023", titulo: "#titulo-topos", espera: /São Paulo/ },
+  { caminho: "explorar/estados.html?ano=2018&ind=top_1_share", titulo: "#titulo-estados", espera: /Participação do top 1%, 2018/ }
+];
+
+for (const p of paginas) {
+  test(`${p.caminho.split("?")[0]}: abre com o estado do link, rápido, sem erros e acessível`, async () => {
+    const { pagina, problemas, inicio } = await abrir(p.caminho);
+    await esperarGrafico(pagina);
+    const ms = Date.now() - inicio;
+    assert.ok(ms < LIMITE_MS, `primeiro gráfico em ${ms} ms`);
+    assert.deepEqual(await errosOjs(pagina), []);
+    assert.match(await pagina.$eval(p.titulo, (e) => e.textContent), p.espera);
+    assert.deepEqual(await axe(pagina), []);
+    assert.deepEqual(problemas, []);
+    await pagina.close();
+  });
+}
+
+test("Topos: caixas com variação e frases de contagem", async () => {
+  const { pagina } = await abrir("explorar/topos.html?geo=BR&ano=2019");
+  await esperarGrafico(pagina);
+  const variacoes = await pagina.$$eval(".caixa-valor-variacao", (es) => es.map((e) => e.textContent));
+  assert.equal(variacoes.length, 4);
+  assert.ok(variacoes.every((v) => v.endsWith("ante 2018 (2018 não comparável)")), variacoes.join(" | "));
+  const rodape = await pagina.$eval(".bloco-rodape", (e) => e.textContent);
+  assert.match(rodape, /Brasil, 2019: o top 0,01% reúne [\d.]+ declarações/);
+  await pagina.close();
+});
+
+test("Estados: mapa com 27 UFs e ordem por nome na URL e na tabela", async () => {
+  const { pagina } = await abrir("explorar/estados.html");
+  await esperarGrafico(pagina);
+  await escolher(pagina, "Ordenar UFs por", "nome");
+  await pagina.waitForFunction(() => location.search.includes("ordem=nome"));
+  const primeira = await pagina.$eval(".tabela-explorar tbody tr th", (e) => e.textContent);
+  assert.equal(primeira, "Acre");
+  const ufs = await pagina.$$eval("svg[class^=plot] text", (ts) => ts.map((t) => t.textContent).filter((t) => /^[A-Z]{2}$/.test(t)));
+  assert.equal(new Set(ufs).size, 27);
+  await pagina.close();
+});

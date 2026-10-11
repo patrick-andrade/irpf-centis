@@ -13,6 +13,8 @@ project:
     - docs/provenance.md
     - explorar/index.qmd
     - explorar/evolucao.qmd
+    - explorar/topos.qmd
+    - explorar/estados.qmd
   resources:
     - styles/fonts/*
     # Dados das páginas Explorar. Os arquivos por geografia são lidos com nome

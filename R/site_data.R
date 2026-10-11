@@ -212,7 +212,7 @@ escrever_geojson <- function(objeto, caminho) {
 texto_variacao <- function(atual, anterior, formatar, unidade, ano) {
   if (!is.finite(atual) || !is.finite(anterior)) return(NA_character_)
   delta <- atual - anterior
-  sinal <- if (delta > 0) "+" else if (delta < 0) "−" else "="
+  sinal <- if (delta > 0) "+" else if (delta < 0) "\u2212" else "="
   ressalva <- if (as.integer(ano) %in% c(2018L, 2019L)) " (2018 não comparável)" else ""
   paste0(sinal, formatar(abs(delta)), " ", unidade, " ante ", as.integer(ano) - 1L, ressalva)
 }
