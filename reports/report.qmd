@@ -15,7 +15,7 @@ format:
 ```{r}
 #| include: false
 source("../R/utils.R", encoding = "UTF-8")
-source("../R/viz.R", encoding = "UTF-8")
+source("../R/formatos.R", encoding = "UTF-8")
 source("../R/harmonization.R", encoding = "UTF-8")
 source("../R/inequality.R", encoding = "UTF-8")
 source("../R/polarization.R", encoding = "UTF-8")

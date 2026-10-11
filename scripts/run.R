@@ -31,6 +31,12 @@ rodar_npm <- function(...) {
     cli::cli_alert_warning("Node/npm não encontrado: pulando npm {paste(c(...), collapse = ' ')}.")
     return(invisible(FALSE))
   }
+  # No CI, os testes JS rodam no job próprio (`js`), que instala as
+  # dependências; aqui, sem `npm ci`, não há o que rodar.
+  if (!dir.exists(project_path("node_modules"))) {
+    cli::cli_alert_warning("node_modules ausente (rode npm ci): pulando npm {paste(c(...), collapse = ' ')}.")
+    return(invisible(FALSE))
+  }
   status <- system2(npm, c(...))
   if (!identical(status, 0L)) stop("npm ", paste(c(...), collapse = " "), " falhou.", call. = FALSE)
   invisible(TRUE)

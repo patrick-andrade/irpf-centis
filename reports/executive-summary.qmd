@@ -15,7 +15,7 @@ format:
 ```{r}
 #| include: false
 source("../R/utils.R", encoding = "UTF-8")
-source("../R/viz.R", encoding = "UTF-8")
+source("../R/formatos.R", encoding = "UTF-8")
 source("../R/report_helpers.R", encoding = "UTF-8")
 data <- load_report_data()
 has_data <- report_has_data(data)
