@@ -53,7 +53,7 @@ jobs:
       group: pages-build
       cancel-in-progress: true
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           # Publica exatamente o commit que o CI aprovou.
           ref: ${{ needs.verificar.outputs.sha }}
@@ -76,7 +76,7 @@ jobs:
           test -s output/site/app/index.html || { echo "Redirecionamento do painel antigo ausente"; exit 1; }
       - name: Desativar o Jekyll do Pages
         run: touch output/site/.nojekyll
-      - uses: actions/upload-pages-artifact@v4
+      - uses: actions/upload-pages-artifact@v5
         with:
           path: output/site
 
@@ -106,4 +106,4 @@ jobs:
           fi
       - id: deployment
         if: steps.ponta.outputs.publicar == 'true'
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5
