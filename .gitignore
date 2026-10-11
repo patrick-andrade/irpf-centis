@@ -35,6 +35,12 @@ reports/*_files/
 index_files/
 tmp/**
 
+# Node (camada visual)
+node_modules/
+
+# Worktrees criados por ferramentas locais
+/.claude/worktrees/
+
 # Documentação interna de desenvolvimento
 internal/
 

@@ -10,3 +10,15 @@
 *.md text
 *.yml text
 *.csv text
+# Camada visual em JS: LF em qualquer sistema, para que o bundle e as figuras
+# gerados no Windows e no runner Ubuntu do CI sejam idênticos byte a byte.
+*.js text eol=lf
+*.mjs text eol=lf
+*.json text eol=lf
+*.svg text eol=lf
+*.css text eol=lf
+*.scss text eol=lf
+*.geojson text eol=lf
+.nvmrc text eol=lf
+assets/js/irpf-viz.js linguist-generated=true -diff
+package-lock.json linguist-generated=true

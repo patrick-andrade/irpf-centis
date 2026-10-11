@@ -1,0 +1,19 @@
+version: 2
+updates:
+  # Plot, d3 e as ferramentas de build e teste. Um PR por mês, agrupado: cada
+  # atualização regenera o bundle e as figuras, conferidos pelo CI.
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: monthly
+    groups:
+      npm:
+        patterns: ["*"]
+    open-pull-requests-limit: 2
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+    groups:
+      actions:
+        patterns: ["*"]

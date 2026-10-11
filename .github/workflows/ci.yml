@@ -35,3 +35,22 @@ jobs:
       - uses: r-lib/actions/setup-renv@v2
       - name: Testes e diagnóstico de lint
         run: Rscript scripts/run.R check
+
+  # Camada visual: módulo JS das páginas Explorar e das figuras dos relatórios.
+  # O bundle servido ao site fica versionado, porque o deploy só repete o render
+  # do Quarto; aqui ele é gerado de novo e precisa sair idêntico ao do git.
+  js:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - name: Testes do módulo JS
+        run: npm test
+      - name: Bundle versionado em dia
+        run: |
+          npm run build
+          git diff --exit-code -- assets/js || { echo "assets/js/irpf-viz.js desatualizado: rode npm run build e commite"; exit 1; }
