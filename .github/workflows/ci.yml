@@ -54,6 +54,12 @@ jobs:
         run: |
           npm run build
           git diff --exit-code -- assets/js || { echo "assets/js/irpf-viz.js desatualizado: rode npm run build e commite"; exit 1; }
+      - name: Figuras dos relatórios em dia
+        # Os SVG dos PDFs saem dos JSON versionados; gerados de novo aqui, no
+        # Ubuntu, precisam ser iguais aos gerados no Windows do autor.
+        run: |
+          npm run figuras
+          git diff --exit-code -- reports/figuras || { echo "reports/figuras desatualizado: rode npm run figuras e commite"; exit 1; }
 
   # Site renderizado como no deploy (replay do _freeze, sem R) e testado num
   # navegador de verdade: erro em tempo de execução, arquivo não copiado,

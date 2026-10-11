@@ -75,3 +75,11 @@ test("eixos não desenham a seta do rótulo (fora da Noto Sans)", () => {
   assert.equal(eixoIndice([0.5, 0.6]).labelArrow, "none");
   assert.equal(eixoAno([2017, 2024]).labelArrow, "none");
 });
+
+test("rótulos dos ticks têm as casas que os valores pedem", () => {
+  // Domínio que começa fora do passo: ticks em 0,475, 0,525…
+  const eixo = eixoIndice([0.4975, 0.6675], { spanMin: 0.15 });
+  const rotulos = eixo.ticks.map(eixo.tickFormat);
+  assert.equal(new Set(rotulos).size, rotulos.length);
+  assert.ok(rotulos.every((r, i) => Math.abs(Number(r.replace(",", ".")) - eixo.ticks[i]) < 1e-9), rotulos.join(" "));
+});

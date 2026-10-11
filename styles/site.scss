@@ -157,6 +157,9 @@ a:focus-visible, button:focus-visible, .nav-link:focus-visible {
   text-align: left;
 }
 .cell-output-display:has(table) { overflow-x: auto; }
+/* Figuras dos relatórios (reports/figuras/*.svg, desenhadas pelo módulo JS):
+   largura de leitura, sem ampliar o texto do gráfico além do corpo da página. */
+.quarto-figure img[src*="figuras/"] { display: block; max-width: min(100%, 760px); height: auto; }
 table { background: #fff; font-variant-numeric: tabular-nums; }
 table th { background: #eaf1fb; color: var(--irpf-navy); font-weight: 700; }
 table td, table th { border-color: var(--irpf-rule) !important; }

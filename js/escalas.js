@@ -72,15 +72,30 @@ function eixo(dominio, quebras, tickFormat, rotulo, grid) {
 
 // Índices limitados (Gini, Atkinson, Theil). Amplitude mínima de 0,15: cobre a
 // distância entre RTB (~0,50) e RB5 sem deixar 0,03 preencher o gráfico.
+// Casas decimais suficientes para todos os ticks: com ticks em 0,475 e 0,525,
+// duas casas escreveriam "0,47" e "0,53".
+function precisaoDosTicks(ticks, minima, escala = 1) {
+  let casasTicks = 0;
+  for (const t of ticks) {
+    const v = t * escala;
+    let c = 0;
+    while (c < 6 && Math.abs(Math.round(v * 10 ** c) - v * 10 ** c) > 1e-7) c++;
+    casasTicks = Math.max(casasTicks, c);
+  }
+  return Math.min(minima, 10 ** -casasTicks);
+}
+
 export function eixoIndice(valores, { spanMin = 0.15, ancora = null, precisao = 0.01, rotulo = null, grid = true } = {}) {
   const dominio = dominioAncorado(valores, { spanMin, ancora });
-  return eixo(dominio, quebrasDoDominio(dominio), indice(precisao), rotulo, grid);
+  const quebras = quebrasDoDominio(dominio);
+  return eixo(dominio, quebras, indice(precisaoDosTicks(quebras, precisao)), rotulo, grid);
 }
 
 // Participações e alíquotas: o zero entra sempre e o teto é 100%.
 export function eixoParticipacao(valores, { ancora = null, precisao = 0.1, rotulo = null, grid = true } = {}) {
   const dominio = dominioAncorado(valores, { ancora, incluirZero: true, teto: 1 });
-  return eixo(dominio, quebrasDoDominio(dominio), percentual(precisao), rotulo, grid);
+  const quebras = quebrasDoDominio(dominio);
+  return eixo(dominio, quebras, percentual(precisaoDosTicks(quebras, precisao, 100)), rotulo, grid);
 }
 
 export const eixoAliquota = eixoParticipacao;

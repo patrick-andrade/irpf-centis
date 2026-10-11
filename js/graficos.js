@@ -7,6 +7,7 @@ import { quantile } from "d3";
 import { cores, fonte, tamanhos, corDestaque, corOrdinal } from "./tokens.js";
 import { eixoIndice, eixoParticipacao, eixoDinheiro, eixoAno } from "./escalas.js";
 import { marca2018, rotularNoFim, rotularExtremos, linhaZero, cabecalho, eixoOrdinalTopo } from "./marcas.js";
+import { indice, percentual } from "./formatos.js";
 
 const finito = (v) => typeof v === "number" && Number.isFinite(v);
 
@@ -26,10 +27,16 @@ function plotar({
   marcas, x, y, color, largura, alturaPainel, margens = {}, cabecalhoTexto = null,
   folgaEixoX = 26, ariaLabel = null, ariaDescription = null, document, projection, extra = {}
 }) {
-  const margemEsquerda = margens.left ?? 56;
-  const h = cabecalhoTexto && (cabecalhoTexto.titulo || cabecalhoTexto.subtitulo || cabecalhoTexto.nota)
-    ? cabecalho({ ...cabecalhoTexto, largura, margemEsquerda, folgaEixoX })
-    : null;
+  const temCabecalho = Boolean(cabecalhoTexto && (cabecalhoTexto.titulo || cabecalhoTexto.subtitulo || cabecalhoTexto.nota));
+  // Nas figuras com título, o rótulo do eixo y vai na vertical, à esquerda:
+  // no alto ele disputaria espaço com o título e o subtítulo.
+  const rotuloVertical = temCabecalho && y?.label;
+  const margemEsquerda = (margens.left ?? 56) + (rotuloVertical ? 18 : 0);
+  if (rotuloVertical) y = { ...y, labelAnchor: "center", labelOffset: margemEsquerda - 4 };
+  // O Plot põe o rótulo do eixo x no pé da margem inferior, onde fica a nota
+  // da figura: aqui ele fica logo abaixo dos ticks.
+  if (temCabecalho && x?.label) x = { ...x, labelOffset: folgaEixoX - 6 };
+  const h = temCabecalho ? cabecalho({ ...cabecalhoTexto, largura, margemEsquerda, folgaEixoX }) : null;
   const margemTopo = h ? h.margemTopo : (margens.top ?? 20);
   const margemBase = h ? h.margemBase : (margens.bottom ?? folgaEixoX);
   const svg = Plot.plot({
@@ -69,7 +76,7 @@ export function series(dados, {
   eixo = "indice", eixoOpcoes = {}, rotuloY = null,
   faixa = null, ressalva2018 = true, rotulos = "fim", textoRotulo = null,
   rotularSo = null, formatarExtremos = null, extras = [], extrasAntes = [],
-  largura = 640, alturaPainel = 300, margemEsquerda = 56, margemDireita = null,
+  largura = 640, alturaPainel = 300, margemEsquerda = 56, margemDireita = null, girarAnos = false,
   titulo = null, subtitulo = null, nota = null,
   interativo = false, tip = null, ariaLabel = null, ariaDescription = null, document
 } = {}) {
@@ -102,13 +109,16 @@ export function series(dados, {
     Plot.line(tracejadas, { x, y, z, stroke: (d) => corDe(d[z]), strokeWidth: 2, strokeDasharray: "5,4" }),
     Plot.dot(pontos, { x, y, fill: (d) => corDe(d[z]), r: 3 }),
     ...(rotulos === "fim" ? rotularNoFim(paraRotulo, { x, y, z, texto: textoDe, cor: (d) => corDe(d[z]) }) : []),
-    ...(rotulos === "extremos" ? rotularExtremos(cheias, { x, y, formatar: formatarExtremos ?? eixoY.tickFormat }) : []),
+    ...(rotulos === "extremos" ? rotularExtremos(cheias, {
+      x, y, formatar: formatarExtremos ?? (eixo === "indice" ? indice(0.001) : percentual(0.1))
+    }) : []),
     ...extras,
     ...(interativo ? [Plot.tip(pontos, Plot.pointerX({ x, y, stroke: (d) => corDe(d[z]), title: tip ?? ((d) => `${d[x]} · ${d[z]}: ${eixoY.tickFormat(d[y])}`) }))] : [])
   ];
   return plotar({
-    marcas, x: eixoAno(anos), y: eixoY, largura, alturaPainel,
+    marcas, x: { ...eixoAno(anos), ...(girarAnos ? { tickRotate: -45 } : {}) }, y: eixoY, largura, alturaPainel,
     margens: { left: margemEsquerda, right: margemDireita ?? larguraRotulos },
+    folgaEixoX: girarAnos ? 40 : 26,
     cabecalhoTexto: { titulo, subtitulo, nota }, ariaLabel, ariaDescription, document
   });
 }
@@ -142,7 +152,7 @@ export function curvaPercentil(dados, {
   ];
   return plotar({
     marcas, x: eixoX, y: eixoY, largura, alturaPainel, margens: { left: margemEsquerda, right: 20 },
-    folgaEixoX: 40, cabecalhoTexto: { titulo, subtitulo, nota }, ariaLabel, ariaDescription, document
+    folgaEixoX: 48, cabecalhoTexto: { titulo, subtitulo, nota }, ariaLabel, ariaDescription, document
   });
 }
 
@@ -163,19 +173,24 @@ export function curvaTopo(dados, {
     rotulo: rotuloY, ...(eixo === "indice" ? { spanMin: 0.1 } : {})
   });
   const fmt = formatar ?? eixoY.tickFormat;
-  const destaques = [];
+  let pico = null;
+  let ultimo = null;
   if (rotularPicoUltimo && definidos.length) {
-    const pico = definidos.reduce((a, b) => (b[y] > a[y] ? b : a));
-    const ultimo = definidos.reduce((a, b) => (b[x] > a[x] ? b : a));
-    destaques.push(pico);
-    if (ultimo !== pico) destaques.push(ultimo);
+    pico = definidos.reduce((a, b) => (b[y] > a[y] ? b : a));
+    ultimo = definidos.reduce((a, b) => (b[x] > a[x] ? b : a));
+    if (ultimo === pico) ultimo = null;
   }
   const marcas = [
     ...(zero ? [linhaZero()] : []),
     Plot.line(pontos, { x: "__posicao", y: (d) => (finito(d[y]) ? d[y] : NaN), stroke: cor, strokeWidth: 2 }),
     Plot.dot(definidos, { x: "__posicao", y, fill: cor, r: 3 }),
-    ...(destaques.length ? [Plot.text(destaques, {
+    ...(pico ? [Plot.text([pico], {
       x: "__posicao", y, text: (d) => fmt(d[y]), dy: -11, fill: cores.tinta, fontSize: tamanhos.anotacao
+    })] : []),
+    // O último grupo fica na borda direita: o rótulo vai à esquerda do ponto,
+    // longe da linha que chega a ele.
+    ...(ultimo ? [Plot.text([ultimo], {
+      x: "__posicao", y, text: (d) => fmt(d[y]), dy: -9, dx: -6, textAnchor: "end", fill: cores.tinta, fontSize: tamanhos.anotacao
     })] : []),
     ...(interativo ? [Plot.tip(definidos, Plot.pointerX({ x: "__posicao", y, title: tip }))] : [])
   ];
@@ -183,7 +198,7 @@ export function curvaTopo(dados, {
     marcas,
     x: { type: "point", domain: eixoX.dominio, label: rotuloX, labelArrow: "none", tickRotate: -45, padding: 0.4 },
     y: eixoY, largura, alturaPainel, margens: { left: margemEsquerda, right: 24 },
-    folgaEixoX: 66, cabecalhoTexto: { titulo, subtitulo, nota }, ariaLabel, ariaDescription, document
+    folgaEixoX: 86, cabecalhoTexto: { titulo, subtitulo, nota }, ariaLabel, ariaDescription, document
   });
 }
 

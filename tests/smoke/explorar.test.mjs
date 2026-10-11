@@ -181,3 +181,21 @@ test("Evolução: sem violações graves de acessibilidade (axe)", async () => {
   assert.deepEqual(await axe(pagina), []);
   await pagina.close();
 });
+
+test("Relatórios: figuras SVG do módulo JS carregam, com texto alternativo", async () => {
+  for (const [caminho, minimo] of [["reports/report.html", 9], ["reports/executive-summary.html", 3]]) {
+    const { pagina, problemas } = await abrir(caminho);
+    await pagina.waitForSelector("img[src*='figuras/']");
+    const imagens = await pagina.$$eval("img[src*='figuras/']", (imgs) => Promise.all(imgs.map(async (img) => {
+      if (!img.complete) await new Promise((r) => { img.onload = r; img.onerror = r; });
+      return { src: img.getAttribute("src"), alt: img.getAttribute("alt") ?? "", largura: img.naturalWidth };
+    })));
+    assert.ok(imagens.length >= minimo, `${caminho}: ${imagens.length} figuras`);
+    for (const img of imagens) {
+      assert.ok(img.largura > 0, `${img.src} não carregou`);
+      assert.ok(img.alt.length > 40, `${img.src} sem texto alternativo`);
+    }
+    assert.deepEqual(problemas, []);
+    await pagina.close();
+  }
+});
