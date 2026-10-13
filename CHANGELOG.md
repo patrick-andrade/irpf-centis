@@ -48,6 +48,7 @@ A decisão e as medições estão na [ADR 0002](docs/decisions/0002-camada-visua
 - O relatório dizia que 2018 aparecia destacado em todas as séries nacionais, mas nenhum gráfico o marcava. As séries de renda passam a sombrear o ano; a série patrimonial de ordenação direta, de outro estudo, não.
 - O deploy não empacotava ggplot2, dplyr, scales, bsicons e viridisLite: o job só instalava o shinylive, e o navegador baixava esses pacotes em tempo de execução, sem versão fixa. Agora são instalados antes do export, que falha se algum faltar.
 - No celular (375 px), relatório, sumário executivo, metodologia e limitações rolavam na horizontal. As tabelas em markdown ficavam fora da caixa rolável e um caminho em código não quebrava. Cada tabela agora rola dentro de uma região própria, focável pelo teclado e nomeada pela legenda ou, sem legenda, pelo título da seção.
+- Nos relatórios, os rótulos "Autor" e "Data de publicação" ficavam abaixo do contraste mínimo e os links de citação não se distinguiam do texto; agora passam no axe (WCAG 2.1 AA). O checkbox dos filtros do Explorar ganha borda visível e fica na linha do rótulo.
 
 ### Adicionado
 
@@ -64,6 +65,7 @@ A decisão e as medições estão na [ADR 0002](docs/decisions/0002-camada-visua
 
 ### Alterado
 
+- **Nova identidade visual.** Tinta quase preta, cinzas neutros e um acento só, o índigo da ponta escura da rampa de cores dos gráficos, no lugar do azul de destaque. Títulos em Noto Sans Display Condensed Bold, no site e nos PDFs. Filetes no lugar de cartões, sombras e faixas coloridas; tabelas com filetes no topo, sob o cabeçalho e no fim. As paletas dos dados não mudam.
 - Revisão de fontes, método, apresentação e documentação de reprodução. O guia de contribuição foi simplificado para o escopo de uma análise de economia aplicada.
 - **Primeira carga do painel mais leve:** fontes em woff2 com subconjunto latino (149 KB contra 1,65 MB de TTF embutidos em base64 no `app.json`); `readr` e sete dependências saem do painel; o bundle deixa de levar a decomposição de Theil e a série patrimonial bruta, que nenhuma aba lia.
 - A publicação passa a depender do CI aprovado no `main` e publica o commit testado.
