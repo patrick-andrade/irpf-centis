@@ -42,9 +42,9 @@ after(async () => {
 // Abre a página e registra erros de console, exceções e respostas 4xx/5xx da
 // própria origem. Pedidos ao CDN do runtime OJS do Quarto (marked, highlight)
 // não contam: a página não depende deles.
-async function abrir(caminho, { bloquearCdn = false } = {}) {
+async function abrir(caminho, { bloquearCdn = false, largura = 1280 } = {}) {
   const pagina = await navegador.newPage();
-  await pagina.setViewport({ width: 1280, height: 900 });
+  await pagina.setViewport({ width: largura, height: 900 });
   const problemas = [];
   pagina.on("pageerror", (e) => problemas.push(`exceção: ${e.message}`));
   pagina.on("console", (m) => {
@@ -196,6 +196,35 @@ test("Relatórios: figuras SVG do módulo JS carregam, com texto alternativo", a
       assert.ok(img.alt.length > 40, `${img.src} sem texto alternativo`);
     }
     assert.deepEqual(problemas, []);
+    await pagina.close();
+  }
+});
+
+// Em 375 px a página não rola na horizontal: a tabela larga rola dentro da
+// região criada por filters/tabela-rolavel.lua, que precisa ser focável e ter
+// nome para quem rola pelo teclado.
+test("Páginas de texto: sem rolagem horizontal em 375 px; tabelas rolam na própria região", async () => {
+  const caminhos = [
+    "reports/report.html", "reports/executive-summary.html", "reports/technical-appendix.html",
+    "docs/methodology.html", "docs/limitations.html", "docs/data-dictionary.html"
+  ];
+  for (const caminho of caminhos) {
+    const { pagina } = await abrir(caminho, { largura: 375 });
+    await pagina.waitForNetworkIdle({ idleTime: 300 }).catch(() => {});
+    const r = await pagina.evaluate(() => ({
+      largura: document.documentElement.scrollWidth,
+      janela: window.innerWidth,
+      tabelas: [...document.querySelectorAll("main table")].map((t) => {
+        const regiao = t.closest(".tabela-rolavel");
+        const rotulo = regiao?.getAttribute("aria-labelledby");
+        return {
+          regiao: regiao?.getAttribute("role") === "region" && regiao.getAttribute("tabindex") === "0",
+          nome: Boolean(regiao?.getAttribute("aria-label") || (rotulo && document.getElementById(rotulo)?.textContent.trim()))
+        };
+      })
+    }));
+    assert.ok(r.largura <= r.janela, `${caminho}: página com ${r.largura} px numa janela de ${r.janela} px`);
+    for (const t of r.tabelas) assert.deepEqual(t, { regiao: true, nome: true }, caminho);
     await pagina.close();
   }
 });

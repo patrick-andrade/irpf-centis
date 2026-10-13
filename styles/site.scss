@@ -157,6 +157,15 @@ a:focus-visible, button:focus-visible, .nav-link:focus-visible {
   text-align: left;
 }
 .cell-output-display:has(table) { overflow-x: auto; }
+/* Região criada por filters/tabela-rolavel.lua em volta de cada tabela: a
+   tabela rola aqui dentro e não alarga a página no celular. É focável para
+   rolar pelo teclado, daí o contorno de foco igual ao dos links. */
+.tabela-rolavel { max-width: 100%; overflow-x: auto; }
+.tabela-rolavel:focus-visible { outline: 3px solid var(--irpf-blue); outline-offset: 3px; }
+/* O Quarto põe `white-space: pre-wrap` no código inline de p, dd e td, mas não
+   de li: em lista compacta, um caminho longo (data/processed/…) não quebrava e
+   alargava a página em 375 px. */
+li code:not(.sourceCode) { white-space: pre-wrap; }
 /* Figuras dos relatórios (reports/figuras/*.svg, desenhadas pelo módulo JS):
    largura de leitura, sem ampliar o texto do gráfico além do corpo da página. */
 .quarto-figure img[src*="figuras/"] { display: block; max-width: min(100%, 760px); height: auto; }

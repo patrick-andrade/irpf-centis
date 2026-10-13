@@ -47,6 +47,7 @@ A decisão e as medições estão na [ADR 0002](docs/decisions/0002-camada-visua
 - Sumário executivo escrevia os achados com ponto decimal ("19.8%", "0.577") e dizia "diminuiu" quando os dois valores eram iguais; passa a usar os formatadores pt-BR das tabelas. Tabelas de rendimento mostram "3,1 tri" em vez de treze dígitos.
 - O relatório dizia que 2018 aparecia destacado em todas as séries nacionais, mas nenhum gráfico o marcava. As séries de renda passam a sombrear o ano; a série patrimonial de ordenação direta, de outro estudo, não.
 - O deploy não empacotava ggplot2, dplyr, scales, bsicons e viridisLite: o job só instalava o shinylive, e o navegador baixava esses pacotes em tempo de execução, sem versão fixa. Agora são instalados antes do export, que falha se algum faltar.
+- No celular (375 px), relatório, sumário executivo, metodologia e limitações rolavam na horizontal. As tabelas em markdown ficavam fora da caixa rolável e um caminho em código não quebrava. Cada tabela agora rola dentro de uma região própria, focável pelo teclado e nomeada pela legenda ou, sem legenda, pelo título da seção.
 
 ### Adicionado
 

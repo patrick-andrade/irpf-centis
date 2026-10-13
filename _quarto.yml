@@ -72,6 +72,9 @@ website:
 
 lang: pt-BR
 bibliography: reports/references.bib
+filters:
+  # Tabelas roláveis em telas estreitas (ver o cabeçalho do filtro).
+  - filters/tabela-rolavel.lua
 execute:
   echo: false
   warning: false
