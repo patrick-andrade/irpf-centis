@@ -3,6 +3,7 @@
 // funcionam sem código extra. Os controles seguem o protocolo do `viewof` do
 // OJS: expõem `.value` e disparam o evento "input" quando mudam.
 import { paginas, hrefComEstado } from "./estado.js";
+import { cores } from "./tokens.js";
 
 let contador = 0;
 const novoId = (prefixo) => `${prefixo}-${++contador}`;
@@ -228,7 +229,7 @@ export function legendaLinhas(itens) {
     svg.setAttribute("height", "8");
     svg.setAttribute("aria-hidden", "true");
     const linha = document.createElementNS("http://www.w3.org/2000/svg", "line");
-    for (const [k, v] of Object.entries({ x1: 0, x2: 28, y1: 4, y2: 4, stroke: "#586179", "stroke-width": 2 })) linha.setAttribute(k, v);
+    for (const [k, v] of Object.entries({ x1: 0, x2: 28, y1: 4, y2: 4, stroke: cores.textoSuave, "stroke-width": 2 })) linha.setAttribute(k, v);
     if (tracejado) linha.setAttribute("stroke-dasharray", "5,4");
     svg.append(linha);
     return svg;
@@ -242,6 +243,6 @@ export function legendaClasses(quebras, coresClasses, formatar) {
   const itens = coresClasses.map((cor, i) => el("li", {},
     el("span", { class: "amostra", style: `background:${cor}`, "aria-hidden": "true" }),
     `${formatar(quebras[i])} a ${formatar(quebras[i + 1])}`));
-  itens.push(el("li", {}, el("span", { class: "amostra", style: "background:#E9ECEF", "aria-hidden": "true" }), "sem dado"));
+  itens.push(el("li", {}, el("span", { class: "amostra", style: `background:${cores.semValor}`, "aria-hidden": "true" }), "sem dado"));
   return el("ul", { class: "legenda-classes", "aria-label": "Classes do mapa" }, itens);
 }
