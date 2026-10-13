@@ -3,17 +3,20 @@
 //
 // Cada cor tem um significado só. O mesmo âmbar já foi "RB3" num gráfico e
 // "ponto de destaque" em outro; aqui a paleta qualitativa (Okabe-Ito) serve a
-// categorias sem ordem e a rampa ordinal (mako) a séries aninhadas.
+// categorias sem ordem e a rampa ordinal (mako) a séries aninhadas. Tinta e
+// cinzas são neutros: a cor do site é a dos dados.
 
 export const cores = Object.freeze({
-  tinta: "#101D40",
-  textoSuave: "#586179",
-  grade: "#DBE3EF",
-  referencia: "#7D8BA1",
-  contexto: "#6B7890",
+  tinta: "#1E1E1E",
+  textoSuave: "#5C5C5C",
+  grade: "#DDDDDD",
+  referencia: "#8A8A8A",
+  contexto: "#737373",
   fundo: "#FFFFFF",
-  semValor: "#E9ECEF",
-  azul: "#156DF9"
+  semValor: "#EBEBEB",
+  // Ponta escura da rampa mako: o acento das páginas (links, foco, item
+  // ativo) sai da paleta dos gráficos, não de uma cor de marca à parte.
+  acento: "#3B2E5D"
 });
 
 // Okabe-Ito: segura para as formas comuns de daltonismo.

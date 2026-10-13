@@ -8,4 +8,4 @@ format:
       y: 0.9in
     include-before-body:
       - text: |
-          #show heading: set text(font: "Noto Sans Display", fill: rgb("#101D40"))
+          #show heading: set text(font: "Noto Sans Display", weight: "bold", stretch: 75%, fill: rgb("#1E1E1E"))
